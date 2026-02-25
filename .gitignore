@@ -1,0 +1,25 @@
+# --- Unity Package Specifics ---
+/[Bb]uild/
+/[Ll]og/
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+
+# --- IDE / OS Specifics ---
+.vs/
+.idea/
+.vscode/
+*.csproj
+*.sln
+*.user
+*.userprefs
+*.pidb
+*.suo
+*.sln.docstates
+.DS_Store
+Thumbs.db
+
+# --- Package Manager ---
+# Do NOT ignore .meta files in a package; they are required for GUIDs
+# to remain consistent across projects.
+!*.meta

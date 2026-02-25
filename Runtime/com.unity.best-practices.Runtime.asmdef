@@ -1,0 +1,14 @@
+{
+    "name": "com.unity.best-practices.Runtime",
+    "rootNamespace": "Unity.BestPractices",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

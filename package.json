@@ -1,0 +1,27 @@
+{
+  "name": "com.unity.best-practices",
+  "version": "1.0.0",
+  "displayName": "Unity Best Practices",
+  "unity": "6000.3",
+  "description": "Unity C# coding style guide, best practices and LLM instructions to boost your productivity.",
+  "author": {
+    "name": "Other",
+    "url": "https://github.com/krogh-jacobsen/"
+  },
+  "license": "MIT",
+  "licensesUrl": "https://opensource.org/licenses/MIT",
+  "keywords": [
+    "code-style",
+    "best-practices",
+    "guidelines",
+    "c-sharp",
+    "unity",
+    "coding-standards",
+    "llm-instructions",
+    "copilot",
+    "claude code",
+    "codex",
+    "gemini cli"
+  ],
+  "_fingerprint": "9af04b97568783573f0824c526d4de4b8196f6b1"
+}
