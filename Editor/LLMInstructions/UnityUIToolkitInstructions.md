@@ -30,9 +30,10 @@ Official documentation (fetch on demand if an API is not covered here):
 17. [TabView & Tab Styling](#tabview--tab-styling)
 18. [Common Patterns & Examples](#common-patterns--examples)
 19. [MVP Design Pattern with Data Binding](#mvp-design-pattern-with-data-binding)
-20. [Performance Tips](#performance-tips)
-21. [Quick Reference: Common Mistakes](#quick-reference-common-mistakes)
-22. [Troubleshooting](#troubleshooting)
+20. [Layered Panel Architecture for State-Driven UIs](#layered-panel-architecture-for-state-driven-uis)
+21. [Performance Tips](#performance-tips)
+22. [Quick Reference: Common Mistakes](#quick-reference-common-mistakes)
+23. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -2243,6 +2244,219 @@ namespace Game.Presenters
 
 ---
 
+## Layered Panel Architecture for State-Driven UIs
+
+When building state-driven UIs (game menus, HUD systems, multi-panel interfaces), organize panels into three conceptual layers. This pattern is recommended by Unity's best practices samples (Dragon Crashers, Football Manager).
+
+### The Three Layers
+
+**1. HUD Layer (Persistent)**
+- Always visible in gameplay states
+- Examples: resource display, turn counter, minimap, game log
+- Managed by a single helper method in the state controller
+- Shown in all states EXCEPT modal overlays
+
+```csharp
+private void ShowHUDLayer(bool show)
+{
+    SetPanelsActive(m_resourceControllerView, show);
+    SetPanelsActive(m_gameTurnControllerView, show);
+    SetPanelsActive(m_logPanelView, show);
+    SetPanelsActive(m_miniMapPanelView, show);
+}
+```
+
+**2. Context Layer (State-Specific)**
+- One context panel active per game state
+- Examples: TownView for town selection, ArmyView for army selection, TownConstructionView for building
+- Managed by the state machine switch statement
+- Changed when state changes (DefaultMapView → ArmyView → TownView, etc.)
+
+```csharp
+private void ApplyStateToPanels(UIGameState state)
+{
+    // Hide all context panels first
+    SetPanelsActive(m_mapTileView, false);
+    SetPanelsActive(m_armyLowerPanelView, false);
+    SetPanelsActive(m_constructionOptionsPanel, false);
+
+    // Show HUD in all states except modal
+    if (state != UIGameState.ConquestView)
+        ShowHUDLayer(true);
+
+    // Show context panel for this state
+    switch (state)
+    {
+        case UIGameState.TownView:
+            SetPanelsActive(m_mapTileView, true);
+            break;
+        case UIGameState.ArmyView:
+            SetPanelsActive(m_armyLowerPanelView, true);
+            break;
+        // ... etc
+    }
+}
+```
+
+**3. Overlay Layer (Modal/Independent)**
+- Modal dialogs or popups that stack on top
+- Examples: EventPopup, ConquestView, ConfirmationDialogs
+- Shown/hidden independently of state machine
+- Typically hides HUD when active (full-screen focus) or shows on top
+
+### Critical Convention: PickingMode in ShowPanel()
+
+Every `ShowPanel()` method must set `picking-mode` to prevent hidden panels from silently consuming pointer events:
+
+```csharp
+public override void ShowPanel(bool show)
+{
+    if (m_panel == null) return;  // Defensive null check
+
+    // Always set display style
+    m_panel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+
+    // Always set picking mode — this prevents hidden panels from blocking clicks
+    m_panel.pickingMode = show ? PickingMode.Position : PickingMode.Ignore;
+}
+```
+
+**Why this matters:** A hidden panel with `display: none` but `pickingMode = Position` will still intercept pointer events, breaking button clicks and interactions in other panels. Setting `pickingMode.Ignore` removes it from the event system entirely.
+
+### Pattern in MainPanel.uxml
+
+Organize your UXML to support layers visually:
+
+```xml
+<ui:VisualElement name="main-panel">
+    <!-- HUD Layer: Always visible in corner regions -->
+    <ui:VisualElement name="hud-section">
+        <ui:Instance template="ResourcePanel" name="resource-panel"/>
+        <ui:Instance template="TurnController" name="turn-controller"/>
+        <ui:Instance template="MiniMap" name="mini-map"/>
+        <ui:Instance template="LogPanel" name="log-panel"/>
+    </ui:VisualElement>
+
+    <!-- Context Layer: Large center area, one panel at a time -->
+    <ui:VisualElement name="context-section">
+        <ui:Instance template="TownPanel" name="map-tile-view" style="display: none;"/>
+        <ui:Instance template="ArmyPanel" name="army-view" style="display: none;"/>
+        <ui:Instance template="ConstructionPanel" name="construction-view" style="display: none;"/>
+    </ui:VisualElement>
+
+    <!-- Overlay Layer: Modal dialogs, appear on top -->
+    <ui:Instance template="EventPopup" name="event-popup" style="display: none;"/>
+    <ui:Instance template="ConquestPanel" name="conquest-panel" style="display: none;"/>
+</ui:VisualElement>
+```
+
+### State Machine Refactoring Best Practices
+
+When modifying `ApplyStateToPanels()` or extracting layer helpers:
+
+1. **Make changes incrementally** — Small changes to state logic can have cascade effects across all states
+2. **Test all state transitions in-game** — After each change, verify:
+   - DefaultMapView shows HUD only
+   - ArmyView shows HUD + context panel
+   - ConquestView hides HUD (modal)
+   - EventPopupView shows correctly
+3. **Use defensive null checks** — Always guard against missing elements:
+   ```csharp
+   if (m_panel == null) return;
+   m_panel.style.display = ...;
+   ```
+4. **Comment state groups** — Mark which panels belong to which layer for clarity:
+   ```csharp
+   // CONTEXT LAYER: Hide all first
+   SetPanelsActive(m_contextPanel1, false);
+
+   // HUD LAYER: Show persistent
+   ShowHUDLayer(true);
+
+   // OVERLAY LAYER: Handle modals
+   SetPanelsActive(m_overlayPanel, false);
+   ```
+
+### Benefits of This Architecture
+
+| Benefit | Impact |
+|---------|--------|
+| **Scalability** | Add 10+ states without complexity; each manages only its context panel |
+| **Consistency** | HUD always shows together; prevents partial HUD states |
+| **Maintainability** | Clear separation of concerns; adding new states is predictable |
+| **Performance** | Fewer panel visibility changes per state transition |
+| **UX Clarity** | Players always see HUD; modal overlays are obvious; no accidentally hidden panels |
+
+### Example: Complete State Machine with Layers
+
+```csharp
+public class UIGameController : MonoBehaviour
+{
+    [SerializeField] private ResourceControllerView m_resourceView;
+    [SerializeField] private GameTurnControllerView m_turnView;
+    [SerializeField] private LogPanelView m_logView;
+    [SerializeField] private MiniMapView m_miniMapView;
+
+    [SerializeField] private MapTileView m_townView;
+    [SerializeField] private ArmyLowerPanelView m_armyView;
+    [SerializeField] private ConstructionsOptionsView m_constructionView;
+
+    [SerializeField] private EventPopupView m_eventPopupView;
+    [SerializeField] private ConquestMapTileView m_conquestView;
+
+    private void ShowHUDLayer(bool show)
+    {
+        SetPanelsActive(m_resourceView, show);
+        SetPanelsActive(m_turnView, show);
+        SetPanelsActive(m_logView, show);
+        SetPanelsActive(m_miniMapView, show);
+    }
+
+    private void ApplyStateToPanels(UIGameState state)
+    {
+        // CONTEXT LAYER: Hide all state-specific panels
+        SetPanelsActive(m_townView, false);
+        SetPanelsActive(m_armyView, false);
+        SetPanelsActive(m_constructionView, false);
+
+        // OVERLAY LAYER: Hide modals
+        SetPanelsActive(m_eventPopupView, false);
+        SetPanelsActive(m_conquestView, false);
+
+        // HUD LAYER: Show in all states except modal
+        if (state != UIGameState.ConquestView)
+            ShowHUDLayer(true);
+        else
+            ShowHUDLayer(false);
+
+        // Enable context panel for this state
+        switch (state)
+        {
+            case UIGameState.DefaultMapView:
+                // HUD only
+                break;
+            case UIGameState.TownView:
+                SetPanelsActive(m_townView, true);
+                break;
+            case UIGameState.ArmyView:
+                SetPanelsActive(m_armyView, true);
+                break;
+            case UIGameState.TownConstructionView:
+                SetPanelsActive(m_constructionView, true);
+                break;
+            case UIGameState.EventPopupView:
+                SetPanelsActive(m_eventPopupView, true);
+                break;
+            case UIGameState.ConquestView:
+                SetPanelsActive(m_conquestView, true);
+                break;
+        }
+    }
+}
+```
+
+---
+
 ## Performance Tips
 
 1. **Cache VisualElement references** in `OnEnable` — never call `Q<>()` in `Update`; `OnEnable` is preferred over `Awake` so queries and subscriptions are in the same method
@@ -2281,6 +2495,167 @@ namespace Game.Presenters
 | `UxmlFactory`/`UxmlTraits` | `[UxmlElement]` / `[UxmlAttribute]` | Deprecated in Unity 6 |
 | `OnDestroy` for runtime MonoBehaviour | `OnDisable` | `OnDestroy` fires too late |
 | `SerializedObject.Bind()` for runtime | `binding-path` + `dataSource` | Editor API only |
+
+---
+
+## UI Toolkit Validation System
+
+**Problem:** UXML element queries return `null` silently if an element name is wrong, renamed, or has a typo. This causes NullReferenceExceptions later, far from the actual source of the problem.
+
+**Example Silent Fail:**
+```
+MainPanel.uxml: <VisualElement name="army-recuitment-panel">  <!-- Typo! -->
+C# Code:        m_panel = Q<VisualElement>("army-recruitment-panel");  <!-- Correct spelling -->
+Result:         m_panel = null (silently!)
+Later:          m_panel.Clear() → NullReferenceException 5+ frames later
+```
+
+The error happens nowhere near the UXML typo, making it hard to debug.
+
+### The Solution: Safe Querying + Validation
+
+**Step 1: Use the `Q<T>()` Helper in `UITKBaseClass`**
+
+All UI views inherit from `UITKBaseClass`, which provides a safe element query method:
+
+```csharp
+protected T Q<T>(string name, bool required = false) where T : VisualElement
+{
+    T element = m_rootVisualElement.Q<T>(name);
+
+    if (element == null)
+    {
+        string logMessage = $"[{this.GetType().Name}] Element '{name}' of type {typeof(T).Name} not found.";
+        if (required)
+            Debug.LogError(logMessage, this);
+        else
+            Debug.LogWarning(logMessage, this);
+    }
+
+    return element;
+}
+```
+
+**Usage:**
+```csharp
+protected override void InitializeElements()
+{
+    // Critical element — logs ERROR if not found
+    m_armyRecruitPanel = Q<VisualElement>("army-recruitment-panel", required: true);
+
+    // Optional element — logs WARNING if not found
+    m_closePanelButton = Q<Button>("close-btn", required: false);
+}
+```
+
+**Step 2: Override `ValidateElementsInitialized()`**
+
+This method is called automatically in `Awake()` after `InitializeElements()`. Override it to check that critical elements were found:
+
+```csharp
+protected override void ValidateElementsInitialized()
+{
+    // Critical: entire view breaks without this
+    if (m_armyRecruitPanel == null)
+    {
+        Debug.LogError(
+            "[ArmyRecruitPanel] CRITICAL: Element 'army-recruitment-panel' not found in MainPanel.uxml.\n" +
+            "Check MainPanel.uxml for:\n" +
+            "  1. Element name attribute is exactly: name=\"army-recruitment-panel\"\n" +
+            "  2. Verify spelling (recruitment, not recuitment)\n" +
+            "  3. Verify <ui:Instance> element is not commented out",
+            this);
+        enabled = false;  // Disable view since it's broken
+        return;
+    }
+
+    // Non-critical: warn but view might still function
+    if (m_closePanelButton == null)
+        Debug.LogWarning("[ArmyRecruitPanel] Element 'close-btn' not found.", this);
+}
+```
+
+### Pattern for All Views
+
+Every view should follow this pattern:
+
+```csharp
+public class MyView : UITKBaseClass
+{
+    private VisualElement m_mainPanel;
+    private Button m_actionButton;
+
+    protected override void InitializeElements()
+    {
+        // Use Q<>() for all queries — it logs errors automatically
+        m_mainPanel = Q<VisualElement>("my-panel", required: true);
+        m_actionButton = Q<Button>("action-btn", required: false);
+    }
+
+    protected override void ValidateElementsInitialized()
+    {
+        // Check critical elements
+        if (m_mainPanel == null)
+        {
+            Debug.LogError("[MyView] Critical element 'my-panel' not found.", this);
+            enabled = false;
+            return;
+        }
+
+        // Warn about optional elements
+        if (m_actionButton == null)
+            Debug.LogWarning("[MyView] Optional element 'action-btn' not found.", this);
+    }
+
+    protected override void SubscribeToEvents()
+    {
+        if (m_actionButton != null)
+            m_actionButton.clicked += OnActionClicked;
+    }
+
+    protected override void UnsubscribeToEvents()
+    {
+        if (m_actionButton != null)
+            m_actionButton.clicked -= OnActionClicked;
+    }
+
+    public override void ShowPanel(bool show)
+    {
+        if (m_mainPanel == null) return;  // Safety check
+        m_mainPanel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+        m_mainPanel.pickingMode = show ? PickingMode.Position : PickingMode.Ignore;
+    }
+
+    private void OnActionClicked()
+    {
+        Debug.Log("Action button clicked", this);
+    }
+}
+```
+
+### How It Catches the Silent Fail
+
+**Before Validation System:**
+1. MainPanel.uxml has typo: `name="army-recuitment-panel"`
+2. Code queries: `Q<VisualElement>("army-recruitment-panel")` → returns `null`
+3. No error logged — silent failure
+4. Later: `m_armyRecruitPanel.Clear()` → **NullReferenceException** (5+ frames later)
+5. Error is far from source, hard to debug
+
+**With Validation System:**
+1. MainPanel.uxml has typo: `name="army-recuitment-panel"`
+2. Code queries: `Q<VisualElement>("army-recruitment-panel", required: true)` → logs **ERROR immediately**
+3. `ValidateElementsInitialized()` runs and logs second **ERROR** with clear guidance
+4. View disables itself gracefully
+5. Developer sees clear error in Console pointing exactly to the problem
+
+### Benefits
+
+✅ **Immediate Feedback** — Errors logged in `Awake()`, not 5 frames later
+✅ **Clear Messages** — Error tells you exactly what to check
+✅ **No Crashes** — View disables gracefully instead of throwing
+✅ **Self-Documenting** — Code shows which elements are required vs optional
+✅ **Consistent Pattern** — Same approach across all 13+ views
 
 ---
 
