@@ -1,0 +1,59 @@
+using UnityEngine;
+
+    #ROOTNAMESPACEBEGIN#
+public class #SCRIPTNAME# : MonoBehaviour
+{
+    #region Fields
+
+    #endregion
+
+    #region Properties
+
+    #endregion
+
+    #region Events
+
+    #endregion
+
+    #region MonoBehaviour Methods
+
+    private void Awake()
+    {
+        // Cache component references here
+        #NOTRIM#
+    }
+
+    private void OnEnable()
+    {
+        // Subscribe to events here
+        #NOTRIM#
+    }
+
+    private void Start()
+    {
+        // Initialization that depends on other components being ready
+        #NOTRIM#
+    }
+
+    private void OnDisable()
+    {
+        // Unsubscribe from events here
+        #NOTRIM#
+    }
+
+    private void Update()
+    {
+        #NOTRIM#
+    }
+
+    #endregion
+
+    #region Public Methods
+
+    #endregion
+
+    #region Private Methods
+
+    #endregion
+}
+#ROOTNAMESPACEEND#

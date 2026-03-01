@@ -1,0 +1,76 @@
+using UnityEngine;
+using UnityEngine.UIElements;
+
+#ROOTNAMESPACEBEGIN#
+namespace Core.UI
+{
+    public class #SCRIPTNAME# : UITKBaseClass
+    {
+        #region Fields
+
+        #endregion
+
+        #region Properties
+
+        #endregion
+
+        #region Events
+
+        #endregion
+
+        #region MonoBehaviour Methods
+
+        private void Awake()
+        {
+            // Cache component references here
+            #NOTRIM#
+        }
+
+        private void OnEnable()
+        {
+            // Subscribe to events here
+            #NOTRIM#
+        }
+
+        private void OnDisable()
+        {
+            // Unsubscribe from events here
+            #NOTRIM#
+        }
+
+        protected override void InitializeElements()
+        {
+            // Query and cache UI elements from m_rootVisualElement
+            #NOTRIM#
+        }
+
+        protected override void RegisterCallbacks()
+        {
+            // Register UI element event callbacks here
+            #NOTRIM#
+        }
+
+        protected override void UnregisterCallbacks()
+        {
+            // Unregister UI element event callbacks here
+            #NOTRIM#
+        }
+
+        public override void ShowPanel(bool show)
+        {
+            // Toggle panel visibility
+            #NOTRIM#
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        #endregion
+
+        #region Private Methods
+
+        #endregion
+    }
+}
+#ROOTNAMESPACEEND#

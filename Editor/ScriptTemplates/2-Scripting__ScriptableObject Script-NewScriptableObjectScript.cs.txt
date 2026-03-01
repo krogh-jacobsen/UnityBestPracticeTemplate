@@ -1,0 +1,18 @@
+using UnityEngine;
+
+    #ROOTNAMESPACEBEGIN#
+/// <summary>
+/// Static configuration data. Do not use for runtime state.
+/// </summary>
+[CreateAssetMenu(fileName = "#SCRIPTNAME#", menuName = "Scriptable Objects/#SCRIPTNAME#")]
+public class #SCRIPTNAME# : ScriptableObject
+{
+    #region Fields
+
+    #endregion
+
+    #region Properties
+
+    #endregion
+}
+#ROOTNAMESPACEEND#
