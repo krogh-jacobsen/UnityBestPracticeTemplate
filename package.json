@@ -1,11 +1,11 @@
 {
   "name": "com.unity.best-practices",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "displayName": "Unity Best Practices",
   "unity": "6000.3",
   "description": "Unity C# coding style guide, best practices and LLM instructions to boost your productivity.",
   "author": {
-    "name": "Other",
+    "name": "Krogh-Jacobsen",
     "url": "https://github.com/krogh-jacobsen/"
   },
   "license": "MIT",
