@@ -1,0 +1,16 @@
+using System;
+
+    #ROOTNAMESPACEBEGIN#
+/// <summary>
+/// Static event bus for #SCRIPTNAME# events. Subscribe in OnEnable, unsubscribe in OnDisable.
+/// </summary>
+public static class #SCRIPTNAME#
+{
+    public static event Action OnEventRaised;
+
+    public static void Raise()
+    {
+        OnEventRaised?.Invoke();
+    }
+}
+#ROOTNAMESPACEEND#

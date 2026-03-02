@@ -1,6 +1,6 @@
 {
   "name": "com.unity.best-practices",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "displayName": "Unity Best Practices",
   "unity": "6000.3",
   "description": "Unity C# coding style guide, best practices and LLM instructions to boost your productivity.",
@@ -22,6 +22,28 @@
     "claude code",
     "codex",
     "gemini cli"
+  ],
+  "samples": [
+    {
+      "displayName": "ScriptableObject Event System",
+      "description": "Observer pattern using GameEvent ScriptableObjects. Decouples senders from receivers without direct references.",
+      "path": "Samples/ScriptableObjectEventSystem"
+    },
+    {
+      "displayName": "Object Pooling",
+      "description": "ObjectPool<T> spawner with auto-release on disable using Unity 6 Awaitable.",
+      "path": "Samples/ObjectPooling"
+    },
+    {
+      "displayName": "UI Toolkit MVP",
+      "description": "Minimal UXML + USS + presenter wiring demonstrating the Model-View-Presenter pattern.",
+      "path": "Samples/UIToolkitMVP"
+    },
+    {
+      "displayName": "State Machine",
+      "description": "Enum-based state machine with IState interface and OnEnter/OnUpdate/OnExit lifecycle.",
+      "path": "Samples/StateMachine"
+    }
   ],
   "_fingerprint": "9af04b97568783573f0824c526d4de4b8196f6b1"
 }

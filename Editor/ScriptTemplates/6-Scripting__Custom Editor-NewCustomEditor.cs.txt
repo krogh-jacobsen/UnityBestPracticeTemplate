@@ -1,0 +1,35 @@
+using UnityEngine;
+using UnityEditor;
+
+    #ROOTNAMESPACEBEGIN#
+[CustomEditor(typeof(TargetClass))]
+public class #SCRIPTNAME# : Editor
+{
+    #region Fields
+
+    // private SerializedProperty m_ExampleProperty;
+
+    #endregion
+
+    #region Editor Methods
+
+    private void OnEnable()
+    {
+        // m_ExampleProperty = serializedObject.FindProperty("m_ExampleField");
+        #NOTRIM#
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+
+        DrawDefaultInspector();
+
+        // Add custom inspector UI here using EditorGUILayout
+
+        serializedObject.ApplyModifiedProperties();
+    }
+
+    #endregion
+}
+#ROOTNAMESPACEEND#

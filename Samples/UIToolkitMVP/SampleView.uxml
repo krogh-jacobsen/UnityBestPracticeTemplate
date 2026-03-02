@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement class="sample-view">
+        <ui:Label name="count-label" text="0" class="sample-view__count" />
+        <ui:Button name="increment-button" text="Increment" class="sample-view__button" />
+    </ui:VisualElement>
+</ui:UXML>

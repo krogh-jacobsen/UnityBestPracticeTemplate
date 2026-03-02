@@ -1,0 +1,63 @@
+using UnityEngine;
+using UnityEngine.Pool;
+
+    #ROOTNAMESPACEBEGIN#
+public class #SCRIPTNAME# : MonoBehaviour
+{
+    #region Fields
+
+    [SerializeField] private GameObject m_Prefab;
+    [SerializeField] private int m_DefaultCapacity = 10;
+    [SerializeField] private int m_MaxSize = 100;
+
+    private ObjectPool<GameObject> m_Pool;
+
+    #endregion
+
+    #region Properties
+
+    public ObjectPool<GameObject> Pool => m_Pool;
+
+    #endregion
+
+    #region MonoBehaviour Methods
+
+    private void Awake()
+    {
+        m_Pool = new ObjectPool<GameObject>(
+            createFunc: CreatePooledItem,
+            actionOnGet: OnTakeFromPool,
+            actionOnRelease: OnReturnedToPool,
+            actionOnDestroy: OnDestroyPoolObject,
+            collectionCheck: false,
+            defaultCapacity: m_DefaultCapacity,
+            maxSize: m_MaxSize);
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private GameObject CreatePooledItem()
+    {
+        return Instantiate(m_Prefab);
+    }
+
+    private void OnTakeFromPool(GameObject obj)
+    {
+        obj.SetActive(true);
+    }
+
+    private void OnReturnedToPool(GameObject obj)
+    {
+        obj.SetActive(false);
+    }
+
+    private void OnDestroyPoolObject(GameObject obj)
+    {
+        Destroy(obj);
+    }
+
+    #endregion
+}
+#ROOTNAMESPACEEND#

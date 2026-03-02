@@ -1,0 +1,42 @@
+using System.Collections;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+    #ROOTNAMESPACEBEGIN#
+[TestFixture]
+public class #SCRIPTNAME#
+{
+    #region Setup and Teardown
+
+    [SetUp]
+    public void SetUp()
+    {
+        #NOTRIM#
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        #NOTRIM#
+    }
+
+    #endregion
+
+    #region Tests
+
+    [UnityTest]
+    public IEnumerator ExampleMethod_WhenCondition_ReturnsExpectedResult()
+    {
+        // Arrange
+
+        // Act
+        yield return null; // Wait one frame
+
+        // Assert
+        Assert.Pass();
+    }
+
+    #endregion
+}
+#ROOTNAMESPACEEND#

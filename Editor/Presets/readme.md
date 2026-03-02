@@ -119,6 +119,62 @@ Mask textures are data, not color. Leaving sRGB ON is the single most common mis
 
 ---
 
+## Roughness Maps ##
+Roughness maps store a single-channel linear value (0 = perfectly smooth, 1 = fully rough) that drives specular response in PBR shaders. Like mask textures, they are data — not color. A roughness map imported with sRGB ON will have its values gamma-corrected, which shifts the entire roughness range and makes materials appear uniformly shinier or rougher than intended.
+Here are some generally recommended settings to textures in /Textures/Environment/Roughness/:
+
+| Setting                | Value | Notes |
+|------------------------|--------|--------|
+| **Texture Type**       | Default | No dedicated roughness type in Unity. |
+| **Advanced**           |  |  |
+| sRGB (Color Texture)   | OFF | Roughness is linear data. sRGB ON applies gamma correction that corrupts the per-pixel values the shader reads. |
+| Mip Maps               | ON | Prevents specular aliasing at distance. A roughness map without mipmaps will produce noisy, flickering highlights on surfaces viewed from afar. |
+| Wrap Mode              | Repeat | Match the corresponding albedo and normal wrap modes. |
+| Filter Mode            | Bilinear | Standard filtering for data textures. |
+| **Compression**        |  |  |
+| Max Size               | See platform notes | Roughness maps encode smooth gradients and can often be half the resolution of the albedo without visible loss. |
+| Compression            | Normal Quality | Avoid very low quality — banding in roughness gradients produces visible specular artifacts. |
+
+**Platform Differences — Roughness:**
+| Setting | PC / Console | Mobile |
+|---------|-------------|--------|
+| **Max Size** | 1024–2048 (can often match or halve albedo) | 512–1024 (smooth gradients tolerate lower resolution) |
+| **Compression Format** | BC4 (single-channel, optimal for standalone roughness maps) | ASTC 4x4–5x5 (modest block size to prevent specular banding) |
+
+**Preset Manager filter example:** `glob:"Assets/Art/Textures/Environment/Roughness/**"`
+
+---
+
+## HDRI / Skybox Cubemaps ##
+HDRI textures are equirectangular images (.hdr, .exr) used as environment maps and Image-Based Lighting (IBL) sources. They store high-dynamic-range radiance data in linear space. Unlike all other texture categories, HDRI maps are converted to cubemaps at import time. Incorrect import settings (sRGB ON or wrong texture shape) will break sky rendering, ambient lighting, and reflections across the entire scene.
+Here are some generally recommended settings to textures in /Textures/Environment/HDRI/:
+
+| Setting                | Value | Notes |
+|------------------------|--------|--------|
+| **Texture Type**       | Default | Use Default, not Normal Map. HDRI data is radiance, not surface direction. |
+| **Texture Shape**      | Cube | Required for skybox and IBL use. Unity converts the equirectangular source to a cubemap face layout at import. |
+| **Advanced**           |  |  |
+| sRGB (Color Texture)   | OFF | HDR environment maps are linear radiance data. sRGB ON applies gamma correction that breaks the lighting contribution — ambient light will appear washed out or incorrect. |
+| Generate Cubemap       | Spheremap | Tells Unity the source is an equirectangular (lat-long) projection, which is the standard format for HDRI images from tools like Poly Haven, HDRI Haven, etc. |
+| Mip Maps               | ON | Required for specular IBL (rough reflections sample lower mip levels). Without mipmaps, rough material reflections will appear aliased or use only the highest-detail mip. |
+| Wrap Mode              | Clamp | Cubemaps do not tile; clamping prevents seam artifacts at cube face boundaries. |
+| Filter Mode            | Trilinear | Smooth mip transitions are important for specular reflections across roughness gradients. |
+| **Compression**        |  |  |
+| Max Size               | 2048 | Balance between reflection quality and memory. 4096 is rarely needed for IBL; 1024 is often sufficient for secondary/fill HDRIs. |
+| Compression            | Normal Quality | HDRI data is used for lighting math; heavy compression can introduce energy conservation errors visible in specular highlights. |
+
+**Platform Differences — HDRI:**
+| Setting | PC / Console | Mobile |
+|---------|-------------|--------|
+| **Max Size** | 2048 (4096 for hero environments with close-up reflections) | 1024 (mobile GPUs benefit from smaller cubemaps; IBL quality difference is subtle at mobile resolutions) |
+| **Compression Format** | BC6H (HDR-aware, lossless for floating point data) | ASTC HDR (6x6 is a safe default); fall back to RGBA16 on devices without ASTC HDR support |
+
+HDR textures (.hdr, .exr) are linear by definition. Always verify sRGB is OFF after import — Unity does not always disable it automatically for non-Normal Map texture types.
+
+**Preset Manager filter example:** `glob:"Assets/Art/Textures/Environment/HDRI/**"`
+
+---
+
 ## How to Create and Apply a Preset ##
 This section walks through how to turn a configured asset's import settings into a reusable Preset, and how to assign it in the Preset Manager so Unity applies it automatically on import.
 

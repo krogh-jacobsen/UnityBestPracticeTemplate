@@ -1,0 +1,40 @@
+using NUnit.Framework;
+
+    #ROOTNAMESPACEBEGIN#
+[TestFixture]
+public class #SCRIPTNAME#
+{
+    #region Setup and Teardown
+
+    [SetUp]
+    public void SetUp()
+    {
+        // Initialize objects before each test
+        #NOTRIM#
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        // Clean up after each test
+        #NOTRIM#
+    }
+
+    #endregion
+
+    #region Tests
+
+    [Test]
+    public void ExampleMethod_WhenCondition_ReturnsExpectedResult()
+    {
+        // Arrange
+
+        // Act
+
+        // Assert
+        Assert.Pass();
+    }
+
+    #endregion
+}
+#ROOTNAMESPACEEND#

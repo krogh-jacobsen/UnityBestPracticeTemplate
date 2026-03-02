@@ -1,0 +1,31 @@
+using UnityEngine;
+using UnityEditor;
+
+    #ROOTNAMESPACEBEGIN#
+public class #SCRIPTNAME# : EditorWindow
+{
+    #region Fields
+
+    #endregion
+
+    #region Editor Window Methods
+
+    [MenuItem("Window/#SCRIPTNAME#")]
+    public static void ShowWindow()
+    {
+        var window = GetWindow<#SCRIPTNAME#>();
+        window.titleContent = new GUIContent("#SCRIPTNAME#");
+        window.Show();
+    }
+
+    private void OnGUI()
+    {
+        GUILayout.Label("#SCRIPTNAME#", EditorStyles.boldLabel);
+
+        // Add your editor window content here using GUILayout / EditorGUILayout
+        #NOTRIM#
+    }
+
+    #endregion
+}
+#ROOTNAMESPACEEND#

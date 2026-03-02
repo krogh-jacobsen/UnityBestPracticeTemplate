@@ -1,0 +1,10 @@
+    #ROOTNAMESPACEBEGIN#
+/// <summary>
+/// [Description of what implementors of this interface represent]
+/// </summary>
+public interface I#SCRIPTNAME#
+{
+    // Example method — replace with actual contract
+    void Execute();
+}
+#ROOTNAMESPACEEND#

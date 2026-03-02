@@ -1,0 +1,24 @@
+:root {
+    --color-primary: #4A90D9;
+    --spacing-md: 16px;
+}
+
+.sample-view {
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    padding: var(--spacing-md);
+}
+
+.sample-view__count {
+    font-size: 48px;
+    -unity-font-style: bold;
+    margin-bottom: var(--spacing-md);
+}
+
+.sample-view__button {
+    background-color: var(--color-primary);
+    color: white;
+    border-radius: 4px;
+    padding: 8px 24px;
+}

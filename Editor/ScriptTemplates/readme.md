@@ -252,3 +252,18 @@ For more details on the Unity Editor and project configuration:
     1. Right-click in your Assets folder → Create → C# Script → "UI Toolkit View"
     2. This will now be the 4th option in the script creation menu
     3. Unity will auto-generate the .meta file when you refresh the project
+
+## New Templates in v1.1.0
+
+Eight additional templates are included in this release, covering editor tooling, testing, events, and pooling patterns.
+
+| Priority | Menu Path | Default Filename | Purpose |
+|----------|-----------|-----------------|---------|
+| 5 | Create > Scripting > Interface | `NewInterface.cs` | Scaffolds a public C# interface prefixed with `I`. Includes a summary doc comment and a placeholder `Execute()` method defining the contract. No using statements — interfaces rarely need them. |
+| 6 | Create > Scripting > Custom Editor | `NewCustomEditor.cs` | Scaffolds an `Editor` subclass decorated with `[CustomEditor(typeof(TargetClass))]`. Includes `OnEnable` for property lookup and `OnInspectorGUI` calling `serializedObject.Update()` / `ApplyModifiedProperties()` around `DrawDefaultInspector()`. Replace `TargetClass` with the actual type. |
+| 7 | Create > Scripting > Editor Window | `NewEditorWindow.cs` | Scaffolds an `EditorWindow` subclass with a `[MenuItem]` entry under `Window/`, `ShowWindow()`, and `OnGUI()` containing a bold label. Replace the menu path if you want it somewhere other than `Window/`. |
+| 8 | Create > Scripting > Property Drawer | `NewPropertyDrawer.cs` | Scaffolds a `PropertyDrawer` subclass decorated with `[CustomPropertyDrawer(typeof(TargetAttribute))]`. Implements both `OnGUI` (with `BeginProperty`/`EndProperty`) and `GetPropertyHeight`. Replace `TargetAttribute` with the attribute class to target. |
+| 9 | Create > Scripting > Unit Test EditMode | `NewEditModeTest.cs` | Scaffolds an NUnit `[TestFixture]` class with `[SetUp]` / `[TearDown]` methods and one example `[Test]` using the Arrange–Act–Assert comment pattern. Intended for tests that run without entering Play Mode. |
+| 10 | Create > Scripting > Unit Test PlayMode | `NewPlayModeTest.cs` | Scaffolds an NUnit `[TestFixture]` class with `[SetUp]` / `[TearDown]` methods and one example `[UnityTest]` coroutine that yields a frame before asserting. Intended for tests that require the Unity runtime (physics, time, scene objects). |
+| 11 | Create > Scripting > Static Event | `NewStaticEvent.cs` | Scaffolds a `static` class acting as a lightweight event bus. Exposes a `static event Action OnEventRaised` and a `static void Raise()` helper. Subscribe in `OnEnable`, unsubscribe in `OnDisable` on each listener. No MonoBehaviour dependency. |
+| 12 | Create > Scripting > Object Pool Handler | `NewObjectPoolHandler.cs` | Scaffolds a `MonoBehaviour` that owns a `UnityEngine.Pool.ObjectPool<GameObject>`. Configures the pool in `Awake` with serialized capacity and max-size fields. Implements all four pool callbacks: `CreatePooledItem`, `OnTakeFromPool`, `OnReturnedToPool`, and `OnDestroyPoolObject`. Exposes the pool via a read-only `Pool` property. |
