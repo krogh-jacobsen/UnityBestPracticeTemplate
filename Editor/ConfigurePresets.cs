@@ -77,7 +77,7 @@ namespace Unity.BestPractices.Editor
 
             // Load the Preset Manager settings asset directly.
             UnityEngine.Object[] pmAssets = AssetDatabase.LoadAllAssetsAtPath(k_PresetManagerAssetPath);
-            if (pmAssets.Length == 0)
+            if (pmAssets.Length == 0 || pmAssets[0] == null)
             {
                 Debug.LogWarning($"[Best Practices] Could not load {k_PresetManagerAssetPath}");
                 return;
@@ -85,6 +85,21 @@ namespace Unity.BestPractices.Editor
 
             SerializedObject pmSO = new SerializedObject(pmAssets[0]);
             SerializedProperty defaultList = pmSO.FindProperty("m_DefaultList");
+
+            if (defaultList == null)
+            {
+                var iter = pmSO.GetIterator();
+                var props = new System.Text.StringBuilder(
+                    $"[Best Practices] 'm_DefaultList' not found in {k_PresetManagerAssetPath}. " +
+                    "Available top-level properties:");
+                if (iter.NextVisible(true))
+                {
+                    do { props.Append($"\n  {iter.propertyPath}"); }
+                    while (iter.NextVisible(false));
+                }
+                Debug.LogWarning(props.ToString());
+                return;
+            }
 
             // Find the existing entry for this importer type.
             int typeIndex = -1;
