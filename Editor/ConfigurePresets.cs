@@ -1,5 +1,3 @@
-using System;
-using System.Reflection;
 using UnityEditor;
 using UnityEditor.Presets;
 using UnityEngine;
@@ -9,21 +7,7 @@ namespace Unity.BestPractices.Editor
     public static class ConfigurePresets
     {
         private const string k_PackagePresetsPath = "Packages/com.unity.best-practices/Editor/Presets";
-
-        // PresetManager is internal in Unity 6 — locate it via reflection across all loaded assemblies,
-        // since it may not live in the same assembly as Preset.
-        private static readonly Type k_PresetManagerType = FindType("UnityEditor.Presets.PresetManager");
-
-        private static Type FindType(string fullName)
-        {
-            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                Type t = asm.GetType(fullName);
-                if (t != null)
-                    return t;
-            }
-            return null;
-        }
+        private const string k_PresetManagerAssetPath = "ProjectSettings/PresetManager.asset";
 
         /// <summary>
         /// Registers all package import presets in the Preset Manager with folder-path filters.
@@ -80,34 +64,67 @@ namespace Unity.BestPractices.Editor
                 return;
             }
 
-            // GetPresetType() returns the type of the asset the preset was created from
-            // (e.g. AudioImporter), not the type of the Preset asset itself.
-            PresetType presetType = preset.GetPresetType();
-
-            MethodInfo getMethod = k_PresetManagerType?.GetMethod("GetDefaultPresetsForType",
-                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            MethodInfo setMethod = k_PresetManagerType?.GetMethod("SetDefaultPresetsForType",
-                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-
-            if (getMethod == null || setMethod == null)
+            // Read the importer's native type ID from the preset's own serialized data.
+            // This avoids any dependency on the internal PresetManager class.
+            SerializedObject presetSO = new SerializedObject(preset);
+            SerializedProperty nativeTypeIDProp = presetSO.FindProperty("m_TargetType.m_NativeTypeID");
+            if (nativeTypeIDProp == null)
             {
-                Debug.LogError("[Best Practices] Could not access PresetManager via reflection. This Unity version may not be supported.");
+                Debug.LogWarning($"[Best Practices] Could not read native type ID from: {presetPath}");
+                return;
+            }
+            int nativeTypeID = nativeTypeIDProp.intValue;
+
+            // Load the Preset Manager settings asset directly.
+            UnityEngine.Object[] pmAssets = AssetDatabase.LoadAllAssetsAtPath(k_PresetManagerAssetPath);
+            if (pmAssets.Length == 0)
+            {
+                Debug.LogWarning($"[Best Practices] Could not load {k_PresetManagerAssetPath}");
                 return;
             }
 
-            var existing = (DefaultPreset[])getMethod.Invoke(null, new object[] { presetType });
+            SerializedObject pmSO = new SerializedObject(pmAssets[0]);
+            SerializedProperty defaultList = pmSO.FindProperty("m_DefaultList");
 
-            foreach (DefaultPreset entry in existing)
+            // Find the existing entry for this importer type.
+            int typeIndex = -1;
+            for (int i = 0; i < defaultList.arraySize; i++)
             {
-                if (entry.filter == folderFilter)
+                SerializedProperty entry = defaultList.GetArrayElementAtIndex(i);
+                SerializedProperty entryTypeID = entry.FindPropertyRelative("type.m_NativeTypeID");
+                if (entryTypeID != null && entryTypeID.intValue == nativeTypeID)
+                {
+                    typeIndex = i;
+                    break;
+                }
+            }
+
+            // No entry for this importer type yet — create one.
+            if (typeIndex == -1)
+            {
+                defaultList.InsertArrayElementAtIndex(defaultList.arraySize);
+                typeIndex = defaultList.arraySize - 1;
+                SerializedProperty newTypeEntry = defaultList.GetArrayElementAtIndex(typeIndex);
+                newTypeEntry.FindPropertyRelative("type.m_NativeTypeID").intValue = nativeTypeID;
+                newTypeEntry.FindPropertyRelative("defaultPresets").ClearArray();
+            }
+
+            // Skip if this filter path is already registered.
+            SerializedProperty typeEntry = defaultList.GetArrayElementAtIndex(typeIndex);
+            SerializedProperty defaultPresets = typeEntry.FindPropertyRelative("defaultPresets");
+            for (int i = 0; i < defaultPresets.arraySize; i++)
+            {
+                if (defaultPresets.GetArrayElementAtIndex(i).FindPropertyRelative("m_Filter").stringValue == folderFilter)
                     return;
             }
 
-            DefaultPreset[] updated = new DefaultPreset[existing.Length + 1];
-            existing.CopyTo(updated, 0);
-            updated[existing.Length] = new DefaultPreset(folderFilter, preset);
+            // Append the new preset entry.
+            defaultPresets.InsertArrayElementAtIndex(defaultPresets.arraySize);
+            SerializedProperty newEntry = defaultPresets.GetArrayElementAtIndex(defaultPresets.arraySize - 1);
+            newEntry.FindPropertyRelative("m_Filter").stringValue = folderFilter;
+            newEntry.FindPropertyRelative("m_Preset").objectReferenceValue = preset;
 
-            setMethod.Invoke(null, new object[] { presetType, updated });
+            pmSO.ApplyModifiedProperties();
         }
     }
 }
