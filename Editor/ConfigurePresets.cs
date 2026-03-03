@@ -10,9 +10,20 @@ namespace Unity.BestPractices.Editor
     {
         private const string k_PackagePresetsPath = "Packages/com.unity.best-practices/Editor/Presets";
 
-        // PresetManager is internal in Unity 6 — access it via reflection.
-        private static readonly Type k_PresetManagerType =
-            typeof(Preset).Assembly.GetType("UnityEditor.Presets.PresetManager");
+        // PresetManager is internal in Unity 6 — locate it via reflection across all loaded assemblies,
+        // since it may not live in the same assembly as Preset.
+        private static readonly Type k_PresetManagerType = FindType("UnityEditor.Presets.PresetManager");
+
+        private static Type FindType(string fullName)
+        {
+            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                Type t = asm.GetType(fullName);
+                if (t != null)
+                    return t;
+            }
+            return null;
+        }
 
         /// <summary>
         /// Registers all package import presets in the Preset Manager with folder-path filters.
