@@ -9,6 +9,12 @@ namespace Unity.BestPractices.Editor
         private const string k_PackagePresetsPath = "Packages/com.unity.best-practices/Editor/Presets";
         private const string k_PresetManagerAssetPath = "ProjectSettings/PresetManager.asset";
 
+        // Serialized field names discovered from ProjectSettings/PresetManager.asset:
+        // m_DefaultPresets[i].first          — PresetType struct (m_NativeTypeID, ...)
+        // m_DefaultPresets[i].second[j]      — DefaultPreset entry
+        // m_DefaultPresets[i].second[j].m_Filter  — glob filter string
+        // m_DefaultPresets[i].second[j].m_Preset  — Preset asset reference
+
         /// <summary>
         /// Registers all package import presets in the Preset Manager with folder-path filters.
         /// </summary>
@@ -39,12 +45,9 @@ namespace Unity.BestPractices.Editor
 
             if (defaultList == null)
             {
-                LogTopLevelProperties(pmSO);
+                Debug.LogWarning("[Best Practices] Could not find 'm_DefaultPresets' in PresetManager.asset");
                 return;
             }
-
-            // Always log the actual structure so we can verify field names.
-            LogEntryStructure(defaultList);
 
             int addedCount = 0;
 
@@ -72,11 +75,11 @@ namespace Unity.BestPractices.Editor
             }
             else
             {
-                Debug.Log("[Best Practices] No preset entries were added (all already registered or errors logged above).");
+                Debug.Log("[Best Practices] All preset entries were already registered. Nothing added.");
             }
         }
 
-        // Returns 1 if an entry was added, 0 if skipped or failed.
+        // Returns 1 if a new entry was added, 0 if skipped or failed.
         private static int RegisterPreset(SerializedProperty defaultList, string presetPath, string folderFilter)
         {
             Preset preset = AssetDatabase.LoadAssetAtPath<Preset>(presetPath);
@@ -86,102 +89,79 @@ namespace Unity.BestPractices.Editor
                 return 0;
             }
 
-            // Skip if an entry with this filter already exists.
+            // Read the importer native type ID from the preset's own serialized data.
+            SerializedObject presetSO = new SerializedObject(preset);
+            SerializedProperty nativeTypeIDProp = presetSO.FindProperty("m_TargetType.m_NativeTypeID");
+            if (nativeTypeIDProp == null)
+            {
+                Debug.LogWarning($"[Best Practices] Could not read native type ID from: {presetPath}");
+                return 0;
+            }
+            int nativeTypeID = nativeTypeIDProp.intValue;
+
+            // Find the outer group entry whose 'first.m_NativeTypeID' matches this importer type.
+            int typeIndex = -1;
             for (int i = 0; i < defaultList.arraySize; i++)
             {
-                SerializedProperty entry = defaultList.GetArrayElementAtIndex(i);
-                SerializedProperty filterProp = entry.FindPropertyRelative("m_Filter");
+                SerializedProperty entry   = defaultList.GetArrayElementAtIndex(i);
+                SerializedProperty typeID  = entry.FindPropertyRelative("first.m_NativeTypeID");
+                if (typeID != null && typeID.intValue == nativeTypeID)
+                {
+                    typeIndex = i;
+                    break;
+                }
+            }
+
+            // No group for this importer type yet — create one.
+            if (typeIndex == -1)
+            {
+                defaultList.InsertArrayElementAtIndex(defaultList.arraySize);
+                typeIndex = defaultList.arraySize - 1;
+                SerializedProperty newGroup = defaultList.GetArrayElementAtIndex(typeIndex);
+
+                SerializedProperty newTypeID = newGroup.FindPropertyRelative("first.m_NativeTypeID");
+                SerializedProperty newInner  = newGroup.FindPropertyRelative("second");
+
+                if (newTypeID == null || newInner == null)
+                {
+                    defaultList.DeleteArrayElementAtIndex(typeIndex);
+                    Debug.LogWarning($"[Best Practices] Could not create type group for: {presetPath}");
+                    return 0;
+                }
+
+                newTypeID.intValue = nativeTypeID;
+                newInner.ClearArray();
+            }
+
+            // Get the inner 'second' array for this type group.
+            SerializedProperty group      = defaultList.GetArrayElementAtIndex(typeIndex);
+            SerializedProperty innerArray = group.FindPropertyRelative("second");
+
+            // Skip if this filter path is already registered.
+            for (int i = 0; i < innerArray.arraySize; i++)
+            {
+                SerializedProperty innerEntry = innerArray.GetArrayElementAtIndex(i);
+                SerializedProperty filterProp = innerEntry.FindPropertyRelative("m_Filter");
                 if (filterProp != null && filterProp.stringValue == folderFilter)
                     return 0;
             }
 
-            // Insert a new entry (Unity copies the last element's structure).
-            int newIndex = defaultList.arraySize;
-            defaultList.InsertArrayElementAtIndex(newIndex);
-            SerializedProperty newEntry = defaultList.GetArrayElementAtIndex(newIndex);
-
+            // Append new entry to the inner array.
+            innerArray.InsertArrayElementAtIndex(innerArray.arraySize);
+            SerializedProperty newEntry  = innerArray.GetArrayElementAtIndex(innerArray.arraySize - 1);
             SerializedProperty newFilter = newEntry.FindPropertyRelative("m_Filter");
             SerializedProperty newPreset = newEntry.FindPropertyRelative("m_Preset");
 
             if (newFilter == null || newPreset == null)
             {
-                // Structure doesn't match flat (m_Filter + m_Preset) layout — revert.
-                defaultList.DeleteArrayElementAtIndex(newIndex);
-                Debug.LogWarning(
-                    $"[Best Practices] Could not write '{System.IO.Path.GetFileName(presetPath)}': " +
-                    "m_Filter or m_Preset not found on entry. Check the diagnostic log above for the actual field names.");
+                innerArray.DeleteArrayElementAtIndex(innerArray.arraySize - 1);
+                Debug.LogWarning($"[Best Practices] Inner entry missing m_Filter/m_Preset for: {presetPath}");
                 return 0;
             }
 
-            newFilter.stringValue = folderFilter;
+            newFilter.stringValue        = folderFilter;
             newPreset.objectReferenceValue = preset;
             return 1;
-        }
-
-        // Logs the direct children of the first entry in the list so we can see the actual field names.
-        private static void LogEntryStructure(SerializedProperty defaultList)
-        {
-            var sb = new System.Text.StringBuilder(
-                $"[Best Practices] m_DefaultPresets has {defaultList.arraySize} entries.");
-
-            if (defaultList.arraySize == 0)
-            {
-                sb.Append(" (empty — add one preset manually first to allow structure discovery)");
-                Debug.Log(sb.ToString());
-                return;
-            }
-
-            sb.Append(" First entry direct children:");
-            SerializedProperty first = defaultList.GetArrayElementAtIndex(0);
-            SerializedProperty iter  = first.Copy();
-            SerializedProperty end   = first.GetEndProperty();
-
-            if (iter.Next(true))
-            {
-                while (!SerializedProperty.EqualContents(iter, end))
-                {
-                    sb.Append($"\n  [{iter.name}] propertyType={iter.propertyType} isArray={iter.isArray}");
-
-                    if (iter.propertyType == SerializedPropertyType.String)
-                        sb.Append($"  value=\"{iter.stringValue}\"");
-                    else if (iter.isArray)
-                        sb.Append($"  arraySize={iter.arraySize}");
-                    else if (iter.propertyType == SerializedPropertyType.Generic)
-                    {
-                        // Drill one level into structs (e.g. a type field).
-                        SerializedProperty child    = iter.Copy();
-                        SerializedProperty childEnd = iter.GetEndProperty();
-                        if (child.Next(true))
-                        {
-                            while (!SerializedProperty.EqualContents(child, childEnd))
-                            {
-                                sb.Append($"\n    [{child.name}] type={child.propertyType}");
-                                if (child.propertyType == SerializedPropertyType.Integer)
-                                    sb.Append($"  value={child.intValue}");
-                                else if (child.propertyType == SerializedPropertyType.String)
-                                    sb.Append($"  value=\"{child.stringValue}\"");
-                                child.Next(false);
-                            }
-                        }
-                    }
-
-                    iter.Next(false);
-                }
-            }
-
-            Debug.Log(sb.ToString());
-        }
-
-        private static void LogTopLevelProperties(SerializedObject so)
-        {
-            var iter  = so.GetIterator();
-            var props = new System.Text.StringBuilder("[Best Practices] PresetManager.asset top-level properties:");
-            if (iter.NextVisible(true))
-            {
-                do { props.Append($"\n  {iter.propertyPath}"); }
-                while (iter.NextVisible(false));
-            }
-            Debug.LogWarning(props.ToString());
         }
     }
 }
