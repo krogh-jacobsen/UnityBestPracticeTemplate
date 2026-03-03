@@ -35,13 +35,13 @@ namespace Unity.BestPractices.Editor
             }
 
             SerializedObject pmSO = new SerializedObject(pmAssets[0]);
-            SerializedProperty defaultList = pmSO.FindProperty("m_DefaultList");
+            SerializedProperty defaultList = pmSO.FindProperty("m_DefaultPresets");
 
             if (defaultList == null)
             {
                 var iter = pmSO.GetIterator();
                 var props = new System.Text.StringBuilder(
-                    $"[Best Practices] 'm_DefaultList' not found in {k_PresetManagerAssetPath}. " +
+                    $"[Best Practices] Could not find preset list in {k_PresetManagerAssetPath}. " +
                     "Available top-level properties:");
                 if (iter.NextVisible(true))
                 {
@@ -102,16 +102,29 @@ namespace Unity.BestPractices.Editor
             int nativeTypeID = nativeTypeIDProp.intValue;
 
             // Find the existing entry for this importer type.
+            // Log the first entry's child properties if typeIndex not found, to verify field names.
             int typeIndex = -1;
             for (int i = 0; i < defaultList.arraySize; i++)
             {
                 SerializedProperty entry = defaultList.GetArrayElementAtIndex(i);
-                SerializedProperty entryTypeID = entry.FindPropertyRelative("type.m_NativeTypeID");
+                SerializedProperty entryTypeID = entry.FindPropertyRelative("m_Type.m_NativeTypeID");
+                if (entryTypeID == null)
+                    entryTypeID = entry.FindPropertyRelative("type.m_NativeTypeID");
                 if (entryTypeID != null && entryTypeID.intValue == nativeTypeID)
                 {
                     typeIndex = i;
                     break;
                 }
+            }
+
+            // Determine child property names from first existing entry, or fall back to defaults.
+            string typeFieldPath    = "m_Type";
+            string presetsFieldPath = "m_Presets";
+            if (defaultList.arraySize > 0)
+            {
+                SerializedProperty probe = defaultList.GetArrayElementAtIndex(0);
+                if (probe.FindPropertyRelative("type") != null)         typeFieldPath    = "type";
+                if (probe.FindPropertyRelative("defaultPresets") != null) presetsFieldPath = "defaultPresets";
             }
 
             // No entry for this importer type yet — create one.
@@ -120,13 +133,13 @@ namespace Unity.BestPractices.Editor
                 defaultList.InsertArrayElementAtIndex(defaultList.arraySize);
                 typeIndex = defaultList.arraySize - 1;
                 SerializedProperty newTypeEntry = defaultList.GetArrayElementAtIndex(typeIndex);
-                newTypeEntry.FindPropertyRelative("type.m_NativeTypeID").intValue = nativeTypeID;
-                newTypeEntry.FindPropertyRelative("defaultPresets").ClearArray();
+                newTypeEntry.FindPropertyRelative($"{typeFieldPath}.m_NativeTypeID").intValue = nativeTypeID;
+                newTypeEntry.FindPropertyRelative(presetsFieldPath).ClearArray();
             }
 
             // Skip if this filter path is already registered.
-            SerializedProperty typeEntry = defaultList.GetArrayElementAtIndex(typeIndex);
-            SerializedProperty defaultPresets = typeEntry.FindPropertyRelative("defaultPresets");
+            SerializedProperty typeEntry    = defaultList.GetArrayElementAtIndex(typeIndex);
+            SerializedProperty defaultPresets = typeEntry.FindPropertyRelative(presetsFieldPath);
             for (int i = 0; i < defaultPresets.arraySize; i++)
             {
                 if (defaultPresets.GetArrayElementAtIndex(i).FindPropertyRelative("m_Filter").stringValue == folderFilter)
