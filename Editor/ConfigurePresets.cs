@@ -27,55 +27,6 @@ namespace Unity.BestPractices.Editor
             if (!confirmed)
                 return;
 
-            SetupAudioPresets();
-            SetupTexturePresets();
-
-            AssetDatabase.SaveAssets();
-            Debug.Log("[Best Practices] Import presets configured. See Edit > Project Settings > Preset Manager.");
-        }
-
-        private static void SetupAudioPresets()
-        {
-            string path = $"{k_PackagePresetsPath}/Audio";
-            RegisterPreset($"{path}/AmbienceAudioImporter.preset", "glob:\"Assets/Art/Audio/Ambience/**\"");
-            RegisterPreset($"{path}/MusicAudioImporter.preset",    "glob:\"Assets/Art/Audio/Music/**\"");
-            RegisterPreset($"{path}/SFXAudioImporter.preset",      "glob:\"Assets/Art/Audio/SFX/**\"");
-            RegisterPreset($"{path}/UIAudioImporter.preset",       "glob:\"Assets/Art/Audio/UI/**\"");
-        }
-
-        private static void SetupTexturePresets()
-        {
-            string path = $"{k_PackagePresetsPath}/Textures";
-            RegisterPreset($"{path}/SingleSpriteTextureImporter.preset",  "glob:\"Assets/Art/Textures/UI/**\"");
-            RegisterPreset($"{path}/SpriteAtlasTextureImporter.preset",   "glob:\"Assets/Art/Textures/UI/Atlas/**\"");
-            RegisterPreset($"{path}/AlbedoTextureImporter.preset",        "glob:\"Assets/Art/Textures/Albedo/**\"");
-            RegisterPreset($"{path}/NormalTextureImporter.preset",        "glob:\"Assets/Art/Textures/Normal/**\"");
-            RegisterPreset($"{path}/RoughnessTextureImporter.preset",     "glob:\"Assets/Art/Textures/Roughness/**\"");
-            RegisterPreset($"{path}/MaskTextureImporter.preset",          "glob:\"Assets/Art/Textures/Mask/**\"");
-            RegisterPreset($"{path}/HDRITextureImporter.preset",          "glob:\"Assets/Art/Textures/HDRI/**\"");
-        }
-
-        private static void RegisterPreset(string presetPath, string folderFilter)
-        {
-            Preset preset = AssetDatabase.LoadAssetAtPath<Preset>(presetPath);
-            if (preset == null)
-            {
-                Debug.LogWarning($"[Best Practices] Preset not found: {presetPath}");
-                return;
-            }
-
-            // Read the importer's native type ID from the preset's own serialized data.
-            // This avoids any dependency on the internal PresetManager class.
-            SerializedObject presetSO = new SerializedObject(preset);
-            SerializedProperty nativeTypeIDProp = presetSO.FindProperty("m_TargetType.m_NativeTypeID");
-            if (nativeTypeIDProp == null)
-            {
-                Debug.LogWarning($"[Best Practices] Could not read native type ID from: {presetPath}");
-                return;
-            }
-            int nativeTypeID = nativeTypeIDProp.intValue;
-
-            // Load the Preset Manager settings asset directly.
             UnityEngine.Object[] pmAssets = AssetDatabase.LoadAllAssetsAtPath(k_PresetManagerAssetPath);
             if (pmAssets.Length == 0 || pmAssets[0] == null)
             {
@@ -100,6 +51,55 @@ namespace Unity.BestPractices.Editor
                 Debug.LogWarning(props.ToString());
                 return;
             }
+
+            int addedCount = 0;
+
+            string audioPath = $"{k_PackagePresetsPath}/Audio";
+            addedCount += RegisterPreset(defaultList, $"{audioPath}/AmbienceAudioImporter.preset", "glob:\"Assets/Art/Audio/Ambience/**\"");
+            addedCount += RegisterPreset(defaultList, $"{audioPath}/MusicAudioImporter.preset",    "glob:\"Assets/Art/Audio/Music/**\"");
+            addedCount += RegisterPreset(defaultList, $"{audioPath}/SFXAudioImporter.preset",      "glob:\"Assets/Art/Audio/SFX/**\"");
+            addedCount += RegisterPreset(defaultList, $"{audioPath}/UIAudioImporter.preset",       "glob:\"Assets/Art/Audio/UI/**\"");
+
+            string texturePath = $"{k_PackagePresetsPath}/Textures";
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/SingleSpriteTextureImporter.preset",  "glob:\"Assets/Art/Textures/UI/**\"");
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/SpriteAtlasTextureImporter.preset",   "glob:\"Assets/Art/Textures/UI/Atlas/**\"");
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/AlbedoTextureImporter.preset",        "glob:\"Assets/Art/Textures/Albedo/**\"");
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/NormalTextureImporter.preset",        "glob:\"Assets/Art/Textures/Normal/**\"");
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/RoughnessTextureImporter.preset",     "glob:\"Assets/Art/Textures/Roughness/**\"");
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/MaskTextureImporter.preset",          "glob:\"Assets/Art/Textures/Mask/**\"");
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/HDRITextureImporter.preset",          "glob:\"Assets/Art/Textures/HDRI/**\"");
+
+            if (addedCount > 0)
+            {
+                pmSO.ApplyModifiedProperties();
+                EditorUtility.SetDirty(pmAssets[0]);
+                AssetDatabase.SaveAssets();
+                Debug.Log($"[Best Practices] Added {addedCount} preset entries. See Edit > Project Settings > Preset Manager.");
+            }
+            else
+            {
+                Debug.Log("[Best Practices] All preset entries were already registered. Nothing added.");
+            }
+        }
+
+        // Returns 1 if a new entry was added, 0 if skipped.
+        private static int RegisterPreset(SerializedProperty defaultList, string presetPath, string folderFilter)
+        {
+            Preset preset = AssetDatabase.LoadAssetAtPath<Preset>(presetPath);
+            if (preset == null)
+            {
+                Debug.LogWarning($"[Best Practices] Preset not found: {presetPath}");
+                return 0;
+            }
+
+            SerializedObject presetSO = new SerializedObject(preset);
+            SerializedProperty nativeTypeIDProp = presetSO.FindProperty("m_TargetType.m_NativeTypeID");
+            if (nativeTypeIDProp == null)
+            {
+                Debug.LogWarning($"[Best Practices] Could not read native type ID from: {presetPath}");
+                return 0;
+            }
+            int nativeTypeID = nativeTypeIDProp.intValue;
 
             // Find the existing entry for this importer type.
             int typeIndex = -1;
@@ -130,7 +130,7 @@ namespace Unity.BestPractices.Editor
             for (int i = 0; i < defaultPresets.arraySize; i++)
             {
                 if (defaultPresets.GetArrayElementAtIndex(i).FindPropertyRelative("m_Filter").stringValue == folderFilter)
-                    return;
+                    return 0;
             }
 
             // Append the new preset entry.
@@ -139,7 +139,7 @@ namespace Unity.BestPractices.Editor
             newEntry.FindPropertyRelative("m_Filter").stringValue = folderFilter;
             newEntry.FindPropertyRelative("m_Preset").objectReferenceValue = preset;
 
-            pmSO.ApplyModifiedProperties();
+            return 1;
         }
     }
 }
