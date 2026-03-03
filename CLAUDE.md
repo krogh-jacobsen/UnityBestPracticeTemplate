@@ -76,7 +76,21 @@ These apply to all `.cs` files in this repo and in host projects using the LLM i
 - **New LLM instruction file**: create in `Editor/LLMInstructions/`, add a `.meta` file with `DefaultImporter` block and a unique GUID (generate with `python3 -c "import uuid; print(uuid.uuid4().hex)"`), and update `copilot-instructions.md` to include the content.
 - **New preset**: add `.preset` file under `Editor/Presets/{category}/` with a matching `.meta` file; document it in `Editor/Presets/readme.md`.
 - **New script template**: follow the `{priority}-{menu}__{submenu}-{filename}.cs.txt` naming pattern; update `Editor/ScriptTemplates/readme.md`.
-- **Version bump**: update `package.json` version and add an entry to `CHANGELOG.md`.
+- **Version bump**: after adding new functionality, propose a version bump (see rule below) and update both `package.json` and `CHANGELOG.md` once confirmed.
+
+## Versioning rule
+
+After completing any work that adds new functionality, fixes a bug, or changes behaviour, always propose a version bump before making the change. Use semantic versioning (`MAJOR.MINOR.PATCH`):
+
+- `PATCH` — bug fix or non-functional change (e.g. typo, meta file fix)
+- `MINOR` — new backwards-compatible feature or content (new preset, script template, LLM instruction file, editor utility)
+- `MAJOR` — breaking change (renamed package ID, removed API, restructured assembly)
+
+**Do not update `package.json` or `CHANGELOG.md` until the user confirms the proposed version.**
+
+Once confirmed:
+1. Update the `"version"` field in `package.json`.
+2. Add a new entry at the top of `CHANGELOG.md` following the existing format.
 
 ## Meta files
 
