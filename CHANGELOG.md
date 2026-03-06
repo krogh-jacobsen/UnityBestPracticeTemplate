@@ -5,6 +5,10 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-03-03
+### Added
+- `ConfigurePresets.cs` editor utility — **Window > Best Practices > Configure Import Presets** registers all package audio and texture import presets in the Preset Manager with glob folder-path filters in one click
+
 ## [1.1.0] - 2026-03-02
 ### Added
 - New LLM instruction files: Testing, Input System, Addressables, Localization, Animation, Scene Management, Audio, Netcode, Assembly Definitions

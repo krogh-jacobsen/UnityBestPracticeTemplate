@@ -66,6 +66,12 @@ namespace Unity.BestPractices.Editor
             addedCount += RegisterPreset(defaultList, $"{texturePath}/MaskTextureImporter.preset",          "glob:\"Assets/Art/Textures/Mask/**\"");
             addedCount += RegisterPreset(defaultList, $"{texturePath}/HDRITextureImporter.preset",          "glob:\"Assets/Art/Textures/HDRI/**\"");
 
+            string modelPath = $"{k_PackagePresetsPath}/Models";
+            addedCount += RegisterPreset(defaultList, $"{modelPath}/FBXModelImporter.preset",               "glob:\"Assets/Art/Models/**\"");
+
+            string animationPath = $"{k_PackagePresetsPath}/Animations";
+            addedCount += RegisterPreset(defaultList, $"{animationPath}/FBXAnimationImporter.preset",       "glob:\"Assets/Art/Animations/**\"");
+
             if (addedCount > 0)
             {
                 pmSO.ApplyModifiedProperties();
