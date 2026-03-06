@@ -4,59 +4,46 @@ using UnityEngine;
 
 namespace Unity.BestPractices.Editor
 {
+    /// <summary>
+    /// Provides shared editor utilities and test menu items for the Best Practices package.
+    /// Accessible via the menu: <b>Window → Best Practices</b>.
+    /// </summary>
     public static class EditorController
     {
-        [MenuItem("Window/Best Practices/Hello editor")]
+        /// <summary>
+        /// Logs a hello message from the editor to the Unity console.
+        /// </summary>
+        /// <remarks>
+        /// Menu: <b>Window → Best Practices → Test Editor Log</b>.
+        /// Useful for verifying that the package's editor assembly is loaded correctly.
+        /// </remarks>
+        [MenuItem("Window/Best Practices/Test Editor Log")]
         public static void LogHelloMenu()
         {
 			Debug.Log("Hello from Editor. Activated by best practice menu!");
         }
 
-		[MenuItem("Window/Best Practices/Hello editor using package")]
+        /// <summary>
+        /// Logs a hello message by invoking <see cref="RuntimeController.LogHelloMenu"/>
+        /// from the runtime assembly.
+        /// </summary>
+        /// <remarks>
+        /// Menu: <b>Window → Best Practices → Test Editor Log (calls runtime)</b>.
+        /// Demonstrates that the editor assembly can reference and call into the runtime assembly.
+        /// </remarks>
+		[MenuItem("Window/Best Practices/Test Editor Log (calls runtime)")]
         public static void LogHelloFromRuntime()
         {
 			RuntimeController.LogHelloMenu();
         }
 
-        [MenuItem("Window/Best Practices/Setup Project Folders")]
-        public static void SetupProjectFolders()
-        {
-            string root = "_Project";
-            string[] folders = new string[]
-            {
-                "Art",
-                "Art/Materials",
-                "Art/Models",
-                "Art/Textures",
-                "Art/Animations",
-                "Audio",
-                "Prefabs",
-                "Scripts",
-                "Scenes",
-                "Settings",
-                "UI"
-            };
-
-            CreateFolder("Assets", root);
-
-            foreach (string folder in folders)
-            {
-                string parent = "Assets/" + root;
-                string[] subfolders = folder.Split('/');
-                
-                string currentPath = parent;
-                foreach (string subfolder in subfolders)
-                {
-                    CreateFolder(currentPath, subfolder);
-                    currentPath += "/" + subfolder;
-                }
-            }
-
-            AssetDatabase.Refresh();
-            Debug.Log("Project folder structure setup complete under Assets/_Project");
-        }
-
-        private static void CreateFolder(string parent, string folderName)
+        /// <summary>
+        /// Creates a subfolder inside the given parent path if it does not already exist.
+        /// Shared utility used by other generator classes.
+        /// </summary>
+        /// <param name="parent">The parent folder path (e.g. <c>"Assets/_ProjectName"</c>).</param>
+        /// <param name="folderName">The name of the subfolder to create.</param>
+        public static void CreateFolder(string parent, string folderName)
         {
             string path = $"{parent}/{folderName}";
             if (!AssetDatabase.IsValidFolder(path))

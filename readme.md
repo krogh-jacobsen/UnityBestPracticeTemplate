@@ -2,7 +2,24 @@
 
 A Unity package that enforces consistent C# coding standards, ships curated LLM instruction files to supercharge AI-assisted development, and provides performance-optimised import presets and editor utilities to accelerate day-to-day workflows.
 
-Supports Unity 6000.3+.
+Supports **Unity 6000.3+** · License: **MIT**
+
+---
+
+## Quick Start
+
+After installing the package, run these steps from the Unity menu bar:
+
+| Step | Menu Path | What it does |
+|------|-----------|--------------|
+| 1 | **Window → Best Practices → Setup Project Folders** | Scaffolds the recommended folder structure under `Assets/_ProjectName` |
+| 2 | **Window → Best Practices → Generate Assembly Definitions** | Creates `.asmdef` files in Scripts, Editor, and Tests folders |
+| 3 | **Window → Best Practices → Configure Import Presets** | Registers all import presets in the Preset Manager with matching folder filters |
+| 4 | **Window → Best Practices → Generate .gitignore** | Creates a Unity-optimised `.gitignore` at the project root |
+| 5 | **Window → Best Practices → Generate .editorconfig** | Creates an `.editorconfig` matching the C# style guide |
+| 6 | Copy LLM instruction files (see [below](#llm-instruction-files)) | Gives your AI assistant deep Unity context |
+
+> **Tip:** Rename the `_ProjectName` root folder to your actual project name after scaffolding, then update the preset glob paths in **Edit → Project Settings → Preset Manager** to match.
 
 ---
 
@@ -27,26 +44,49 @@ Ready-to-use instruction files for AI coding assistants (Claude Code, GitHub Cop
 | `copilot-instructions.md` | GitHub Copilot workspace instructions |
 | `custom-packages.md` | Documents custom package conventions |
 
-**How to use:** Add the relevant files as context in your AI tool's configuration (e.g. reference them in `CLAUDE.md`, `.github/copilot-instructions.md`, or your IDE's LLM context settings).
+**How to use per tool:**
+
+- **Claude Code** — Copy the files you need and reference them in your `CLAUDE.md`
+- **GitHub Copilot** — Copy into `.github/copilot-instructions.md` or reference via workspace settings
+- **Gemini CLI / Codex** — Add to your IDE's LLM context configuration
+
+The instruction files are located in `Packages/Unity Best Practices/Editor/LLMInstructions/`.
 
 ### Import Presets
-Performance-optimised importer presets that apply consistent, best-practice settings automatically when assets are imported.
+Performance-optimised importer presets that apply consistent, best-practice settings automatically when assets are dropped into the matching folder.
 
 **Textures**
-- `AlbedoTextureImporter` — Albedo/diffuse maps
-- `NormalTextureImporter` — Normal maps
-- `SingleSpriteTextureImporter` — Single sprites
-- `SpriteAtlasTextureImporter` — Sprite atlases
-- `UISpriteTextureImporter` — UI sprites
+
+| Preset | Target Folder |
+|--------|---------------|
+| `AlbedoTextureImporter` | `Art/Textures/Albedo/` |
+| `NormalTextureImporter` | `Art/Textures/Normal/` |
+| `RoughnessTextureImporter` | `Art/Textures/Roughness/` |
+| `MaskTextureImporter` | `Art/Textures/Mask/` |
+| `HDRITextureImporter` | `Art/Textures/HDRI/` |
+| `SingleSpriteTextureImporter` | `UI/Sprites/` |
+| `SpriteAtlasTextureImporter` | `UI/Sprites/Atlas/` |
 
 **Audio**
-- `SFXAudioImporter` — Sound effects
-- `MusicAudioImporter` — Music tracks
-- `AmbienceAudioImporter` — Ambience loops
-- `UIAudioImporter` — UI feedback sounds
+
+| Preset | Target Folder |
+|--------|---------------|
+| `SFXAudioImporter` | `Art/Audio/SFX/` |
+| `MusicAudioImporter` | `Art/Audio/Music/` |
+| `AmbienceAudioImporter` | `Art/Audio/Ambience/` |
+| `UIAudioImporter` | `Art/Audio/UI/` |
+
+**Models & Animations**
+
+| Preset | Target Folder |
+|--------|---------------|
+| `FBXModelImporter` | `Art/Models/` |
+| `FBXAnimationImporter` | `Art/Animations/` |
+
+> Run **Window → Best Practices → Configure Import Presets** to register all of the above automatically. You can review and edit them in **Edit → Project Settings → Preset Manager**.
 
 ### Script Templates
-Custom script templates available via **Assets > Create > Scripting** that generate boilerplate matching the project's coding style guide out of the box.
+Custom script templates available via **Assets → Create → Scripting** that generate boilerplate matching the project's coding style guide out of the box.
 
 - MonoBehaviour Script
 - ScriptableObject Script
@@ -54,7 +94,71 @@ Custom script templates available via **Assets > Create > Scripting** that gener
 - UI Toolkit View
 
 ### Editor Utilities
-Editor tooling to speed up common workflows, including folder structure generation to scaffold new Unity projects or feature modules consistently.
+
+| Menu Item | Description |
+|-----------|-------------|
+| **Window → Best Practices → Setup Project Folders** | Creates the full folder structure (see below) |
+| **Window → Best Practices → Generate Assembly Definitions** | Creates `.asmdef` files using `CompanyName.ProductName` as the root namespace |
+| **Window → Best Practices → Configure Import Presets** | Registers presets in the Preset Manager |
+| **Window → Best Practices → Generate .gitignore** | Creates a Unity-optimised `.gitignore` at the project root |
+| **Window → Best Practices → Generate .editorconfig** | Creates an `.editorconfig` enforcing the C# style guide in IDEs |
+| **Window → Best Practices → Hello editor** | Verifies the editor assembly is loaded |
+| **Window → Best Practices → Hello editor using package** | Verifies editor → runtime assembly reference |
+
+---
+
+## Project Folder Structure
+
+Running **Setup Project Folders** creates the following layout:
+
+```
+Assets/
+└── _ProjectName/
+    ├── Art/
+    │   ├── Animations/
+    │   │   ├── Clips/
+    │   │   └── Controllers/
+    │   ├── Audio/
+    │   │   ├── Ambience/
+    │   │   ├── Music/
+    │   │   ├── SFX/
+    │   │   └── UI/
+    │   ├── Fonts/
+    │   ├── Materials/
+    │   │   └── Physics/
+    │   ├── Models/
+    │   ├── Shaders/
+    │   ├── Sprites/
+    │   ├── Textures/
+    │   │   ├── Albedo/
+    │   │   ├── Normal/
+    │   │   ├── Roughness/
+    │   │   ├── Mask/
+    │   │   └── HDRI/
+    │   └── VFX/
+    ├── Scripts/
+    │   ├── Core/
+    │   ├── UI/
+    │   └── Utilities/
+    ├── Editor/
+    ├── UI/
+    │   ├── Sprites/
+    │   │   └── Atlas/
+    │   ├── UXML/
+    │   ├── USS/
+    │   └── Settings/
+    ├── Data/
+    ├── Prefabs/
+    ├── Scenes/
+    ├── Settings/
+    ├── Resources/
+    ├── StreamingAssets/
+    ├── Documentation/
+    ├── Plugins/
+    └── ThirdParty/
+```
+
+> UI sprites live under `UI/Sprites/` (not `Art/Textures/`) because they are logically part of the UI system rather than general art assets.
 
 ---
 
@@ -62,9 +166,9 @@ Editor tooling to speed up common workflows, including folder structure generati
 
 ### Via Unity Package Manager (recommended)
 
-1. Open **Window > Package Manager**
+1. Open **Window → Package Manager**
 2. Click the **+** button in the top-left corner
-3. Select **Add package from git URL...**
+3. Select **Add package from git URL…**
 4. Enter the following URL and click **Add**:
 
 ```
@@ -91,8 +195,30 @@ Add the following entry to your project's `Packages/manifest.json`:
 
 ---
 
-## Getting started
+## Troubleshooting
 
-1. After installation, copy the LLM instruction files you need from `Packages/Unity Best Practices/Editor/LLMInstructions/` into your project and reference them in your AI tool's configuration (e.g. `CLAUDE.md`, `.github/copilot-instructions.md`).
-2. Configure the import presets in **Edit > Project Settings > Preset Manager**, mapping each preset to the appropriate folder filter.
-3. Use the script templates from **Assets > Create > Scripting** when creating new scripts.
+| Problem | Solution |
+|---------|----------|
+| **Package fails to install from Git** | Ensure you have Git installed and accessible from your system PATH. Check the Unity Console for detailed error messages. |
+| **Presets not applying to imported assets** | Verify the glob paths in **Edit → Project Settings → Preset Manager** match your actual folder names. If you renamed `_ProjectName`, update the filters. |
+| **Script templates not appearing** | Restart Unity after installation. Templates appear under **Assets → Create → Scripting**. |
+| **"Hello editor using package" logs an error** | The runtime assembly may not be referenced. Check that the Editor `.asmdef` references the Runtime `.asmdef`. |
+| **Folder structure already partially exists** | Safe to re-run — `Setup Project Folders` skips folders that already exist. |
+| **Assembly definitions not generating** | Run `Setup Project Folders` first. The generator requires `Assets/_ProjectName` to exist. |
+| **`.gitignore` / `.editorconfig` not appearing** | Check the project root folder (parent of `Assets/`). The files are created outside the `Assets/` directory and won't appear in the Unity Project window. |
+
+---
+
+## Contributing
+
+1. Clone the repository
+2. Open the dev project at `UnityBestPracticesPackage-Dev/` in Unity
+3. The package source lives in `LocalPackages/UnityBestPracticeTemplate/`
+4. Make your changes and test via the menu items under **Window → Best Practices**
+5. Submit a pull request
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.

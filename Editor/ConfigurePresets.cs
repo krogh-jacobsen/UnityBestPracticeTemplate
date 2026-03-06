@@ -52,25 +52,25 @@ namespace Unity.BestPractices.Editor
             int addedCount = 0;
 
             string audioPath = $"{k_PackagePresetsPath}/Audio";
-            addedCount += RegisterPreset(defaultList, $"{audioPath}/AmbienceAudioImporter.preset", "glob:\"Assets/Art/Audio/Ambience/**\"");
-            addedCount += RegisterPreset(defaultList, $"{audioPath}/MusicAudioImporter.preset",    "glob:\"Assets/Art/Audio/Music/**\"");
-            addedCount += RegisterPreset(defaultList, $"{audioPath}/SFXAudioImporter.preset",      "glob:\"Assets/Art/Audio/SFX/**\"");
-            addedCount += RegisterPreset(defaultList, $"{audioPath}/UIAudioImporter.preset",       "glob:\"Assets/Art/Audio/UI/**\"");
+            addedCount += RegisterPreset(defaultList, $"{audioPath}/AmbienceAudioImporter.preset", "glob:\"Assets/_ProjectName/Art/Audio/Ambience/**\"");
+            addedCount += RegisterPreset(defaultList, $"{audioPath}/MusicAudioImporter.preset",    "glob:\"Assets/_ProjectName/Art/Audio/Music/**\"");
+            addedCount += RegisterPreset(defaultList, $"{audioPath}/SFXAudioImporter.preset",      "glob:\"Assets/_ProjectName/Art/Audio/SFX/**\"");
+            addedCount += RegisterPreset(defaultList, $"{audioPath}/UIAudioImporter.preset",       "glob:\"Assets/_ProjectName/Art/Audio/UI/**\"");
 
             string texturePath = $"{k_PackagePresetsPath}/Textures";
-            addedCount += RegisterPreset(defaultList, $"{texturePath}/SingleSpriteTextureImporter.preset",  "glob:\"Assets/Art/Textures/UI/**\"");
-            addedCount += RegisterPreset(defaultList, $"{texturePath}/SpriteAtlasTextureImporter.preset",   "glob:\"Assets/Art/Textures/UI/Atlas/**\"");
-            addedCount += RegisterPreset(defaultList, $"{texturePath}/AlbedoTextureImporter.preset",        "glob:\"Assets/Art/Textures/Albedo/**\"");
-            addedCount += RegisterPreset(defaultList, $"{texturePath}/NormalTextureImporter.preset",        "glob:\"Assets/Art/Textures/Normal/**\"");
-            addedCount += RegisterPreset(defaultList, $"{texturePath}/RoughnessTextureImporter.preset",     "glob:\"Assets/Art/Textures/Roughness/**\"");
-            addedCount += RegisterPreset(defaultList, $"{texturePath}/MaskTextureImporter.preset",          "glob:\"Assets/Art/Textures/Mask/**\"");
-            addedCount += RegisterPreset(defaultList, $"{texturePath}/HDRITextureImporter.preset",          "glob:\"Assets/Art/Textures/HDRI/**\"");
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/SingleSpriteTextureImporter.preset",  "glob:\"Assets/_ProjectName/UI/Sprites/**\"");
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/SpriteAtlasTextureImporter.preset",   "glob:\"Assets/_ProjectName/UI/Sprites/Atlas/**\"");
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/AlbedoTextureImporter.preset",        "glob:\"Assets/_ProjectName/Art/Textures/Albedo/**\"");
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/NormalTextureImporter.preset",        "glob:\"Assets/_ProjectName/Art/Textures/Normal/**\"");
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/RoughnessTextureImporter.preset",     "glob:\"Assets/_ProjectName/Art/Textures/Roughness/**\"");
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/MaskTextureImporter.preset",          "glob:\"Assets/_ProjectName/Art/Textures/Mask/**\"");
+            addedCount += RegisterPreset(defaultList, $"{texturePath}/HDRITextureImporter.preset",          "glob:\"Assets/_ProjectName/Art/Textures/HDRI/**\"");
 
             string modelPath = $"{k_PackagePresetsPath}/Models";
-            addedCount += RegisterPreset(defaultList, $"{modelPath}/FBXModelImporter.preset",               "glob:\"Assets/Art/Models/**\"");
+            addedCount += RegisterPreset(defaultList, $"{modelPath}/FBXModelImporter.preset",               "glob:\"Assets/_ProjectName/Art/Models/**\"");
 
             string animationPath = $"{k_PackagePresetsPath}/Animations";
-            addedCount += RegisterPreset(defaultList, $"{animationPath}/FBXAnimationImporter.preset",       "glob:\"Assets/Art/Animations/**\"");
+            addedCount += RegisterPreset(defaultList, $"{animationPath}/FBXAnimationImporter.preset",       "glob:\"Assets/_ProjectName/Art/Animations/**\"");
 
             if (addedCount > 0)
             {
