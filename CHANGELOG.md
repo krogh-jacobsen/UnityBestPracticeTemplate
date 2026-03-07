@@ -5,6 +5,33 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2026-03-04
+### Added
+- `Editor/Dashboard/ProjectDashboardData.cs` — stateless data collector driving all dashboard checks:
+  - **Folder Structure** — verifies all expected `_ProjectName` subfolders exist
+  - **Import Presets** — verifies all expected `.preset` assets exist in the package
+  - **LLM Instruction Files** — verifies all expected markdown instruction files exist
+  - **Git & IDE Config** — checks for `.git` repo, `.gitignore`, and `.editorconfig`
+  - **Project Health** — checks assembly definitions, Tags & Layers config, scenes in Build Settings, company/product name defaults, scripting backend, oversized textures (>2048px), and uncompressed audio (PCM/ADPCM)
+- `Editor/Dashboard/ProjectDashboardWindow.cs` — `EditorWindow` rendering all sections with colour-coded status icons, per-section action buttons, and a summary banner; open via **Window → Best Practices → Project Dashboard** or **Shift+Alt+D**
+
+## [1.3.1] - 2026-03-04
+### Added
+- `ProjectDashboardWindow.cs` — **Window → Best Practices → Project Dashboard** opens a single EditorWindow showing the health of the entire project at a glance
+- `ProjectDashboardData.cs` — stateless data collector that drives the dashboard; checks are separated from rendering following single responsibility
+- **Folder Structure** section — shows which expected `_ProjectName` folders exist vs are missing, with a one-click "Setup Project Folders" button
+- **Import Presets** section — verifies each expected `.preset` asset exists in the package, with a one-click "Configure Import Presets" button
+- **LLM Instruction Files** section — checks all expected instruction markdown files are present in the package
+- **Git & IDE Config** section — checks for `.git` repo, `.gitignore`, and `.editorconfig` with generation buttons
+- **Project Health** section — checks assembly definitions, Tags & Layers config, scenes in Build Settings, company/product name defaults, and scripting backend; includes buttons to open Player Settings and Build Settings
+- Summary banner at the top of the window showing total error and warning counts across all sections
+
+## [1.3.0] - 2026-03-04
+### Added
+- `ProjectTagsAndLayers.cs` — ScriptableObject config for defining custom tags, sorting layers, and physics layers (create via **Assets → Create → Best Practices → Project Tags and Layers**)
+- `SetupTagsAndLayers.cs` — **Window → Best Practices → Setup Tags and Layers** reads the config and registers entries into `TagManager.asset`, preserving existing entries
+- Default config ships with common game-development tags (`Player`, `Enemy`, `NPC`, `Projectile`, `Pickup`, `Interactable`, `Checkpoint`, `SpawnPoint`, `Trigger`), sorting layers (`Background`, `Environment`, `Props`, `Characters`, `Foreground`, `UI`, `Overlay`), and physics layers (`Player`, `Enemy`, `NPC`, `Projectile`, `Pickup`, `Interactable`, `Ground`, `Environment`, `Trigger`, `Ragdoll`)
+
 ## [1.2.0] - 2026-03-04
 ### Added
 - `GenerateEditorConfig.cs` — **Window → Best Practices → Generate .editorconfig** creates an `.editorconfig` at the project root enforcing the package's C# naming conventions, formatting rules, and code style preferences for Rider, Visual Studio, and VS Code

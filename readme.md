@@ -8,16 +8,22 @@ Supports **Unity 6000.3+** · License: **MIT**
 
 ## Quick Start
 
-After installing the package, run these steps from the Unity menu bar:
+After installing the package, open the dashboard first — it will guide you through the remaining steps:
+
+**Window → Best Practices → Project Dashboard**
+
+Or run each step manually:
 
 | Step | Menu Path | What it does |
 |------|-----------|--------------|
+| 0 | **Window → Best Practices → Project Dashboard** | Opens the health dashboard — shows status of all steps below |
 | 1 | **Window → Best Practices → Setup Project Folders** | Scaffolds the recommended folder structure under `Assets/_ProjectName` |
 | 2 | **Window → Best Practices → Generate Assembly Definitions** | Creates `.asmdef` files in Scripts, Editor, and Tests folders |
 | 3 | **Window → Best Practices → Configure Import Presets** | Registers all import presets in the Preset Manager with matching folder filters |
-| 4 | **Window → Best Practices → Generate .gitignore** | Creates a Unity-optimised `.gitignore` at the project root |
-| 5 | **Window → Best Practices → Generate .editorconfig** | Creates an `.editorconfig` matching the C# style guide |
-| 6 | Copy LLM instruction files (see [below](#llm-instruction-files)) | Gives your AI assistant deep Unity context |
+| 4 | **Window → Best Practices → Setup Tags and Layers** | Registers tags, sorting layers, and physics layers from a ScriptableObject config |
+| 5 | **Window → Best Practices → Generate .gitignore** | Creates a Unity-optimised `.gitignore` at the project root |
+| 6 | **Window → Best Practices → Generate .editorconfig** | Creates an `.editorconfig` matching the C# style guide |
+| 7 | Copy LLM instruction files (see [below](#llm-instruction-files)) | Gives your AI assistant deep Unity context |
 
 > **Tip:** Rename the `_ProjectName` root folder to your actual project name after scaffolding, then update the preset glob paths in **Edit → Project Settings → Preset Manager** to match.
 
@@ -93,17 +99,60 @@ Custom script templates available via **Assets → Create → Scripting** that g
 - Empty C# Script
 - UI Toolkit View
 
+### Tags & Layers Setup
+
+Register a standard set of tags, sorting layers, and physics layers from a configurable ScriptableObject.
+
+**Default Tags:** `Player`, `Enemy`, `NPC`, `Projectile`, `Pickup`, `Interactable`, `Checkpoint`, `SpawnPoint`, `Trigger`, `MainCamera`
+
+**Default Sorting Layers (render order):**
+
+| Order | Layer |
+|-------|-------|
+| 1 | `Background` |
+| 2 | `Environment` |
+| 3 | `Props` |
+| 4 | `Characters` |
+| 5 | `Foreground` |
+| 6 | `UI` |
+| 7 | `Overlay` |
+
+**Default Physics Layers:**
+
+| Slot | Layer |
+|------|-------|
+| 6 | `Player` |
+| 7 | `Enemy` |
+| 8 | `NPC` |
+| 9 | `Projectile` |
+| 10 | `Pickup` |
+| 11 | `Interactable` |
+| 12 | `Ground` |
+| 13 | `Environment` |
+| 14 | `Trigger` |
+| 15 | `Ragdoll` |
+
+**How to customise:**
+
+1. Create a config asset: **Assets → Create → Best Practices → Project Tags and Layers**
+2. Edit the tags, sorting layers, and physics layers in the Inspector
+3. Run **Window → Best Practices → Setup Tags and Layers**
+
+> If no config asset is found in the project, you'll be prompted to use the package defaults. Existing tags and layers are preserved — only new entries are added.
+
 ### Editor Utilities
 
 | Menu Item | Description |
 |-----------|-------------|
-| **Window → Best Practices → Setup Project Folders** | Creates the full folder structure (see below) |
+| **Window → Best Practices → Project Dashboard** | Single-window health overview of folder structure, presets, LLM files, Git config, and project settings |
+| **Window → Best Practices → Setup Project Folders** | Creates the full folder structure |
 | **Window → Best Practices → Generate Assembly Definitions** | Creates `.asmdef` files using `CompanyName.ProductName` as the root namespace |
 | **Window → Best Practices → Configure Import Presets** | Registers presets in the Preset Manager |
+| **Window → Best Practices → Setup Tags and Layers** | Registers tags, sorting layers, and physics layers from a ScriptableObject config |
 | **Window → Best Practices → Generate .gitignore** | Creates a Unity-optimised `.gitignore` at the project root |
 | **Window → Best Practices → Generate .editorconfig** | Creates an `.editorconfig` enforcing the C# style guide in IDEs |
-| **Window → Best Practices → Hello editor** | Verifies the editor assembly is loaded |
-| **Window → Best Practices → Hello editor using package** | Verifies editor → runtime assembly reference |
+| **Window → Best Practices → Test Editor Log** | Verifies the editor assembly is loaded |
+| **Window → Best Practices → Test Editor Log (calls runtime)** | Verifies editor → runtime assembly reference |
 
 ---
 
@@ -199,13 +248,16 @@ Add the following entry to your project's `Packages/manifest.json`:
 
 | Problem | Solution |
 |---------|----------|
+| **Dashboard shows all sections as errors** | Click **Refresh** — the window auto-refreshes on open but styles may not have initialised on first paint. |
 | **Package fails to install from Git** | Ensure you have Git installed and accessible from your system PATH. Check the Unity Console for detailed error messages. |
 | **Presets not applying to imported assets** | Verify the glob paths in **Edit → Project Settings → Preset Manager** match your actual folder names. If you renamed `_ProjectName`, update the filters. |
 | **Script templates not appearing** | Restart Unity after installation. Templates appear under **Assets → Create → Scripting**. |
-| **"Hello editor using package" logs an error** | The runtime assembly may not be referenced. Check that the Editor `.asmdef` references the Runtime `.asmdef`. |
+| **"Test Editor Log (calls runtime)" logs an error** | The runtime assembly may not be referenced. Check that the Editor `.asmdef` references the Runtime `.asmdef`. |
 | **Folder structure already partially exists** | Safe to re-run — `Setup Project Folders` skips folders that already exist. |
 | **Assembly definitions not generating** | Run `Setup Project Folders` first. The generator requires `Assets/_ProjectName` to exist. |
 | **`.gitignore` / `.editorconfig` not appearing** | Check the project root folder (parent of `Assets/`). The files are created outside the `Assets/` directory and won't appear in the Unity Project window. |
+| **Tags and layers not appearing after setup** | Check `Edit → Project Settings → Tags and Layers`. If a physics layer slot was already occupied, a warning is logged in the Console. |
+| **Multiple ProjectTagsAndLayers configs found** | The tool uses the first one found. Keep only one config asset in your project. |
 
 ---
 
