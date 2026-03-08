@@ -1,0 +1,63 @@
+using Unity.Netcode;
+
+    #ROOTNAMESPACEBEGIN#
+public class #SCRIPTNAME# : NetworkBehaviour
+{
+    #region Fields
+
+    // Declare NetworkVariables here with explicit read/write permissions.
+    // Example:
+    // private NetworkVariable<int> m_Health = new NetworkVariable<int>(
+    //     100,
+    //     NetworkVariableReadPermission.Everyone,
+    //     NetworkVariableWritePermission.Server);
+
+    #endregion
+
+    #region NetworkBehaviour Methods
+
+    public override void OnNetworkSpawn()
+    {
+        // Use this instead of Start() for networked objects.
+        // Subscribe to NetworkVariable.OnValueChanged events here.
+        #NOTRIM#
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        // Use this instead of OnDestroy() for networked objects.
+        // Unsubscribe from NetworkVariable.OnValueChanged events here.
+        #NOTRIM#
+    }
+
+    #endregion
+
+    #region Server RPCs
+
+    // Naming rule: method name must end with "ServerRpc".
+    // Called from a client, executed on the server.
+    [ServerRpc]
+    private void ExampleServerRpc()
+    {
+        #NOTRIM#
+    }
+
+    #endregion
+
+    #region Client RPCs
+
+    // Naming rule: method name must end with "ClientRpc".
+    // Called from the server, executed on all clients.
+    [ClientRpc]
+    private void ExampleClientRpc()
+    {
+        #NOTRIM#
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    #endregion
+}
+#ROOTNAMESPACEEND#

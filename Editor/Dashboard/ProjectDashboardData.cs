@@ -1,10 +1,17 @@
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 using UnityBestPractices.Editor.Validator;
 
 namespace UnityBestPractices.Editor.Dashboard
 {
+    public struct LLMInstructionFile
+    {
+        public string DisplayName;
+        public string AssetPath;
+    }
+
     public class ProjectDashboardData
     {
         // Folder Structure
@@ -16,7 +23,8 @@ namespace UnityBestPractices.Editor.Dashboard
         public bool HasTexturePresets;
 
         // LLM Instructions
-        public int LLMInstructionFilesCount;
+        public LLMInstructionFile[] LLMInstructionFiles = System.Array.Empty<LLMInstructionFile>();
+        public int LLMInstructionFilesCount => LLMInstructionFiles.Length;
 
         // Git
         public bool HasGitIgnore;
@@ -90,12 +98,34 @@ namespace UnityBestPractices.Editor.Dashboard
 
         private static void GatherLLMInstructionData(ProjectDashboardData data)
         {
-            string llmPath = Path.Combine(Application.dataPath, "Editor", "LLMInstructions");
-
-            if (Directory.Exists(llmPath))
+            string[] searchFolders = new string[]
             {
-                data.LLMInstructionFilesCount = Directory.GetFiles(llmPath, "*.md").Length;
+                "Packages/com.unity.best-practices/Editor/LLMInstructions",
+                "Assets/Editor/LLMInstructions"
+            };
+
+            var files = new List<LLMInstructionFile>();
+
+            foreach (string folder in searchFolders)
+            {
+                string[] guids = AssetDatabase.FindAssets("t:TextAsset", new[] { folder });
+                foreach (string guid in guids)
+                {
+                    string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                    if (!assetPath.EndsWith(".md", System.StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    string fileName = Path.GetFileNameWithoutExtension(assetPath);
+                    files.Add(new LLMInstructionFile
+                    {
+                        DisplayName = fileName,
+                        AssetPath = assetPath
+                    });
+                }
             }
+
+            files.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, System.StringComparison.OrdinalIgnoreCase));
+            data.LLMInstructionFiles = files.ToArray();
         }
 
         private static void GatherGitData(ProjectDashboardData data)

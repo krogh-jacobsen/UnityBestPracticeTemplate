@@ -1,0 +1,31 @@
+    #ROOTNAMESPACEBEGIN#
+/// <summary>
+/// Concrete state that implements IState.
+/// Register with a StateMachine instance and call StateMachine.ChangeState() to activate.
+/// </summary>
+public class #SCRIPTNAME# : IState
+{
+    #region Public Methods
+
+    public void OnEnter()
+    {
+        // Called once when this state becomes active.
+        #NOTRIM#
+    }
+
+    public void OnUpdate()
+    {
+        // Called every frame while this state is active.
+        // Evaluate transition conditions and call owner.StateMachine.ChangeState() when needed.
+        #NOTRIM#
+    }
+
+    public void OnExit()
+    {
+        // Called once just before transitioning to another state.
+        #NOTRIM#
+    }
+
+    #endregion
+}
+#ROOTNAMESPACEEND#

@@ -1,5 +1,7 @@
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
+using System.IO;
 using UnityBestPractices.Editor.Validator;
 
 namespace UnityBestPractices.Editor.Dashboard
@@ -9,6 +11,7 @@ namespace UnityBestPractices.Editor.Dashboard
         private ProjectDashboardData _data;
         private Vector2 _scrollPosition;
         private bool _showValidationDetails = true;
+        private bool _showLLMFiles = false;
 
         [MenuItem("Tools/Unity Best Practices/Project Dashboard")]
         public static void ShowWindow()
@@ -45,6 +48,11 @@ namespace UnityBestPractices.Editor.Dashboard
 
             // Status Overview
             DrawStatusOverview();
+
+            GUILayout.Space(10);
+
+            // LLM Instruction Files
+            DrawLLMInstructions();
 
             GUILayout.Space(15);
 
@@ -138,7 +146,7 @@ namespace UnityBestPractices.Editor.Dashboard
             EditorGUILayout.BeginHorizontal();
 
             // Icon
-            string icon = isGood ? "" : " ";
+            string icon = isGood ? "" : "ï¿½";
             Color iconColor = isGood ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.9f, 0.7f, 0.2f);
 
             var originalColor = GUI.color;
@@ -151,6 +159,35 @@ namespace UnityBestPractices.Editor.Dashboard
             GUILayout.Label(value);
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        private void DrawLLMInstructions()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+            string header = $"LLM INSTRUCTION FILES ({_data.LLMInstructionFilesCount})";
+            _showLLMFiles = EditorGUILayout.Foldout(_showLLMFiles, header, true, EditorStyles.foldoutHeader);
+
+            if (_showLLMFiles && _data.LLMInstructionFiles != null)
+            {
+                GUILayout.Space(4);
+
+                foreach (var file in _data.LLMInstructionFiles)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    GUILayout.Label(file.DisplayName, EditorStyles.label);
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button("Open", GUILayout.Width(60)))
+                    {
+                        string fullPath = Path.GetFullPath(
+                            Path.Combine(Application.dataPath, "..", file.AssetPath));
+                        InternalEditorUtility.OpenFileAtLineExternal(fullPath, 1, 0);
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
+            }
+
+            EditorGUILayout.EndVertical();
         }
 
         private void DrawProjectHealth()
@@ -197,13 +234,13 @@ namespace UnityBestPractices.Editor.Dashboard
             if (_data.TotalWarnings > 0)
             {
                 GUI.color = new Color(0.9f, 0.7f, 0.2f);
-                GUILayout.Label($"  {_data.TotalWarnings} Warning{(_data.TotalWarnings != 1 ? "s" : "")}");
+                GUILayout.Label($"ï¿½ {_data.TotalWarnings} Warning{(_data.TotalWarnings != 1 ? "s" : "")}");
                 GUI.color = Color.white;
             }
             else
             {
                 GUI.color = new Color(0.5f, 0.5f, 0.5f);
-                GUILayout.Label("  0 Warnings");
+                GUILayout.Label("ï¿½ 0 Warnings");
                 GUI.color = Color.white;
             }
 
@@ -267,7 +304,7 @@ namespace UnityBestPractices.Editor.Dashboard
                     iconColor = new Color(0.9f, 0.3f, 0.3f);
                     break;
                 case ValidationSeverity.Warning:
-                    icon = " ";
+                    icon = "ï¿½";
                     iconColor = new Color(0.9f, 0.7f, 0.2f);
                     break;
                 case ValidationSeverity.Info:
@@ -286,7 +323,7 @@ namespace UnityBestPractices.Editor.Dashboard
             // Ping asset button if path exists
             if (!string.IsNullOrEmpty(issue.AssetPath))
             {
-                if (GUILayout.Button("’", GUILayout.Width(30)))
+                if (GUILayout.Button("ï¿½", GUILayout.Width(30)))
                 {
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(issue.AssetPath);
                     if (asset != null)
