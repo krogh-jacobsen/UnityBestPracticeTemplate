@@ -5,6 +5,20 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.3] - 2026-03-09
+### Added
+- `Editor/AgentSkills/` folder — agent skill prompt files for use with Claude Code and GitHub Copilot
+- `UnityCodeReview.md` — skill that reviews C# code against `UnityCodeStyleInstructions.md` and `UnityPerformanceOptimizationInstructions.md`, producing a severity-rated issues table with a Pass/Fail verdict
+- `UnityUIToolkitCreate.md` — skill for generating UI Toolkit UI (UXML + USS + C# View/Model/Presenter) following `UnityUIToolkitInstructions.md` conventions
+
+### Changed
+- `UnityDebuggingInstructions.md` — removed domain-specific sections (Input System, Animation, Audio, Performance, UI Toolkit debugging) now that they live in their respective domain files; added overview table pointing to each domain file
+- `UnityInputSystemInstructions.md` — added Troubleshooting section (device connection, PlayerInput, Input Action debugging, common issues table)
+- `UnityAnimationInstructions.md` — added Troubleshooting section (Animator state/parameter issues, Animation Events, Root Motion)
+- `UnityAudioInstructions.md` — added Troubleshooting section (AudioSource, spatial audio, AudioMixer issues)
+- `UnityPerformanceOptimizationInstructions.md` — added Troubleshooting section (diagnosing performance issues, Profiler setup, finding hidden allocations)
+- `UnityProjectConfigurationInstructions.md` — added Version Control Settings and Script Compilation Settings sections, expanded TOC, added Troubleshooting section, corrected `applyTo` frontmatter scope, replaced hardcoded paths with general guidance
+
 ## [1.3.2] - 2026-03-04
 ### Added
 - `Editor/Dashboard/ProjectDashboardData.cs` — stateless data collector driving all dashboard checks:

@@ -1,6 +1,6 @@
 {
   "name": "com.unity.best-practices",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "displayName": "Unity Best Practices",
   "unity": "6000.3",
   "description": "Unity C# coding style guide, best practices and LLM instructions to boost your productivity.",

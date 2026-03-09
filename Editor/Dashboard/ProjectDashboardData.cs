@@ -26,9 +26,13 @@ namespace UnityBestPractices.Editor.Dashboard
         public LLMInstructionFile[] LLMInstructionFiles = System.Array.Empty<LLMInstructionFile>();
         public int LLMInstructionFilesCount => LLMInstructionFiles.Length;
 
-        // Git
+        // Git & IDE Config
         public bool HasGitIgnore;
         public bool IsGitInitialized;
+        public bool HasEditorConfig;
+
+        // Package
+        public string PackageVersion;
 
         // Validation Results
         public ValidationResult[] ValidationResults;
@@ -40,22 +44,21 @@ namespace UnityBestPractices.Editor.Dashboard
         {
             var data = new ProjectDashboardData();
 
-            // Gather folder structure info
+            GatherPackageVersion(data);
             GatherFolderStructureData(data);
-
-            // Gather preset info
             GatherPresetData(data);
-
-            // Gather LLM instruction files
             GatherLLMInstructionData(data);
-
-            // Gather Git info
             GatherGitData(data);
-
-            // Run validators
             GatherValidationData(data);
 
             return data;
+        }
+
+        private static void GatherPackageVersion(ProjectDashboardData data)
+        {
+            var packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(
+                System.Reflection.Assembly.GetExecutingAssembly());
+            data.PackageVersion = packageInfo?.version ?? "unknown";
         }
 
         private static void GatherFolderStructureData(ProjectDashboardData data)
@@ -132,8 +135,9 @@ namespace UnityBestPractices.Editor.Dashboard
         {
             string projectRoot = Directory.GetParent(Application.dataPath).FullName;
 
-            data.HasGitIgnore = File.Exists(Path.Combine(projectRoot, ".gitignore"));
             data.IsGitInitialized = Directory.Exists(Path.Combine(projectRoot, ".git"));
+            data.HasGitIgnore = File.Exists(Path.Combine(projectRoot, ".gitignore"));
+            data.HasEditorConfig = File.Exists(Path.Combine(projectRoot, ".editorconfig"));
         }
 
         private static void GatherValidationData(ProjectDashboardData data)
@@ -147,7 +151,8 @@ namespace UnityBestPractices.Editor.Dashboard
                 new UnusedAssetsValidator(),
                 new DefaultNameValidator(),
                 new BrokenPrefabValidator(),
-                new InputSystemValidator()
+                new InputSystemValidator(),
+                new ProjectSettingsValidator()
             };
 
             var results = new List<ValidationResult>();

@@ -573,11 +573,11 @@ public abstract class UITKBaseClass : MonoBehaviour
     protected virtual void Awake()
     {
         m_uiDocument = GetComponent<UIDocument>();
-        InitializeElements();
     }
 
     protected virtual void OnEnable()
     {
+        InitializeElements();
         RegisterCallbacks();
     }
 

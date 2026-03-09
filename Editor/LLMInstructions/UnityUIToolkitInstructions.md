@@ -2550,7 +2550,7 @@ protected override void InitializeElements()
 
 **Step 2: Override `ValidateElementsInitialized()`**
 
-This method is called automatically in `Awake()` after `InitializeElements()`. Override it to check that critical elements were found:
+This method is called automatically in `OnEnable()` after `InitializeElements()`. Override it to check that critical elements were found:
 
 ```csharp
 protected override void ValidateElementsInitialized()
@@ -2607,13 +2607,13 @@ public class MyView : UITKBaseClass
             Debug.LogWarning("[MyView] Optional element 'action-btn' not found.", this);
     }
 
-    protected override void SubscribeToEvents()
+    protected override void RegisterCallbacks()
     {
         if (m_actionButton != null)
             m_actionButton.clicked += OnActionClicked;
     }
 
-    protected override void UnsubscribeToEvents()
+    protected override void UnregisterCallbacks()
     {
         if (m_actionButton != null)
             m_actionButton.clicked -= OnActionClicked;
@@ -2651,7 +2651,7 @@ public class MyView : UITKBaseClass
 
 ### Benefits
 
-✅ **Immediate Feedback** — Errors logged in `Awake()`, not 5 frames later
+✅ **Immediate Feedback** — Errors logged in `OnEnable()`, not 5 frames later
 ✅ **Clear Messages** — Error tells you exactly what to check
 ✅ **No Crashes** — View disables gracefully instead of throwing
 ✅ **Self-Documenting** — Code shows which elements are required vs optional

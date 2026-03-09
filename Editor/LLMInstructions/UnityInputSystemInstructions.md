@@ -15,6 +15,7 @@ Table of contents:
 - [Enabling and Disabling Action Maps](#enabling-and-disabling-action-maps)
 - [Runtime Rebinding](#runtime-rebinding)
 - [Global Input Handling](#global-input-handling)
+- [Troubleshooting](#troubleshooting)
 
 # Unity Version-Specific Instructions
 
@@ -352,4 +353,101 @@ private void HandleRawInputEvent(InputEventPtr eventPtr, InputDevice device)
     // Only for diagnostics — log which device is sending events
     Debug.Log($"[Input] Event from device: {device.displayName}");
 }
+
+---
+
+# Troubleshooting
+
+## Device Connection Issues
+
+```csharp
+// Debug: Monitor device changes
+private void OnEnable()
+{
+    InputSystem.onDeviceChange += OnDeviceChange;
+}
+
+private void OnDisable()
+{
+    InputSystem.onDeviceChange -= OnDeviceChange;
+}
+
+private void OnDeviceChange(InputDevice device, InputDeviceChange change)
+{
+    Debug.Log($"Device '{device.displayName}' {change}");
+}
+
+// Debug: List all connected devices
+private void LogConnectedDevices()
+{
+    foreach (var device in InputSystem.devices)
+    {
+        Debug.Log($"Device: {device.displayName} ({device.GetType().Name})");
+    }
+}
+```
+
+## PlayerInput Component Issues
+
+```csharp
+// Issue: Actions not firing
+// Check 1: Is PlayerInput component enabled?
+// Check 2: Is the correct Action Map active?
+
+// Debug: Log all action triggers
+private void OnEnable()
+{
+    var playerInput = GetComponent<PlayerInput>();
+    playerInput.onActionTriggered += OnActionTriggered;
+}
+
+private void OnActionTriggered(InputAction.CallbackContext context)
+{
+    Debug.Log($"Action: {context.action.name}, Phase: {context.phase}");
+}
+
+// Issue: Wrong action map active
+var playerInput = GetComponent<PlayerInput>();
+Debug.Log($"Current Action Map: {playerInput.currentActionMap?.name ?? "None"}");
+
+// Fix: Switch action map
+playerInput.SwitchCurrentActionMap("Gameplay");
+```
+
+## Input Action Debugging
+
+```csharp
+// Debug: Check if action is bound and enabled
+private void DebugAction(InputAction action)
+{
+    Debug.Log($"Action: {action.name}");
+    Debug.Log($"  Enabled: {action.enabled}");
+    Debug.Log($"  Bindings: {action.bindings.Count}");
+
+    foreach (var binding in action.bindings)
+    {
+        Debug.Log($"    Path: {binding.effectivePath}");
+    }
+}
+
+// Debug: Read action value directly in Update
+private void Update()
+{
+    var moveAction = m_InputActions.Gameplay.Move;
+    Vector2 value = moveAction.ReadValue<Vector2>();
+    Debug.Log($"Move: {value}, Phase: {moveAction.phase}");
+}
+```
+
+## Common Input System Issues
+
+| Symptom | Check | Solution |
+|---------|-------|----------|
+| No input response | Is InputActionAsset assigned? | Assign in Inspector or via code |
+| Actions not firing | Is action map enabled? | Call `actionMap.Enable()` |
+| Wrong device input | Check control scheme | Verify bindings for target device |
+| Input works in Editor only | Is Input System package in build? | Check Player Settings → Active Input Handling |
+| Duplicate input events | Multiple PlayerInput components? | Use single PlayerInput or manual action management |
+
+Use **Input Debugger** (Window → Analysis → Input Debugger) to inspect devices, events, and action states live. Verify the active control scheme matches the connected device.
 ```

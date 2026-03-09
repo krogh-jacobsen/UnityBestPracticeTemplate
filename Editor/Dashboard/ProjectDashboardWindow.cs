@@ -28,6 +28,11 @@ namespace UnityBestPractices.Editor.Dashboard
             RefreshData();
         }
 
+        private void OnFocus()
+        {
+            RefreshData();
+        }
+
         private void RefreshData()
         {
             _data = ProjectDashboardData.Gather();
@@ -80,14 +85,21 @@ namespace UnityBestPractices.Editor.Dashboard
         private void DrawHeader()
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+            EditorGUILayout.BeginHorizontal();
             GUILayout.Label("PROJECT DASHBOARD", EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+            if (_data.PackageVersion != null)
+                GUILayout.Label($"v{_data.PackageVersion}", EditorStyles.miniLabel);
+            EditorGUILayout.EndHorizontal();
+
             GUILayout.Space(5);
 
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Refresh", GUILayout.Width(100)))
-            {
                 RefreshData();
-            }
+            if (GUILayout.Button("New Project Wizard", GUILayout.Width(160)))
+                NewProjectWizard.ShowWindow();
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.EndVertical();
@@ -128,22 +140,23 @@ namespace UnityBestPractices.Editor.Dashboard
                 _data.LLMInstructionFilesCount > 0
             );
 
-            // Git
-            string gitStatus = "";
-            if (_data.IsGitInitialized && _data.HasGitIgnore)
-                gitStatus = "Initialized, .gitignore present";
-            else if (_data.IsGitInitialized)
-                gitStatus = "Initialized, missing .gitignore";
-            else if (_data.HasGitIgnore)
-                gitStatus = ".gitignore present, not initialized";
+            // Git & IDE Config
+            bool gitIdeGood = _data.IsGitInitialized && _data.HasGitIgnore && _data.HasEditorConfig;
+            string gitIdeStatus;
+            if (gitIdeGood)
+            {
+                gitIdeStatus = "All configured";
+            }
             else
-                gitStatus = "Not initialized";
+            {
+                var missing = new System.Collections.Generic.List<string>();
+                if (!_data.IsGitInitialized) missing.Add("git");
+                if (!_data.HasGitIgnore) missing.Add(".gitignore");
+                if (!_data.HasEditorConfig) missing.Add(".editorconfig");
+                gitIdeStatus = "Missing: " + string.Join(", ", missing);
+            }
 
-            DrawStatusLine(
-                "Git",
-                gitStatus,
-                _data.IsGitInitialized && _data.HasGitIgnore
-            );
+            DrawStatusLine("Git & IDE", gitIdeStatus, gitIdeGood);
 
             EditorGUILayout.EndVertical();
         }

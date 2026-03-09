@@ -23,6 +23,7 @@ Table of contents:
 - [Unity API Best Practices](#unity-api-best-practices)
 - [Profiling Markers](#profiling-markers)
 - [Common Anti-Patterns](#common-anti-patterns)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -862,6 +863,49 @@ void Update()
 - Profile on target platform
 - Use Jobs/Burst for heavy computation
 - Configure physics collision matrix
+
+---
+
+# Troubleshooting
+
+## Diagnosing Performance Issues
+
+| Symptom | Diagnostic Tool | What to Look For |
+|---------|-----------------|-----------------|
+| Frame rate drops | Profiler → CPU Usage | Expensive methods per frame — sort by Self ms |
+| Memory grows over time | Profiler → Memory | Objects not being released; check static collections and event subscriptions |
+| GC spikes | Profiler → GC Alloc column | Allocations in Update — `new`, LINQ, string concat |
+| GPU bound | Frame Debugger | Overdraw, batching breaks, unnecessary draw calls |
+
+**Profiler setup:**
+1. Open **Window → Analysis → Profiler**
+2. Enable **Deep Profile** to see per-method timing (high overhead — disable after diagnosing)
+3. Sort the CPU module by **GC Alloc** to find allocation hot-spots first
+
+## Finding Hidden Allocations
+
+Common allocation sources that appear in the GC Alloc column:
+
+```csharp
+// 🔴 These allocate every frame — find them via Profiler GC Alloc
+void Update()
+{
+    var enemies = FindObjectsOfType<Enemy>();          // Allocates array
+    string msg = $"Count: {enemies.Length}";          // Allocates string
+    var active = enemies.Where(e => e.IsAlive).ToList(); // LINQ + list
+}
+
+// 🟢 Zero-allocation equivalent
+private Enemy[] m_enemyCache = new Enemy[100];
+
+void Update()
+{
+    int count = FindObjectsOfType<Enemy>(m_enemyCache); // Reuses array
+    // Work with m_enemyCache[0..count-1] directly
+}
+```
+
+See the [Code Review Priority Checklist](#code-review-priority-checklist) and [Common Anti-Patterns](#common-anti-patterns) for a full list of patterns to check.
 
 ---
 

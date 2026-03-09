@@ -14,6 +14,7 @@ Table of contents:
 - [Spatial Audio](#spatial-audio)
 - [AudioListener](#audiolistener)
 - [Pooled Audio Service Pattern](#pooled-audio-service-pattern)
+- [Troubleshooting](#troubleshooting)
 
 # Unity Version-Specific Instructions
 
@@ -359,4 +360,78 @@ public class AudioService : MonoBehaviour
             m_SFXPool.Release(src);
     }
 }
+
+---
+
+# Troubleshooting
+
+## AudioSource Issues
+
+```csharp
+// Issue: Sound not playing — log full AudioSource state
+private void DebugAudioSource(AudioSource source)
+{
+    Debug.Log($"AudioSource on {source.gameObject.name}:");
+    Debug.Log($"  Clip: {source.clip?.name ?? "None"}");
+    Debug.Log($"  Volume: {source.volume}");
+    Debug.Log($"  Mute: {source.mute}");
+    Debug.Log($"  IsPlaying: {source.isPlaying}");
+    Debug.Log($"  Enabled: {source.enabled}");
+    Debug.Log($"  GameObject Active: {source.gameObject.activeInHierarchy}");
+}
+
+// Common checklist:
+// 1. Is AudioClip assigned?
+// 2. Is volume > 0?
+// 3. Is exactly one AudioListener active in the scene?
+// 4. Is AudioSource not muted?
+// 5. Is the GameObject active and enabled?
+```
+
+## Spatial Audio Issues
+
+```csharp
+// Issue: 3D sound not attenuating — Spatial Blend must be 1 for fully 3D audio
+Debug.Log($"Spatial Blend: {m_Source.spatialBlend}");  // 0 = 2D, 1 = 3D
+
+// Debug: Check listener distance vs max distance
+var listener = FindObjectOfType<AudioListener>();
+if (listener != null)
+{
+    float distance = Vector3.Distance(transform.position, listener.transform.position);
+    Debug.Log($"Distance to listener: {distance:F1}, Max Distance: {m_Source.maxDistance}");
+}
+```
+
+## AudioMixer Issues
+
+```csharp
+// Issue: Mixer parameter not changing
+// Check: Parameter must be Exposed in the Audio Mixer window
+// (right-click the volume knob → Expose '<name>' to script)
+
+float value;
+if (m_Mixer.GetFloat("MasterVolume", out value))
+{
+    Debug.Log($"MasterVolume: {value} dB");
+}
+else
+{
+    Debug.LogError("Parameter 'MasterVolume' not found or not exposed in the Audio Mixer");
+}
+
+// Note: Mixer volume uses decibels (-80 to 0), not linear (0 to 1)
+// Always convert: float db = Mathf.Log10(Mathf.Max(linear, 0.0001f)) * 20f;
+```
+
+## Common Audio Issues
+
+| Symptom | Check | Solution |
+|---------|-------|----------|
+| No sound at all | Is AudioListener in scene? | Add AudioListener to the main camera |
+| Sound plays once only | Is `loop` disabled and `Play()` not called again? | Enable loop or call `Play()` again |
+| 3D sound always same volume | Is Spatial Blend set to 3D? | Set `spatialBlend = 1` |
+| Sound cuts off early | Max Distance too small for scene scale? | Increase `maxDistance` |
+| Mixer not affecting sound | Is `AudioSource.outputAudioMixerGroup` set? | Assign the correct mixer group |
+| Volume slider has no effect | Using linear value instead of dB? | Convert to dB before `SetFloat` |
 ```

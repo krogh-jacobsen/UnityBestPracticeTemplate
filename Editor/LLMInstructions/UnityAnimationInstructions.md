@@ -15,6 +15,7 @@ Table of contents:
 - [Avatar Masks](#avatar-masks)
 - [Root Motion](#root-motion)
 - [RuntimeAnimatorController](#runtimeanimatorcontroller)
+- [Troubleshooting](#troubleshooting)
 
 # Unity Version-Specific Instructions
 
@@ -317,4 +318,88 @@ public class CharacterAnimatorSwapper : MonoBehaviour
         m_Animator.runtimeAnimatorController = m_BowController;
     }
 }
+
+---
+
+# Troubleshooting
+
+## Animator State Issues
+
+```csharp
+// Debug: Log current animator state
+private void Update()
+{
+    var stateInfo = m_Animator.GetCurrentAnimatorStateInfo(0);
+    Debug.Log($"State hash: {stateInfo.shortNameHash}, NormalizedTime: {stateInfo.normalizedTime:F2}");
+}
+
+// Debug: Check if a specific state is currently playing
+private bool IsPlaying(string stateName)
+{
+    return m_Animator.GetCurrentAnimatorStateInfo(0).IsName(stateName);
+}
+
+// Issue: State not transitioning — verify transition conditions are met
+private void DebugTransitionConditions()
+{
+    Debug.Log($"IsGrounded: {m_Animator.GetBool(AnimatorParams.IsGrounded)}");
+    Debug.Log($"Speed: {m_Animator.GetFloat(AnimatorParams.Speed)}");
+    Debug.Log($"IsInTransition: {m_Animator.IsInTransition(0)}");
+}
+```
+
+## Animator Parameter Issues
+
+```csharp
+// Debug: Dump all parameters and their current values
+private void LogAnimatorParameters()
+{
+    foreach (var param in m_Animator.parameters)
+    {
+        string value = param.type switch
+        {
+            AnimatorControllerParameterType.Bool    => m_Animator.GetBool(param.name).ToString(),
+            AnimatorControllerParameterType.Float   => m_Animator.GetFloat(param.name).ToString("F3"),
+            AnimatorControllerParameterType.Int     => m_Animator.GetInteger(param.name).ToString(),
+            AnimatorControllerParameterType.Trigger => "(trigger)",
+            _                                       => "unknown"
+        };
+        Debug.Log($"Param: {param.name} ({param.type}) = {value}");
+    }
+}
+```
+
+> ⚠️ Parameter names are **case-sensitive**. `"isGrounded"` and `"IsGrounded"` are different parameters.
+
+## Animation Event Issues
+
+```csharp
+// Issue: Animation event not firing
+// Check 1: Is the method on a component on the SAME GameObject as the Animator?
+// Check 2: Does the method signature match a supported type?
+
+// Valid animation event signatures:
+private void OnFootstep() { }                       // No parameters
+private void OnFootstep(string sound) { }           // String parameter
+private void OnFootstep(float volume) { }           // Float parameter
+private void OnFootstep(int index) { }              // Int parameter
+private void OnFootstep(AnimationEvent evt) { }     // Full event data
+
+// Debug: add logging to the event method
+private void OnFootstep(AnimationEvent evt)
+{
+    Debug.Log($"Footstep at {evt.time:F3}s, clip: {evt.animatorClipInfo.clip?.name ?? "none"}");
+}
+```
+
+> ⚠️ If the Animator component is **disabled**, all animation events on that clip are **silently skipped**.
+
+## Root Motion Issues
+
+| Symptom | Check | Solution |
+|---------|-------|----------|
+| Character not moving | Apply Root Motion enabled? | Enable on Animator component |
+| Movement jittery | Mixing root motion with script movement? | Use one or the other, not both |
+| Wrong movement direction | Animation import settings | Check Bake Into Pose options |
+| Sliding feet | Animation doesn't match character speed | Adjust animation or movement speed |
 ```

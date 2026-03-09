@@ -84,6 +84,7 @@ After completing any work that adds new functionality, fixes a bug, or changes b
 
 - `PATCH` — bug fix or non-functional change (e.g. typo, meta file fix)
 - `MINOR` — new backwards-compatible feature or content (new preset, script template, LLM instruction file, editor utility)
+  - ℹ️ User preference: doc/skill-only additions (no new code) have been versioned as `PATCH` rather than `MINOR`
 - `MAJOR` — breaking change (renamed package ID, removed API, restructured assembly)
 
 **Do not update `package.json` or `CHANGELOG.md` until the user confirms the proposed version.**
