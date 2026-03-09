@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using System.IO;
+using Unity.BestPractices.Editor;
 using UnityBestPractices.Editor.Validator;
 
 namespace UnityBestPractices.Editor.Dashboard
@@ -12,6 +13,7 @@ namespace UnityBestPractices.Editor.Dashboard
         private Vector2 _scrollPosition;
         private bool _showValidationDetails = true;
         private bool _showLLMFiles = false;
+        private bool _showTools = true;
 
         [MenuItem("Tools/Unity Best Practices/Project Dashboard")]
         public static void ShowWindow()
@@ -53,6 +55,11 @@ namespace UnityBestPractices.Editor.Dashboard
 
             // LLM Instruction Files
             DrawLLMInstructions();
+
+            GUILayout.Space(10);
+
+            // Tools quick-actions
+            DrawTools();
 
             GUILayout.Space(15);
 
@@ -185,6 +192,34 @@ namespace UnityBestPractices.Editor.Dashboard
                     }
                     EditorGUILayout.EndHorizontal();
                 }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawTools()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+            _showTools = EditorGUILayout.Foldout(_showTools, "TOOLS", true, EditorStyles.foldoutHeader);
+
+            if (_showTools)
+            {
+                GUILayout.Space(4);
+
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.Label("PlayerPrefs Inspector", EditorStyles.label);
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("Open", GUILayout.Width(60)))
+                    PlayerPrefsInspectorWindow.ShowWindow();
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.Label("Layer Collision Matrix", EditorStyles.label);
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("Open", GUILayout.Width(60)))
+                    LayerCollisionMatrixWindow.ShowWindow();
+                EditorGUILayout.EndHorizontal();
             }
 
             EditorGUILayout.EndVertical();

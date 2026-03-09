@@ -43,6 +43,11 @@
       "displayName": "State Machine",
       "description": "Enum-based state machine with IState interface and OnEnter/OnUpdate/OnExit lifecycle.",
       "path": "Samples/StateMachine"
+    },
+    {
+      "displayName": "Audio Manager",
+      "description": "Singleton audio service wrapping ObjectPool<AudioSource> with AudioMixer group routing, music crossfading, and per-channel volume persistence via PlayerPrefs.",
+      "path": "Samples/AudioManager"
     }
   ],
   "_fingerprint": "9af04b97568783573f0824c526d4de4b8196f6b1"
