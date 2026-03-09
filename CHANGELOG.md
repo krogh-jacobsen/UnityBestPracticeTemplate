@@ -5,6 +5,23 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-03-09
+### Added
+- `Editor/NewProjectWizard.cs` — **Window → Best Practices → New Project Wizard** opens a guided setup window that runs all 7 setup steps (folders, assembly definitions, import presets, tags & layers, .gitignore, .editorconfig, project settings) individually or all at once via "Run Full Setup"
+- `Editor/ConfigureProjectSettings.cs` — **Window → Best Practices → Configure Project Settings** applies recommended Unity 6 project settings in one click: Enter Play Mode (DisableDomainReload + DisableSceneReload), IL2CPP scripting backend for Standalone/Android/iOS, and .NET Standard 2.1 API compatibility
+- `Editor/Validator/ProjectSettingsValidator.cs` — new validator that checks whether Enter Play Mode optimisations are enabled and flags Mono scripting backend; results appear in the Project Dashboard validation details
+- `ConfigurePresets.Execute()` — public entry point for the preset registration logic, allowing the wizard to call it without the confirmation dialog
+
+### Fixed
+- `ProjectDashboardWindow` — preset status display in Status Overview now correctly shows "Audio: OK / missing" and "Textures: OK / missing" for each preset type (previously all four branches displayed the same string due to stripped control characters)
+
+### Changed
+- `ProjectDashboardWindow` — header now shows the package version (read at runtime via `PackageInfo.FindForAssembly`); added shortcut button to open the New Project Wizard
+- `ProjectDashboardWindow` — "Git" status row renamed to "Git & IDE" and now includes `.editorconfig` presence; reports "All configured" or lists what is missing
+- `ProjectDashboardWindow` — validation details now show a green "[OK]" row for validators with zero issues, giving a complete pass/fail view of every validator
+- `ProjectDashboardWindow` — window auto-refreshes on focus (`OnFocus`) so data stays current after running setup steps
+- `ProjectDashboardData` — adds `HasEditorConfig` and `PackageVersion` fields; `GatherGitData` now checks for `.editorconfig`; `ProjectSettingsValidator` added to the validator list
+
 ## [1.3.3] - 2026-03-09
 ### Added
 - `Editor/AgentSkills/` folder — agent skill prompt files for use with Claude Code and GitHub Copilot

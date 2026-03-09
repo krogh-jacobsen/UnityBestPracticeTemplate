@@ -17,6 +17,7 @@ namespace Unity.BestPractices.Editor
 
         /// <summary>
         /// Registers all package import presets in the Preset Manager with folder-path filters.
+        /// Called from the menu with a confirmation dialog.
         /// </summary>
         [MenuItem("Window/Best Practices/Configure Import Presets")]
         private static void SetupPresets()
@@ -33,6 +34,15 @@ namespace Unity.BestPractices.Editor
             if (!confirmed)
                 return;
 
+            Execute();
+        }
+
+        /// <summary>
+        /// Registers all package import presets without showing a confirmation dialog.
+        /// Called directly from the New Project Wizard.
+        /// </summary>
+        public static void Execute()
+        {
             UnityEngine.Object[] pmAssets = AssetDatabase.LoadAllAssetsAtPath(k_PresetManagerAssetPath);
             if (pmAssets.Length == 0 || pmAssets[0] == null)
             {

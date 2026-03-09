@@ -117,15 +117,15 @@ namespace UnityBestPractices.Editor.Dashboard
             );
 
             // Presets
-            string presetStatus = "";
+            string presetStatus;
             if (_data.HasAudioPresets && _data.HasTexturePresets)
-                presetStatus = "Audio  Textures ";
+                presetStatus = "Audio: OK   Textures: OK";
             else if (_data.HasAudioPresets)
-                presetStatus = "Audio  Textures ";
+                presetStatus = "Audio: OK   Textures: missing";
             else if (_data.HasTexturePresets)
-                presetStatus = "Audio  Textures ";
+                presetStatus = "Audio: missing   Textures: OK";
             else
-                presetStatus = "Audio  Textures ";
+                presetStatus = "Audio: missing   Textures: missing";
 
             DrawStatusLine(
                 "Presets",
@@ -312,26 +312,32 @@ namespace UnityBestPractices.Editor.Dashboard
 
             foreach (var result in _data.ValidationResults)
             {
-                // Skip if no issues
-                if (result.Issues.Length == 0)
-                    continue;
-
-                // Category header
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
-                string categoryLabel = $"{result.ValidatorName} ({result.Issues.Length} issue{(result.Issues.Length != 1 ? "s" : "")})";
-                GUILayout.Label(categoryLabel, EditorStyles.boldLabel);
-
-                GUILayout.Space(5);
-
-                // Issues
-                foreach (var issue in result.Issues)
+                if (result.Issues.Length == 0)
                 {
-                    DrawIssue(issue);
+                    EditorGUILayout.BeginHorizontal();
+                    var prevColor = GUI.color;
+                    GUI.color = new Color(0.3f, 0.8f, 0.3f);
+                    GUILayout.Label("[OK]", GUILayout.Width(36));
+                    GUI.color = prevColor;
+                    GUILayout.Label(result.ValidatorName, EditorStyles.boldLabel);
+                    EditorGUILayout.EndHorizontal();
+                }
+                else
+                {
+                    string categoryLabel = $"{result.ValidatorName} ({result.Issues.Length} issue{(result.Issues.Length != 1 ? "s" : "")})";
+                    GUILayout.Label(categoryLabel, EditorStyles.boldLabel);
+                    GUILayout.Space(5);
+
+                    foreach (var issue in result.Issues)
+                    {
+                        DrawIssue(issue);
+                    }
                 }
 
                 EditorGUILayout.EndVertical();
-                GUILayout.Space(5);
+                GUILayout.Space(3);
             }
 
             EditorGUILayout.EndVertical();
