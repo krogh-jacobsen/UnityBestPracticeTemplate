@@ -12,6 +12,9 @@ namespace UnityBestPractices.Editor.Dashboard
         private ProjectDashboardData m_data;
         private Vector2 m_scrollPosition;
         private string m_projectName = "";
+
+        // 0 = not installed, 1 = stopped, 2 = running
+        private int m_mcpStatus = 0;
         private string m_subSystemName = "";
         private bool m_subSystemCreateAsmdef = true;
         private bool m_showLLMFiles = false;
@@ -46,6 +49,25 @@ namespace UnityBestPractices.Editor.Dashboard
             m_data = ProjectDashboardData.Gather();
             if (string.IsNullOrEmpty(m_projectName))
                 m_projectName = EditorPrefs.GetString(SetupProjectFolders.k_ProjectNamePrefKey, "");
+            m_mcpStatus = ResolveMcpStatus();
+        }
+
+        // Uses reflection so the dashboard has no hard dependency on the MCP assembly.
+        // Returns: 0 = not installed, 1 = stopped/disabled, 2 = running
+        private static int ResolveMcpStatus()
+        {
+            foreach (var assembly in System.AppDomain.CurrentDomain.GetAssemblies())
+            {
+                var type = assembly.GetType("Unity.AI.MCP.Editor.UnityMCPBridge");
+                if (type == null) continue;
+
+                var isRunning = type.GetProperty("IsRunning",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                if (isRunning == null) continue;
+
+                return (bool)isRunning.GetValue(null) ? 2 : 1;
+            }
+            return 0;
         }
 
         private void OnGUI()
@@ -131,6 +153,22 @@ namespace UnityBestPractices.Editor.Dashboard
                 EditorUtility.RequestScriptReload();
             if (GUILayout.Button("New Project Wizard", GUILayout.Width(160)))
                 NewProjectWizard.ShowWindow();
+
+            if (m_mcpStatus > 0)
+            {
+                GUILayout.Space(8);
+                bool running = m_mcpStatus == 2;
+                var prevColor = GUI.color;
+                GUI.color = running ? new Color(0.3f, 0.85f, 0.3f) : new Color(0.6f, 0.6f, 0.6f);
+                string label = running ? "● MCP Running" : "○ MCP Stopped";
+                if (GUILayout.Button(new GUIContent(label, "Unity MCP Bridge — click to open settings"),
+                    EditorStyles.miniLabel, GUILayout.ExpandWidth(false)))
+                {
+                    SettingsService.OpenProjectSettings("Project/AI/Unity MCP");
+                }
+                GUI.color = prevColor;
+            }
+
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.EndVertical();
