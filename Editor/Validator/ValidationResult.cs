@@ -17,6 +17,13 @@ namespace UnityBestPractices.Editor.Validator
         public string AssetPath;
         public string Category;
 
+        /// <summary>
+        /// Optional one-click fix delegate. When set, a Fix button is shown next to the issue in the dashboard.
+        /// Not serialized — populated at runtime by the validator.
+        /// </summary>
+        [NonSerialized]
+        public System.Action FixAction;
+
         public ValidationIssue(string message, ValidationSeverity severity, string assetPath = "", string category = "")
         {
             Message = message;

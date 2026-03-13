@@ -421,6 +421,17 @@ namespace UnityBestPractices.Editor.Dashboard
                 }
             }
 
+            // Fix button — shown only when the validator provides a fix action
+            if (issue.FixAction != null)
+            {
+                if (GUILayout.Button("Fix", GUILayout.Width(36)))
+                {
+                    issue.FixAction();
+                    ProjectDashboardData.RunValidation(_data);
+                    Repaint();
+                }
+            }
+
             EditorGUILayout.EndHorizontal();
         }
     }
