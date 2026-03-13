@@ -133,6 +133,7 @@ namespace UnityBestPractices.Editor.Dashboard
 
             foreach (string folder in searchFolders)
             {
+                if (!AssetDatabase.IsValidFolder(folder)) continue;
                 string[] guids = AssetDatabase.FindAssets("t:TextAsset", new[] { folder });
                 foreach (string guid in guids)
                 {
@@ -168,6 +169,7 @@ namespace UnityBestPractices.Editor.Dashboard
 
             foreach (string folder in searchFolders)
             {
+                if (!AssetDatabase.IsValidFolder(folder)) continue;
                 string[] guids = AssetDatabase.FindAssets("t:TextAsset", new[] { folder });
                 foreach (string guid in guids)
                 {

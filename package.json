@@ -8,6 +8,10 @@
     "name": "Krogh-Jacobsen",
     "url": "https://github.com/krogh-jacobsen/"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krogh-jacobsen/UnityBestPracticeTemplate.git"
+  },
   "license": "MIT",
   "licensesUrl": "https://opensource.org/licenses/MIT",
   "keywords": [
