@@ -51,8 +51,8 @@ namespace Unity.BestPractices.Editor
                 return;
             }
 
-            string companyName = PlayerSettings.companyName.Replace(" ", "");
-            string productName = PlayerSettings.productName.Replace(" ", "");
+            string companyName = SanitizeIdentifier(PlayerSettings.companyName);
+            string productName = SanitizeIdentifier(PlayerSettings.productName);
             string rootNamespace = $"{companyName}.{productName}";
 
             // Runtime asmdef
@@ -121,6 +121,25 @@ namespace Unity.BestPractices.Editor
 
             AssetDatabase.Refresh();
             Debug.Log($"[BestPractice] Assembly definitions generated under {basePath} with namespace '{rootNamespace}'");
+        }
+
+        /// Strips any character that is not a letter, digit, or underscore so the result
+        /// is safe to use as a C# identifier and as part of a file name.
+        /// Leading digits are prefixed with an underscore to keep the identifier valid.
+        private static string SanitizeIdentifier(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return "Project";
+            var sb = new System.Text.StringBuilder();
+            foreach (char c in input)
+            {
+                if (char.IsLetterOrDigit(c)) sb.Append(c);
+                // Collapse runs of non-alphanumeric chars into nothing (spaces, colons, hyphens, etc.)
+            }
+            string result = sb.ToString();
+            // Ensure it doesn't start with a digit
+            if (result.Length > 0 && char.IsDigit(result[0]))
+                result = "_" + result;
+            return result.Length > 0 ? result : "Project";
         }
 
         /// <summary>
