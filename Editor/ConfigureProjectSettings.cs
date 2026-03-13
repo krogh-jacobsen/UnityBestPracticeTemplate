@@ -33,6 +33,22 @@ namespace Unity.BestPractices.Editor
         public static bool IsVersionControlConfigured =>
             VersionControlSettings.mode == "Visible Meta Files";
 
+        /// <summary>True when the Active Input Handling is set to the new Input System package (or Both).</summary>
+        public static bool IsInputSystemConfigured
+        {
+            get
+            {
+                var assets = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset");
+                if (assets.Length == 0) return false;
+                var so = new SerializedObject(assets[0]);
+                var prop = so.FindProperty("activeInputHandler");
+                // 0 = Input Manager (old), 1 = Input System Package (new), 2 = Both
+                return prop != null && prop.intValue >= 1;
+            }
+        }
+
+        public static bool IsIncrementalGCConfigured => PlayerSettings.gcIncremental;
+
         // ── Individual apply methods ──────────────────────────────────────────
 
         [MenuItem("Window/Best Practices/Configure Project Settings")]
@@ -77,6 +93,29 @@ namespace Unity.BestPractices.Editor
             Debug.Log("[Best Practices] Version Control set to Visible Meta Files.");
         }
 
+        public static void ApplyInputSystem()
+        {
+            var assets = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset");
+            if (assets.Length == 0) return;
+            var so = new SerializedObject(assets[0]);
+            so.UpdateIfRequiredOrScript();
+            var prop = so.FindProperty("activeInputHandler");
+            if (prop != null)
+            {
+                prop.intValue = 1; // Input System Package (New)
+                so.ApplyModifiedProperties();
+            }
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Best Practices] Active Input Handling set to Input System Package (New). A Unity restart may be required.");
+        }
+
+        public static void ApplyIncrementalGC()
+        {
+            PlayerSettings.gcIncremental = true;
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Best Practices] Incremental GC enabled.");
+        }
+
         // ── Apply all (used by New Project Wizard) ────────────────────────────
 
         /// <summary>Applies all recommended settings without showing a confirmation dialog.</summary>
@@ -87,6 +126,8 @@ namespace Unity.BestPractices.Editor
             ApplyApiCompatibility();
             ApplyAssetSerialization();
             ApplyVersionControl();
+            ApplyInputSystem();
+            ApplyIncrementalGC();
             Debug.Log("[Best Practices] All project settings configured. Review them in Edit > Project Settings.");
         }
     }

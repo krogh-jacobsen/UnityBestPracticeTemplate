@@ -144,6 +144,7 @@ namespace UnityBestPractices.Editor.Dashboard
             }
             string header = $"LLM INSTRUCTION FILES — {llmInstalled}/{llmTotal} installed";
             _showLLMFiles = EditorGUILayout.Foldout(_showLLMFiles, header, true, EditorStyles.foldoutHeader);
+            GUILayout.Label("Markdown files that give AI assistants context about your project's coding standards and Unity conventions. Copied to .github/instructions/ so GitHub Copilot, Cursor, and other editors pick them up automatically.", EditorStyles.wordWrappedMiniLabel);
 
             if (_showLLMFiles && _data.LLMInstructionFiles != null)
             {
@@ -190,19 +191,6 @@ namespace UnityBestPractices.Editor.Dashboard
                     EditorGUILayout.EndHorizontal();
                 }
 
-                GUILayout.Space(4);
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button(new GUIContent("Add all", "Copy all LLM instruction files to .github/instructions/ in your project"), GUILayout.Width(70)))
-                {
-                    foreach (var file in _data.LLMInstructionFiles)
-                    {
-                        string fullPath = Path.GetFullPath(
-                            Path.Combine(Application.dataPath, "..", file.AssetPath));
-                        CopyAIFilesToProject.CopySingleLLMInstruction(fullPath, projectRoot);
-                    }
-                }
-                EditorGUILayout.EndHorizontal();
             }
 
             // ── AI Assistance ─────────────────────────────────────────────
@@ -212,7 +200,7 @@ namespace UnityBestPractices.Editor.Dashboard
                 "Copy All LLM Instructions",
                 "Copies all LLM instruction files to .github/instructions/ and .github/copilot-instructions.md so AI assistants can reference them locally.",
                 false, "",
-                "Copy to Project", CopyAIFilesToProject.ExecuteLLMInstructionsOnly, 110);
+                "Copy to Project", CopyAIFilesToProject.ExecuteLLMInstructionsOnly, 110, showBadge: false);
 
             EditorGUILayout.EndVertical();
         }
@@ -234,6 +222,7 @@ namespace UnityBestPractices.Editor.Dashboard
             }
             string header = $"AGENT SKILLS — {skillInstalled}/{skillTotal} installed";
             _showSkills = EditorGUILayout.Foldout(_showSkills, header, true, EditorStyles.foldoutHeader);
+            GUILayout.Label("Reusable prompt templates that define specialized AI workflows for your project. Copied to .github/prompts/ (GitHub Copilot reusable prompts) and .claude/commands/ (Claude Code slash commands).", EditorStyles.wordWrappedMiniLabel);
 
             if (_showSkills && _data.AgentSkillFiles != null)
             {
@@ -280,19 +269,6 @@ namespace UnityBestPractices.Editor.Dashboard
                     EditorGUILayout.EndHorizontal();
                 }
 
-                GUILayout.Space(4);
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button(new GUIContent("Add all", "Copy all agent skill files to .github/prompts/ and .claude/commands/"), GUILayout.Width(70)))
-                {
-                    foreach (var skill in _data.AgentSkillFiles)
-                    {
-                        string fullPath = Path.GetFullPath(
-                            Path.Combine(Application.dataPath, "..", skill.AssetPath));
-                        CopyAIFilesToProject.CopySingleAgentSkill(fullPath, projectRoot);
-                    }
-                }
-                EditorGUILayout.EndHorizontal();
             }
 
             // ── AI Assistance ─────────────────────────────────────────────
@@ -302,7 +278,7 @@ namespace UnityBestPractices.Editor.Dashboard
                 "Copy All Agent Skills",
                 "Copies all agent skill files to .github/prompts/ (Copilot reusable prompts) and .claude/commands/ (Claude Code slash commands).",
                 false, "",
-                "Copy to Project", CopyAIFilesToProject.ExecuteAgentSkillsOnly, 110);
+                "Copy to Project", CopyAIFilesToProject.ExecuteAgentSkillsOnly, 110, showBadge: false);
 
 
             EditorGUILayout.EndVertical();
@@ -316,14 +292,16 @@ namespace UnityBestPractices.Editor.Dashboard
                 + (ConfigureProjectSettings.IsIL2CPPConfigured ? 1 : 0)
                 + (ConfigureProjectSettings.IsApiCompatibilityConfigured ? 1 : 0)
                 + (ConfigureProjectSettings.IsAssetSerializationConfigured ? 1 : 0)
-                + (ConfigureProjectSettings.IsVersionControlConfigured ? 1 : 0);
-            _showProjectSettings = EditorGUILayout.Foldout(_showProjectSettings, $"PROJECT SETTINGS — {settingsOk}/5 configured", true, EditorStyles.foldoutHeader);
+                + (ConfigureProjectSettings.IsVersionControlConfigured ? 1 : 0)
+                + (ConfigureProjectSettings.IsInputSystemConfigured ? 1 : 0)
+                + (ConfigureProjectSettings.IsIncrementalGCConfigured ? 1 : 0);
+            _showProjectSettings = EditorGUILayout.Foldout(_showProjectSettings, $"PROJECT SETTINGS — {settingsOk}/7 configured", true, EditorStyles.foldoutHeader);
 
             if (_showProjectSettings)
             {
                 GUILayout.Space(4);
 
-                bool allOk = settingsOk == 5;
+                bool allOk = settingsOk == 7;
 
                 using (new EditorGUI.DisabledScope(allOk))
                 {
@@ -365,6 +343,18 @@ namespace UnityBestPractices.Editor.Dashboard
                     "Ensures .meta files are written to disk so source control can track them.\nPrevents GUID regeneration which would break all references to tracked assets.",
                     ConfigureProjectSettings.IsVersionControlConfigured,
                     ConfigureProjectSettings.ApplyVersionControl);
+
+                DrawSettingCard(
+                    "Input System: New Input System Package",
+                    "Switches Active Input Handling to the new Input System package.\nRequires com.unity.inputsystem to be installed. A Unity restart may be needed after applying.",
+                    ConfigureProjectSettings.IsInputSystemConfigured,
+                    ConfigureProjectSettings.ApplyInputSystem);
+
+                DrawSettingCard(
+                    "Incremental GC",
+                    "Enables incremental garbage collection, spreading GC work across multiple frames.\nReduces frame-rate spikes caused by full GC passes during gameplay.",
+                    ConfigureProjectSettings.IsIncrementalGCConfigured,
+                    ConfigureProjectSettings.ApplyIncrementalGC);
             }
 
             EditorGUILayout.EndVertical();
@@ -608,15 +598,18 @@ namespace UnityBestPractices.Editor.Dashboard
         }
 
         private static void DrawToolCard(string title, string description, bool isComplete, string statusText,
-            string buttonLabel, System.Action action, int buttonWidth = 60)
+            string buttonLabel, System.Action action, int buttonWidth = 60, bool showBadge = true)
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
 
-            var prevColor = GUI.color;
-            GUI.color = isComplete ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.7f, 0.7f, 0.7f);
-            GUILayout.Label(isComplete ? "[OK]" : "[  ]", GUILayout.Width(36));
-            GUI.color = prevColor;
+            if (showBadge)
+            {
+                var prevColor = GUI.color;
+                GUI.color = isComplete ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.7f, 0.7f, 0.7f);
+                GUILayout.Label(isComplete ? "[OK]" : "[  ]", GUILayout.Width(36));
+                GUI.color = prevColor;
+            }
 
             GUILayout.Label(title, EditorStyles.boldLabel);
             GUILayout.FlexibleSpace();
@@ -630,10 +623,10 @@ namespace UnityBestPractices.Editor.Dashboard
 
             if (!string.IsNullOrEmpty(statusText))
             {
-                prevColor = GUI.color;
+                var statusColor = GUI.color;
                 GUI.color = isComplete ? new Color(0.5f, 0.8f, 0.5f) : new Color(0.6f, 0.6f, 0.6f);
                 GUILayout.Label(statusText, EditorStyles.miniLabel);
-                GUI.color = prevColor;
+                GUI.color = statusColor;
             }
 
             EditorGUILayout.EndVertical();
