@@ -233,6 +233,13 @@ namespace UnityBestPractices.Editor.Dashboard
                 if (GUILayout.Button("Open", GUILayout.Width(60)))
                     LayerCollisionMatrixWindow.ShowWindow();
                 EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.Label("AI Files (LLM Instructions + Skills)", EditorStyles.label);
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("Copy to Project", GUILayout.Width(120)))
+                    CopyAIFilesToProject.Execute();
+                EditorGUILayout.EndHorizontal();
             }
 
             EditorGUILayout.EndVertical();
