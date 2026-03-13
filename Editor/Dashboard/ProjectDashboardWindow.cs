@@ -837,7 +837,44 @@ namespace UnityBestPractices.Editor.Dashboard
                     "Creates the recommended folder structure under Assets/_ProjectName (Art, Audio, Prefabs, Scripts, Scenes, Settings, UI).",
                     foldersOk,
                     foldersOk ? $"{m_data.ExistingFoldersCount}/{m_data.TotalRecommendedFolders} folders present" : $"{m_data.ExistingFoldersCount}/{m_data.TotalRecommendedFolders} folders — run to create missing ones",
-                    "Run", () => { SetupProjectFolders.Execute(); RefreshData(); });
+                    "Run", () => { SetupProjectFolders.Execute(); RefreshData(); },
+                    helpAction: () => ExplainerWindow.Show(
+                        "Setup Project Folders",
+                        new[]
+                        {
+                            "Creates a standardised folder hierarchy under Assets/_ProjectName. " +
+                            "Having a consistent structure makes it easier to navigate and maintain " +
+                            "the project across a team and aligns with Unity's recommended layout.",
+                            "If some folders already exist they are left untouched. Only the " +
+                            "missing ones are created, so it is safe to run on an existing project."
+                        },
+                        preview:
+                            "Assets/\n" +
+                            "└── _ProjectName/\n" +
+                            "    ├── Art/\n" +
+                            "    │   ├── Audio/\n" +
+                            "    │   │   ├── Ambience/\n" +
+                            "    │   │   ├── Music/\n" +
+                            "    │   │   ├── SFX/\n" +
+                            "    │   │   └── UI/\n" +
+                            "    │   ├── Animations/\n" +
+                            "    │   ├── Models/\n" +
+                            "    │   ├── Textures/\n" +
+                            "    │   │   ├── Albedo/\n" +
+                            "    │   │   ├── HDRI/\n" +
+                            "    │   │   ├── Mask/\n" +
+                            "    │   │   ├── Normal/\n" +
+                            "    │   │   └── Roughness/\n" +
+                            "    │   └── VFX/\n" +
+                            "    ├── Prefabs/\n" +
+                            "    ├── Scenes/\n" +
+                            "    ├── Scripts/\n" +
+                            "    ├── Settings/\n" +
+                            "    └── UI/\n" +
+                            "        └── Sprites/\n" +
+                            "            └── Atlas/",
+                        runLabel: "Run Now",
+                        runAction: () => { SetupProjectFolders.Execute(); RefreshData(); }));
 
                 DrawFileToolCard(
                     "Generate .gitignore",
@@ -1002,7 +1039,8 @@ namespace UnityBestPractices.Editor.Dashboard
         }
 
         private void DrawToolCard(string title, string description, bool isComplete, string statusText,
-            string buttonLabel, System.Action action, int buttonWidth = 60, bool showBadge = true)
+            string buttonLabel, System.Action action, int buttonWidth = 60, bool showBadge = true,
+            System.Action helpAction = null)
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
@@ -1017,6 +1055,12 @@ namespace UnityBestPractices.Editor.Dashboard
 
             GUILayout.Label(title, EditorStyles.boldLabel);
             GUILayout.FlexibleSpace();
+
+            if (helpAction != null)
+            {
+                if (GUILayout.Button("?", GUILayout.Width(20)))
+                    helpAction.Invoke();
+            }
 
             if (GUILayout.Button(buttonLabel, GUILayout.Width(buttonWidth)))
             {

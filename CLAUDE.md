@@ -82,9 +82,8 @@ These apply to all `.cs` files in this repo and in host projects using the LLM i
 
 After completing any work that adds new functionality, fixes a bug, or changes behaviour, always propose a version bump before making the change. Use semantic versioning (`MAJOR.MINOR.PATCH`):
 
-- `PATCH` — bug fix or non-functional change (e.g. typo, meta file fix)
-- `MINOR` — new backwards-compatible feature or content (new preset, script template, LLM instruction file, editor utility)
-  - ℹ️ User preference: doc/skill-only additions (no new code) have been versioned as `PATCH` rather than `MINOR`
+- `PATCH` — default for everything: bug fixes, non-functional changes, AND new features (e.g. `1.4.1` → `1.4.2`)
+- `MINOR` — only when the user explicitly requests a minor bump (e.g. `1.4.x` → `1.5.0`)
 - `MAJOR` — breaking change (renamed package ID, removed API, restructured assembly)
 
 **Do not update `package.json` or `CHANGELOG.md` until the user confirms the proposed version.**
