@@ -55,7 +55,33 @@ namespace Unity.BestPractices.Editor
                 $"• {skillCount} AgentSkill file(s) → .github/prompts/ and .claude/commands/",
                 "OK");
         }
+        /// <summary>Copies only LLM instruction files to .github/instructions/ (and .github/copilot-instructions.md).</summary>
+        public static void ExecuteLLMInstructionsOnly()
+        {
+            var packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(
+                Assembly.GetExecutingAssembly());
+            if (packageInfo == null) return;
 
+            string packageRoot = packageInfo.resolvedPath;
+            string projectRoot = Path.GetDirectoryName(Application.dataPath);
+            int count = CopyLLMInstructions(packageRoot, projectRoot);
+            AssetDatabase.Refresh();
+            Debug.Log($"[Best Practices] Copied {count} LLM instruction file(s) to .github/instructions/");
+        }
+
+        /// <summary>Copies only AgentSkill files to .github/prompts/ and .claude/commands/.</summary>
+        public static void ExecuteAgentSkillsOnly()
+        {
+            var packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(
+                Assembly.GetExecutingAssembly());
+            if (packageInfo == null) return;
+
+            string packageRoot = packageInfo.resolvedPath;
+            string projectRoot = Path.GetDirectoryName(Application.dataPath);
+            int count = CopyAgentSkills(packageRoot, projectRoot);
+            AssetDatabase.Refresh();
+            Debug.Log($"[Best Practices] Copied {count} agent skill file(s) to .github/prompts/ and .claude/commands/");
+        }
         /// <summary>Returns the absolute destination path where the given LLM instruction source would be copied in the project.</summary>
         public static string GetLLMInstructionDestPath(string srcAbsPath, string projectRoot)
         {
