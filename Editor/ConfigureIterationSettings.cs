@@ -43,7 +43,7 @@ namespace Unity.BestPractices.Editor
                 if (assets.Length == 0) return false;
                 var so = new SerializedObject(assets[0]);
                 var prop = so.FindProperty("m_ScriptChangesDuringPlayback");
-                return prop != null && prop.intValue == 2;
+                return prop != null && prop.intValue == 1;
             }
         }
 
@@ -72,6 +72,14 @@ namespace Unity.BestPractices.Editor
         private static Type BurstOptionsType =>
             Type.GetType("Unity.Burst.Editor.BurstEditorOptions, Unity.Burst.Editor");
 
+        public static bool IsAsyncShadersDev => EditorSettings.asyncShaderCompilation;
+        public static bool IsAsyncShadersRelease => !EditorSettings.asyncShaderCompilation;
+
+        public static bool IsManagedStrippingDev =>
+            PlayerSettings.GetManagedStrippingLevel(NamedBuildTarget.Standalone) == ManagedStrippingLevel.Disabled;
+        public static bool IsManagedStrippingRelease =>
+            PlayerSettings.GetManagedStrippingLevel(NamedBuildTarget.Standalone) != ManagedStrippingLevel.Disabled;
+
         // ── Profile detection ────────────────────────────────────────────────
 
         public enum ProfileState { Dev, Release, Mixed, Unknown }
@@ -86,10 +94,13 @@ namespace Unity.BestPractices.Editor
                 bool relCodeGen = !relBackend || IsIL2CppCodeGenRelease;
                 bool scriptChanges = IsScriptChangesConfigured;
                 bool autoRefreshDev = IsAutoRefreshDisabled;
+                bool asyncShadersDev = IsAsyncShadersDev;
+                bool strippingDev = IsManagedStrippingDev;
+                bool strippingRel = IsManagedStrippingRelease;
                 bool burstOk = !IsBurstInstalled || IsBurstAsyncConfigured;
 
-                bool allDev = devBackend && devCodeGen && scriptChanges && autoRefreshDev && burstOk;
-                bool allRelease = relBackend && relCodeGen && scriptChanges && !autoRefreshDev;
+                bool allDev = devBackend && devCodeGen && scriptChanges && autoRefreshDev && asyncShadersDev && strippingDev && burstOk;
+                bool allRelease = relBackend && relCodeGen && scriptChanges && !autoRefreshDev && !asyncShadersDev && strippingRel;
 
                 if (allDev) return ProfileState.Dev;
                 if (allRelease) return ProfileState.Release;
@@ -103,13 +114,14 @@ namespace Unity.BestPractices.Editor
         public static void ApplyDevFastProfile()
         {
             ApplyBackendDev();
-            // IL2CPP code gen: switch to Faster builds in case they used IL2CPP before
             PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Standalone, Il2CppCodeGeneration.OptimizeSize);
             ApplyScriptChanges();
             ApplyAutoRefreshOff();
+            ApplyAsyncShadersOn();
+            ApplyManagedStrippingDev();
             if (IsBurstInstalled) ApplyBurstAsync();
             AssetDatabase.SaveAssets();
-            Debug.Log("[Best Practices] Dev Fast profile applied: Mono backend, OptimizeSize IL2CPP codegen, Auto Refresh off, Burst async.");
+            Debug.Log("[Best Practices] Dev Fast profile applied: Mono backend, OptimizeSize IL2CPP codegen, Async Shaders on, Stripping disabled, Auto Refresh off, Burst async.");
         }
 
         public static void ApplyReleasePerfProfile()
@@ -118,9 +130,10 @@ namespace Unity.BestPractices.Editor
             PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Standalone, Il2CppCodeGeneration.OptimizeSpeed);
             ApplyScriptChanges();
             ApplyAutoRefreshOn();
-            // Leave Burst as-is; re-enabling sync compilation for a release check is optional
+            ApplyAsyncShadersOff();
+            ApplyManagedStrippingRelease();
             AssetDatabase.SaveAssets();
-            Debug.Log("[Best Practices] Release Perf profile applied: IL2CPP backend, OptimizeSpeed codegen, Auto Refresh on.");
+            Debug.Log("[Best Practices] Release Perf profile applied: IL2CPP backend, OptimizeSpeed codegen, Async Shaders off, Stripping minimal, Auto Refresh on.");
         }
 
         // ── Individual apply methods ─────────────────────────────────────────
@@ -162,10 +175,10 @@ namespace Unity.BestPractices.Editor
             var prop = so.FindProperty("m_ScriptChangesDuringPlayback");
             if (prop != null)
             {
-                prop.intValue = 2; // StopPlayingAndRecompile
+                prop.intValue = 1; // RecompileAfterFinishedPlaying
                 so.ApplyModifiedProperties();
             }
-            Debug.Log("[Best Practices] Script Changes While Playing set to Stop Playing And Recompile.");
+            Debug.Log("[Best Practices] Script Changes While Playing set to Recompile After Finished Playing.");
         }
 
         public static void ApplyAutoRefreshOff()
@@ -188,6 +201,32 @@ namespace Unity.BestPractices.Editor
                 BindingFlags.Public | BindingFlags.Static);
             prop?.SetValue(null, false);
             Debug.Log("[Best Practices] Burst Synchronous Compilation disabled (async mode — better editor responsiveness).");
+        }
+
+        public static void ApplyAsyncShadersOn()
+        {
+            EditorSettings.asyncShaderCompilation = true;
+            Debug.Log("[Best Practices] Async Shader Compilation enabled — shader variants compile in the background.");
+        }
+
+        public static void ApplyAsyncShadersOff()
+        {
+            EditorSettings.asyncShaderCompilation = false;
+            Debug.Log("[Best Practices] Async Shader Compilation disabled — deterministic shader compilation for release.");
+        }
+
+        public static void ApplyManagedStrippingDev()
+        {
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.Standalone, ManagedStrippingLevel.Disabled);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Best Practices] Managed Stripping Level set to Disabled (Standalone) — faster builds, full symbols.");
+        }
+
+        public static void ApplyManagedStrippingRelease()
+        {
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.Standalone, ManagedStrippingLevel.Minimal);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Best Practices] Managed Stripping Level set to Minimal (Standalone) — reduces IL for release builds.");
         }
     }
 }

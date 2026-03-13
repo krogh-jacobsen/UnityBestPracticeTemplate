@@ -49,6 +49,12 @@ namespace Unity.BestPractices.Editor
 
         public static bool IsIncrementalGCConfigured => PlayerSettings.gcIncremental;
 
+        public static bool IsCreateObjectsAtOriginConfigured =>
+            EditorPrefs.GetBool("Scene/CreateObjectsAtWorldOrigin", false);
+
+        public static bool IsNewHierarchyWindowConfigured =>
+            EditorPrefs.GetBool("Hierarchy/UseNewHierarchyWindow", false);
+
         // ── Individual apply methods ──────────────────────────────────────────
 
         [MenuItem("Window/Best Practices/Configure Project Settings")]
@@ -116,6 +122,18 @@ namespace Unity.BestPractices.Editor
             Debug.Log("[Best Practices] Incremental GC enabled.");
         }
 
+        public static void ApplyCreateObjectsAtOrigin()
+        {
+            EditorPrefs.SetBool("Scene/CreateObjectsAtWorldOrigin", true);
+            Debug.Log("[Best Practices] Create Objects at Origin enabled. New GameObjects will spawn at (0,0,0).");
+        }
+
+        public static void ApplyNewHierarchyWindow()
+        {
+            EditorPrefs.SetBool("Hierarchy/UseNewHierarchyWindow", true);
+            Debug.Log("[Best Practices] New Hierarchy window enabled. Reopen the Hierarchy window to apply.");
+        }
+
         // ── Apply all (used by New Project Wizard) ────────────────────────────
 
         /// <summary>Applies all recommended settings without showing a confirmation dialog.</summary>
@@ -128,6 +146,8 @@ namespace Unity.BestPractices.Editor
             ApplyVersionControl();
             ApplyInputSystem();
             ApplyIncrementalGC();
+            ApplyCreateObjectsAtOrigin();
+            ApplyNewHierarchyWindow();
             Debug.Log("[Best Practices] All project settings configured. Review them in Edit > Project Settings.");
         }
     }

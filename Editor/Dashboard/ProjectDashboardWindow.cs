@@ -388,7 +388,7 @@ namespace UnityBestPractices.Editor.Dashboard
                         }
                     }
                     EditorGUILayout.EndHorizontal();
-                    GUILayout.Label("Stop Playing And Recompile — prevents stale code running mid-session.", EditorStyles.wordWrappedMiniLabel);
+                    GUILayout.Label("Recompile After Finished Playing — Unity queues the recompile until you exit Play mode, keeping your session intact. Prevents mid-session domain reloads that corrupt DI container graphs (e.g. VContainer) and cause hard-to-reproduce bugs.", EditorStyles.wordWrappedMiniLabel);
                     EditorGUILayout.EndVertical();
                     GUILayout.Space(2);
                 }
@@ -402,7 +402,25 @@ namespace UnityBestPractices.Editor.Dashboard
                     ConfigureIterationSettings.ApplyAutoRefreshOff,
                     ConfigureIterationSettings.ApplyAutoRefreshOn);
 
-                // 5. Burst Async (only shown when Burst package is installed)
+                // 5. Async Shader Compilation
+                DrawIterationCard(
+                    "Async Shader Compilation",
+                    "On (Dev): shader variants compile in the background — no hitches while iterating.\nOff (Release): fully deterministic compilation, no pink placeholder shaders in builds.",
+                    ConfigureIterationSettings.IsAsyncShadersDev,
+                    ConfigureIterationSettings.IsAsyncShadersRelease,
+                    ConfigureIterationSettings.ApplyAsyncShadersOn,
+                    ConfigureIterationSettings.ApplyAsyncShadersOff);
+
+                // 6. Managed Stripping Level
+                DrawIterationCard(
+                    "Managed Stripping Level (Standalone)",
+                    "Disabled (Dev): faster builds, full symbols, easier debugging — nothing is stripped.\nMinimal (Release): safely removes unused IL, reducing build size without breaking reflection.",
+                    ConfigureIterationSettings.IsManagedStrippingDev,
+                    ConfigureIterationSettings.IsManagedStrippingRelease,
+                    ConfigureIterationSettings.ApplyManagedStrippingDev,
+                    ConfigureIterationSettings.ApplyManagedStrippingRelease);
+
+                // 7. Burst Async (only shown when Burst package is installed)
                 if (ConfigureIterationSettings.IsBurstInstalled)
                 {
                     bool burstOk = ConfigureIterationSettings.IsBurstAsyncConfigured;
@@ -489,14 +507,16 @@ namespace UnityBestPractices.Editor.Dashboard
                 + (ConfigureProjectSettings.IsAssetSerializationConfigured ? 1 : 0)
                 + (ConfigureProjectSettings.IsVersionControlConfigured ? 1 : 0)
                 + (ConfigureProjectSettings.IsInputSystemConfigured ? 1 : 0)
-                + (ConfigureProjectSettings.IsIncrementalGCConfigured ? 1 : 0);
-            _showProjectSettings = EditorGUILayout.Foldout(_showProjectSettings, $"PROJECT SETTINGS — {settingsOk}/7 configured", true, EditorStyles.foldoutHeader);
+                + (ConfigureProjectSettings.IsIncrementalGCConfigured ? 1 : 0)
+                + (ConfigureProjectSettings.IsCreateObjectsAtOriginConfigured ? 1 : 0)
+                + (ConfigureProjectSettings.IsNewHierarchyWindowConfigured ? 1 : 0);
+            _showProjectSettings = EditorGUILayout.Foldout(_showProjectSettings, $"PROJECT SETTINGS — {settingsOk}/9 configured", true, EditorStyles.foldoutHeader);
 
             if (_showProjectSettings)
             {
                 GUILayout.Space(4);
 
-                bool allOk = settingsOk == 7;
+                bool allOk = settingsOk == 9;
 
                 using (new EditorGUI.DisabledScope(allOk))
                 {
@@ -550,6 +570,18 @@ namespace UnityBestPractices.Editor.Dashboard
                     "Enables incremental garbage collection, spreading GC work across multiple frames.\nReduces frame-rate spikes caused by full GC passes during gameplay.",
                     ConfigureProjectSettings.IsIncrementalGCConfigured,
                     ConfigureProjectSettings.ApplyIncrementalGC);
+
+                DrawSettingCard(
+                    "Scene View: Create Objects at Origin",
+                    "New GameObjects created from the GameObject menu will always spawn at (0,0,0) instead of the current Scene View camera position.\nConfigured via Preferences > Scene View > Create Objects at World Origin.",
+                    ConfigureProjectSettings.IsCreateObjectsAtOriginConfigured,
+                    ConfigureProjectSettings.ApplyCreateObjectsAtOrigin);
+
+                DrawSettingCard(
+                    "Hierarchy: Use New Hierarchy Window",
+                    "Enables the redesigned Hierarchy window with better performance for large scenes.\nAlso unlocks the Query Builder for filtering objects by component type — useful for scenes with many entities.\nConfigured via Preferences > Hierarchy > Use new Hierarchy window.",
+                    ConfigureProjectSettings.IsNewHierarchyWindowConfigured,
+                    ConfigureProjectSettings.ApplyNewHierarchyWindow);
             }
 
             EditorGUILayout.EndVertical();
