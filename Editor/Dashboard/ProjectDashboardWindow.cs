@@ -837,7 +837,7 @@ namespace UnityBestPractices.Editor.Dashboard
                     "Creates the recommended folder structure under Assets/_ProjectName (Art, Audio, Prefabs, Scripts, Scenes, Settings, UI).",
                     foldersOk,
                     foldersOk ? $"{m_data.ExistingFoldersCount}/{m_data.TotalRecommendedFolders} folders present" : $"{m_data.ExistingFoldersCount}/{m_data.TotalRecommendedFolders} folders — run to create missing ones",
-                    "Run", SetupProjectFolders.Execute);
+                    "Run", () => { SetupProjectFolders.Execute(); RefreshData(); });
 
                 DrawFileToolCard(
                     "Generate .gitignore",
@@ -969,7 +969,7 @@ namespace UnityBestPractices.Editor.Dashboard
             GUILayout.Space(3);
         }
 
-        private static void DrawPresetCard(string title, string filter, bool isConfigured, System.Action applyAction)
+        private void DrawPresetCard(string title, string filter, bool isConfigured, System.Action applyAction)
         {
             EditorGUILayout.BeginHorizontal();
 
@@ -994,13 +994,14 @@ namespace UnityBestPractices.Editor.Dashboard
                 if (GUILayout.Button("Run", GUILayout.Width(44)))
                 {
                     applyAction?.Invoke();
+                    Repaint();
                 }
             }
 
             EditorGUILayout.EndHorizontal();
         }
 
-        private static void DrawToolCard(string title, string description, bool isComplete, string statusText,
+        private void DrawToolCard(string title, string description, bool isComplete, string statusText,
             string buttonLabel, System.Action action, int buttonWidth = 60, bool showBadge = true)
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
@@ -1010,7 +1011,7 @@ namespace UnityBestPractices.Editor.Dashboard
             {
                 var prevColor = GUI.color;
                 GUI.color = isComplete ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.7f, 0.7f, 0.7f);
-                GUILayout.Label(isComplete ? "[OK]" : "[  ]", GUILayout.Width(36));
+                GUILayout.Label(isComplete ? "[Configured]" : "[  ]", GUILayout.Width(isComplete ? 84 : 36));
                 GUI.color = prevColor;
             }
 
@@ -1018,7 +1019,10 @@ namespace UnityBestPractices.Editor.Dashboard
             GUILayout.FlexibleSpace();
 
             if (GUILayout.Button(buttonLabel, GUILayout.Width(buttonWidth)))
+            {
                 action?.Invoke();
+                Repaint();
+            }
 
             EditorGUILayout.EndHorizontal();
 
@@ -1036,7 +1040,7 @@ namespace UnityBestPractices.Editor.Dashboard
             GUILayout.Space(3);
         }
 
-        private static void DrawFileToolCard(string title, string description, string filePath, System.Action generateAction)
+        private void DrawFileToolCard(string title, string description, string filePath, System.Action generateAction)
         {
             bool exists = File.Exists(filePath);
             string statusText = exists ? System.IO.Path.GetFileName(filePath) + " found at project root" : "Not created yet";
@@ -1060,7 +1064,10 @@ namespace UnityBestPractices.Editor.Dashboard
             else
             {
                 if (GUILayout.Button("Run", GUILayout.Width(60)))
+                {
                     generateAction?.Invoke();
+                    Repaint();
+                }
             }
 
             EditorGUILayout.EndHorizontal();

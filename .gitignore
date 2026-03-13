@@ -23,3 +23,6 @@ Thumbs.db
 # Do NOT ignore .meta files in a package; they are required for GUIDs
 # to remain consistent across projects.
 !*.meta
+
+# --- Claude Code ---
+CLAUDE.md
