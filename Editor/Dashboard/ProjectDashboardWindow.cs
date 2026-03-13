@@ -104,6 +104,8 @@ namespace UnityBestPractices.Editor.Dashboard
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Refresh", GUILayout.Width(100)))
                 RefreshData();
+            if (GUILayout.Button(new GUIContent("Domain Reload", "Triggers a full scripting domain reload — equivalent to saving any script. Useful to force a clean state after bulk setting changes."), GUILayout.Width(120)))
+                EditorUtility.RequestScriptReload();
             if (GUILayout.Button("New Project Wizard", GUILayout.Width(160)))
                 NewProjectWizard.ShowWindow();
             EditorGUILayout.EndHorizontal();
@@ -539,31 +541,36 @@ namespace UnityBestPractices.Editor.Dashboard
                     "Scripting Backend: IL2CPP",
                     "Sets IL2CPP as the scripting backend for Standalone, Android and iOS builds.\nImproves runtime performance and enables full AOT compilation.",
                     ConfigureProjectSettings.IsIL2CPPConfigured,
-                    ConfigureProjectSettings.ApplyIL2CPP);
+                    ConfigureProjectSettings.ApplyIL2CPP,
+                    "Apply");
 
                 DrawSettingCard(
                     "API Compatibility: .NET Standard 2.1",
                     "Sets API compatibility to .NET Standard 2.1 for Standalone.\nBroadens library compatibility and aligns with modern .NET practices.",
                     ConfigureProjectSettings.IsApiCompatibilityConfigured,
-                    ConfigureProjectSettings.ApplyApiCompatibility);
+                    ConfigureProjectSettings.ApplyApiCompatibility,
+                    "Apply");
 
                 DrawSettingCard(
                     "Asset Serialization: Force Text",
                     "Forces all assets to serialize as readable YAML text.\nMakes diffs meaningful and merges possible in version control.",
                     ConfigureProjectSettings.IsAssetSerializationConfigured,
-                    ConfigureProjectSettings.ApplyAssetSerialization);
+                    ConfigureProjectSettings.ApplyAssetSerialization,
+                    "Apply");
 
                 DrawSettingCard(
                     "Version Control: Visible Meta Files",
                     "Ensures .meta files are written to disk so source control can track them.\nPrevents GUID regeneration which would break all references to tracked assets.",
                     ConfigureProjectSettings.IsVersionControlConfigured,
-                    ConfigureProjectSettings.ApplyVersionControl);
+                    ConfigureProjectSettings.ApplyVersionControl,
+                    "Apply");
 
                 DrawSettingCard(
                     "Input System: New Input System Package",
                     "Switches Active Input Handling to the new Input System package.\nRequires com.unity.inputsystem to be installed. A Unity restart may be needed after applying.",
                     ConfigureProjectSettings.IsInputSystemConfigured,
-                    ConfigureProjectSettings.ApplyInputSystem);
+                    ConfigureProjectSettings.ApplyInputSystem,
+                    "Apply");
 
                 DrawSettingCard(
                     "Incremental GC",
@@ -587,7 +594,7 @@ namespace UnityBestPractices.Editor.Dashboard
             EditorGUILayout.EndVertical();
         }
 
-        private void DrawSettingCard(string title, string description, bool isConfigured, System.Action applyAction)
+        private void DrawSettingCard(string title, string description, bool isConfigured, System.Action applyAction, string buttonLabel = "Enable")
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
@@ -607,7 +614,7 @@ namespace UnityBestPractices.Editor.Dashboard
             }
             else
             {
-                if (GUILayout.Button("Run", GUILayout.Width(44)))
+                if (GUILayout.Button(buttonLabel, GUILayout.Width(44)))
                 {
                     applyAction?.Invoke();
                     Repaint();
@@ -726,17 +733,6 @@ namespace UnityBestPractices.Editor.Dashboard
                 }
 
                 EditorGUILayout.EndVertical();
-
-                GUILayout.Space(6);
-
-                // ── AI Assistance ─────────────────────────────────────────────
-                GUILayout.Label("AI Assistance", EditorStyles.miniLabel);
-
-                DrawToolCard(
-                    "AI Files — LLM Instructions + Skills",
-                    "Copies LLM instruction files to .github/instructions/ and AgentSkill files to .github/prompts/ and .claude/commands/ so AI assistants can reference them locally.",
-                    false, "",
-                    "Copy to Project", CopyAIFilesToProject.Execute, 110);
             }
 
             EditorGUILayout.EndVertical();
