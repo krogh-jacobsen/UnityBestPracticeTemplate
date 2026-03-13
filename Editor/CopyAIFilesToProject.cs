@@ -56,6 +56,40 @@ namespace Unity.BestPractices.Editor
                 "OK");
         }
 
+        /// <summary>Copies a single LLM instruction file to .github/instructions/ (and to .github/copilot-instructions.md if it is the consolidated file).</summary>
+        public static void CopySingleLLMInstruction(string srcAbsPath, string projectRoot)
+        {
+            string fileName = Path.GetFileName(srcAbsPath);
+
+            if (string.Equals(fileName, k_CopilotInstructionsFile, System.StringComparison.OrdinalIgnoreCase))
+            {
+                string dest = Path.Combine(projectRoot, ".github", "copilot-instructions.md");
+                Directory.CreateDirectory(Path.GetDirectoryName(dest));
+                File.Copy(srcAbsPath, dest, overwrite: true);
+            }
+            else
+            {
+                string instructionsDir = Path.Combine(projectRoot, ".github", "instructions");
+                Directory.CreateDirectory(instructionsDir);
+                string baseName = Path.GetFileNameWithoutExtension(fileName);
+                File.Copy(srcAbsPath, Path.Combine(instructionsDir, baseName + ".instructions.md"), overwrite: true);
+            }
+        }
+
+        /// <summary>Copies a single AgentSkill file to .github/prompts/ and .claude/commands/.</summary>
+        public static void CopySingleAgentSkill(string srcAbsPath, string projectRoot)
+        {
+            string baseName = Path.GetFileNameWithoutExtension(Path.GetFileName(srcAbsPath));
+
+            string promptsDir = Path.Combine(projectRoot, ".github", "prompts");
+            Directory.CreateDirectory(promptsDir);
+            File.Copy(srcAbsPath, Path.Combine(promptsDir, baseName + ".prompt.md"), overwrite: true);
+
+            string claudeDir = Path.Combine(projectRoot, ".claude", "commands");
+            Directory.CreateDirectory(claudeDir);
+            File.Copy(srcAbsPath, Path.Combine(claudeDir, baseName + ".md"), overwrite: true);
+        }
+
         private static int CopyLLMInstructions(string packageRoot, string projectRoot)
         {
             string sourceDir = Path.Combine(packageRoot, k_LLMInstructionsFolder);

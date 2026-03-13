@@ -1,72 +1,93 @@
 using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.VersionControl;
 using UnityEngine;
 
 namespace Unity.BestPractices.Editor
 {
     /// <summary>
-    /// Applies recommended Unity 6 project settings in one click.
-    /// Accessible via the menu: <b>Window → Best Practices → Configure Project Settings</b>.
+    /// Applies recommended Unity 6 project settings — either all at once or individually.
+    /// Open the dedicated panel via <b>Window → Best Practices → Configure Project Settings</b>,
+    /// or call <see cref="ApplySettings"/> to apply everything non-interactively.
     /// </summary>
-    /// <remarks>
-    /// Settings applied:
-    /// <list type="bullet">
-    ///   <item>Enter Play Mode — enables DisableDomainReload + DisableSceneReload for faster iteration</item>
-    ///   <item>Scripting Backend — sets IL2CPP for Standalone, Android, and iOS</item>
-    ///   <item>API Compatibility Level — sets .NET Standard 2.1 for Standalone</item>
-    /// </list>
-    /// Individual settings can be reviewed in Edit → Project Settings.
-    /// </remarks>
     public static class ConfigureProjectSettings
     {
+        // ── Status checks ────────────────────────────────────────────────────
+
+        public static bool IsEnterPlayModeConfigured =>
+            EditorSettings.enterPlayModeOptionsEnabled &&
+            EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableDomainReload) &&
+            EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableSceneReload);
+
+        public static bool IsIL2CPPConfigured =>
+            PlayerSettings.GetScriptingBackend(NamedBuildTarget.Standalone) == ScriptingImplementation.IL2CPP &&
+            PlayerSettings.GetScriptingBackend(NamedBuildTarget.Android) == ScriptingImplementation.IL2CPP &&
+            PlayerSettings.GetScriptingBackend(NamedBuildTarget.iOS) == ScriptingImplementation.IL2CPP;
+
+        public static bool IsApiCompatibilityConfigured =>
+            PlayerSettings.GetApiCompatibilityLevel(NamedBuildTarget.Standalone) == ApiCompatibilityLevel.NET_Standard;
+
+        public static bool IsAssetSerializationConfigured =>
+            EditorSettings.serializationMode == SerializationMode.ForceText;
+
+        public static bool IsVersionControlConfigured =>
+            VersionControlSettings.mode == "Visible Meta Files";
+
+        // ── Individual apply methods ──────────────────────────────────────────
+
         [MenuItem("Window/Best Practices/Configure Project Settings")]
         public static void Execute()
         {
-            bool confirmed = EditorUtility.DisplayDialog(
-                "Configure Project Settings",
-                "This will apply the following recommended Unity 6 settings:\n\n" +
-                "• Enter Play Mode: enable (DisableDomainReload + DisableSceneReload)\n" +
-                "• Scripting Backend: IL2CPP (Standalone, Android, iOS)\n" +
-                "• API Compatibility: .NET Standard 2.1 (Standalone)\n\n" +
-                "Existing settings will be overwritten. Proceed?",
-                "Apply Settings",
-                "Cancel"
-            );
-
-            if (!confirmed)
-                return;
-
-            ApplySettings();
+            ProjectSettingsWindow.ShowWindow();
         }
 
-        /// <summary>
-        /// Applies recommended settings without showing a confirmation dialog.
-        /// Called from the New Project Wizard.
-        /// </summary>
-        public static void ApplySettings()
+        public static void ApplyEnterPlayMode()
         {
-            // Enter Play Mode — skip both domain and scene reload for faster iteration.
-            // Requires static state to be reset manually (e.g. in [RuntimeInitializeOnLoadMethod]).
             EditorSettings.enterPlayModeOptionsEnabled = true;
             EditorSettings.enterPlayModeOptions =
                 EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload;
-
-            // Scripting backend: IL2CPP for release platforms
-            SetIL2CPP(BuildTargetGroup.Standalone);
-            SetIL2CPP(BuildTargetGroup.Android);
-            SetIL2CPP(BuildTargetGroup.iOS);
-
-            // API Compatibility: .NET Standard 2.1 for Standalone
-            PlayerSettings.SetApiCompatibilityLevel(
-                BuildTargetGroup.Standalone,
-                ApiCompatibilityLevel.NET_Standard);
-
-            AssetDatabase.SaveAssets();
-            Debug.Log("[Best Practices] Project settings configured. Review them in Edit > Project Settings.");
+            Debug.Log("[Best Practices] Enter Play Mode options configured.");
         }
 
-        private static void SetIL2CPP(BuildTargetGroup group)
+        public static void ApplyIL2CPP()
         {
-            PlayerSettings.SetScriptingBackend(group, ScriptingImplementation.IL2CPP);
+            PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.IL2CPP);
+            PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
+            PlayerSettings.SetScriptingBackend(NamedBuildTarget.iOS, ScriptingImplementation.IL2CPP);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Best Practices] Scripting backend set to IL2CPP for Standalone, Android, iOS.");
+        }
+
+        public static void ApplyApiCompatibility()
+        {
+            PlayerSettings.SetApiCompatibilityLevel(NamedBuildTarget.Standalone, ApiCompatibilityLevel.NET_Standard);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Best Practices] API Compatibility set to .NET Standard 2.1 for Standalone.");
+        }
+
+        public static void ApplyAssetSerialization()
+        {
+            EditorSettings.serializationMode = SerializationMode.ForceText;
+            Debug.Log("[Best Practices] Asset Serialization set to Force Text.");
+        }
+
+        public static void ApplyVersionControl()
+        {
+            VersionControlSettings.mode = "Visible Meta Files";
+            Debug.Log("[Best Practices] Version Control set to Visible Meta Files.");
+        }
+
+        // ── Apply all (used by New Project Wizard) ────────────────────────────
+
+        /// <summary>Applies all recommended settings without showing a confirmation dialog.</summary>
+        public static void ApplySettings()
+        {
+            ApplyEnterPlayMode();
+            ApplyIL2CPP();
+            ApplyApiCompatibility();
+            ApplyAssetSerialization();
+            ApplyVersionControl();
+            Debug.Log("[Best Practices] All project settings configured. Review them in Edit > Project Settings.");
         }
     }
 }

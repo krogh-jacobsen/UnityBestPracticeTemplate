@@ -27,6 +27,9 @@ namespace UnityBestPractices.Editor.Validator
             // Find all .unity files in the project
             string[] allSceneFiles = Directory.GetFiles(Application.dataPath, "*.unity", SearchOption.AllDirectories);
 
+            // Collect paths for all scenes missing from build (used by Fix / Add All)
+            var missingScenePaths = new List<string>();
+
             foreach (var sceneFile in allSceneFiles)
             {
                 // Convert to relative path (Assets/...)
@@ -35,13 +38,18 @@ namespace UnityBestPractices.Editor.Validator
                 // Check if scene is in build settings
                 if (!scenesInBuild.Contains(relativePath))
                 {
+                    missingScenePaths.Add(relativePath);
                     string sceneName = Path.GetFileNameWithoutExtension(sceneFile);
-                    issues.Add(new ValidationIssue(
+                    string capturedPath = relativePath;
+                    var issue = new ValidationIssue(
                         $"Scene '{sceneName}' not in build settings",
                         ValidationSeverity.Warning,
                         relativePath,
                         Name
-                    ));
+                    );
+                    issue.FixAction = () => AddSceneToBuild(capturedPath);
+                    issue.FixLabel = "Add";
+                    issues.Add(issue);
                 }
             }
 
@@ -56,7 +64,34 @@ namespace UnityBestPractices.Editor.Validator
                 ));
             }
 
-            return new ValidationResult(Name, issues.ToArray());
+            var result = new ValidationResult(Name, issues.ToArray());
+
+            if (missingScenePaths.Count > 0)
+            {
+                var capturedMissing = new List<string>(missingScenePaths);
+                result.FixAllAction = () =>
+                {
+                    foreach (var path in capturedMissing)
+                        AddSceneToBuild(path);
+                };
+                result.FixAllLabel = "Add All";
+            }
+
+            return result;
+        }
+
+        private static void AddSceneToBuild(string scenePath)
+        {
+            var scenes = new List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
+
+            // Guard: don't add duplicates
+            foreach (var s in scenes)
+            {
+                if (s.path == scenePath) return;
+            }
+
+            scenes.Add(new EditorBuildSettingsScene(scenePath, true));
+            EditorBuildSettings.scenes = scenes.ToArray();
         }
     }
 }

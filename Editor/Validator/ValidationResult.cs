@@ -24,6 +24,10 @@ namespace UnityBestPractices.Editor.Validator
         [NonSerialized]
         public System.Action FixAction;
 
+        /// <summary>Label shown on the per-issue fix button (defaults to "Fix").</summary>
+        [NonSerialized]
+        public string FixLabel = "Fix";
+
         public ValidationIssue(string message, ValidationSeverity severity, string assetPath = "", string category = "")
         {
             Message = message;
@@ -40,6 +44,18 @@ namespace UnityBestPractices.Editor.Validator
         public ValidationIssue[] Issues;
         public bool HasErrors => GetErrorCount() > 0;
         public bool HasWarnings => GetWarningCount() > 0;
+
+        /// <summary>
+        /// Optional delegate that fixes all issues in this result at once.
+        /// When set, an "Fix All" / "Add All" button is shown in the validator category header.
+        /// Not serialized — populated at runtime by the validator.
+        /// </summary>
+        [NonSerialized]
+        public System.Action FixAllAction;
+
+        /// <summary>Label shown on the fix-all button (defaults to "Fix All").</summary>
+        [NonSerialized]
+        public string FixAllLabel = "Fix All";
 
         public ValidationResult(string validatorName, ValidationIssue[] issues)
         {

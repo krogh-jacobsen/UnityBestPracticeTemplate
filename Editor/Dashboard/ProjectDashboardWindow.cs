@@ -13,6 +13,7 @@ namespace UnityBestPractices.Editor.Dashboard
         private Vector2 _scrollPosition;
         private bool _showValidationDetails = false;
         private bool _showLLMFiles = false;
+        private bool _showSkills = false;
         private bool _showTools = true;
 
         [MenuItem("Tools/Unity Best Practices/Project Dashboard")]
@@ -60,6 +61,11 @@ namespace UnityBestPractices.Editor.Dashboard
 
             // LLM Instruction Files
             DrawLLMInstructions();
+
+            GUILayout.Space(10);
+
+            // Agent Skills
+            DrawAgentSkills();
 
             GUILayout.Space(10);
 
@@ -192,17 +198,58 @@ namespace UnityBestPractices.Editor.Dashboard
             {
                 GUILayout.Space(4);
 
+                string projectRoot = Path.GetDirectoryName(Application.dataPath);
+
                 foreach (var file in _data.LLMInstructionFiles)
                 {
                     EditorGUILayout.BeginHorizontal();
                     GUILayout.Label(file.DisplayName, EditorStyles.label);
                     GUILayout.FlexibleSpace();
-                    if (GUILayout.Button("Open", GUILayout.Width(60)))
-                    {
-                        string fullPath = Path.GetFullPath(
-                            Path.Combine(Application.dataPath, "..", file.AssetPath));
+
+                    string fullPath = Path.GetFullPath(
+                        Path.Combine(Application.dataPath, "..", file.AssetPath));
+
+                    if (GUILayout.Button(new GUIContent("Open", "Open this file in the default editor"), GUILayout.Width(50)))
                         InternalEditorUtility.OpenFileAtLineExternal(fullPath, 1, 0);
-                    }
+
+                    if (GUILayout.Button(new GUIContent("Add", "Copy this file to .github/instructions/ in your project"), GUILayout.Width(40)))
+                        CopyAIFilesToProject.CopySingleLLMInstruction(fullPath, projectRoot);
+
+                    EditorGUILayout.EndHorizontal();
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawAgentSkills()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+            string header = $"AGENT SKILLS ({_data.AgentSkillFilesCount})";
+            _showSkills = EditorGUILayout.Foldout(_showSkills, header, true, EditorStyles.foldoutHeader);
+
+            if (_showSkills && _data.AgentSkillFiles != null)
+            {
+                GUILayout.Space(4);
+
+                string projectRoot = Path.GetDirectoryName(Application.dataPath);
+
+                foreach (var skill in _data.AgentSkillFiles)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    GUILayout.Label(skill.DisplayName, EditorStyles.label);
+                    GUILayout.FlexibleSpace();
+
+                    string fullPath = Path.GetFullPath(
+                        Path.Combine(Application.dataPath, "..", skill.AssetPath));
+
+                    if (GUILayout.Button(new GUIContent("Open", "Open this skill file in the default editor"), GUILayout.Width(50)))
+                        InternalEditorUtility.OpenFileAtLineExternal(fullPath, 1, 0);
+
+                    if (GUILayout.Button(new GUIContent("Add", "Copy to .github/prompts/ (Copilot) and .claude/commands/ (Claude Code)"), GUILayout.Width(40)))
+                        CopyAIFilesToProject.CopySingleAgentSkill(fullPath, projectRoot);
+
                     EditorGUILayout.EndHorizontal();
                 }
             }
@@ -220,43 +267,103 @@ namespace UnityBestPractices.Editor.Dashboard
             {
                 GUILayout.Space(4);
 
-                // ── Setup Actions ────────────────────────────────────────────
+                string projectRoot = Path.GetDirectoryName(Application.dataPath);
+
+                // ── Setup Actions ─────────────────────────────────────────────
                 GUILayout.Label("Setup Actions", EditorStyles.miniLabel);
 
-                DrawToolRow("Setup Project Folders", "Run", SetupProjectFolders.Execute);
-                DrawToolRow("Generate .gitignore", "Run", GenerateGitIgnore.Execute);
-                DrawToolRow("Generate .editorconfig", "Run", GenerateEditorConfig.Execute);
-                DrawToolRow("Generate Assembly Defs", "Run", GenerateAssemblyDefinitions.Execute);
-                DrawToolRow("Configure Import Presets", "Run", ConfigurePresets.Execute);
-                DrawToolRow("Configure Project Settings", "Run", ConfigureProjectSettings.ApplySettings);
+                DrawToolRow("Setup Project Folders", "Run", SetupProjectFolders.Execute,
+                    tooltip: "Creates the recommended folder structure under Assets/_ProjectName (Art, Audio, Prefabs, Scripts, Scenes, Settings, UI).");
+
+                DrawFileToolRow("Generate .gitignore",
+                    Path.Combine(projectRoot, ".gitignore"),
+                    GenerateGitIgnore.Execute,
+                    tooltip: "Creates a Unity-optimised .gitignore at the project root, excluding Library, Temp, build outputs and IDE files.");
+
+                DrawFileToolRow("Generate .editorconfig",
+                    Path.Combine(projectRoot, ".editorconfig"),
+                    GenerateEditorConfig.Execute,
+                    tooltip: "Creates an .editorconfig enforcing C# naming and formatting conventions (Allman braces, 4-space indent, m_ prefix rules).");
+
+                DrawToolRow("Generate Assembly Defs", "Run", GenerateAssemblyDefinitions.Execute,
+                    tooltip: "Generates .asmdef files for Scripts, Editor and Tests using Company.Product as the namespace root. Run after Setup Project Folders.");
+
+                DrawToolRow("Configure Import Presets", "Open", PresetsWindow.ShowWindow,
+                    tooltip: "Opens the Import Presets panel where you can register audio, texture, model and animation presets individually or all at once.");
+
+                DrawToolRow("Configure Project Settings", "Open", ProjectSettingsWindow.ShowWindow,
+                    tooltip: "Opens the Project Settings panel where you can apply recommended Unity 6 settings individually (Enter Play Mode, IL2CPP, .NET Standard 2.1 and more).");
 
                 GUILayout.Space(6);
 
-                // ── Windows ──────────────────────────────────────────────────
+                // ── Windows ───────────────────────────────────────────────────
                 GUILayout.Label("Windows", EditorStyles.miniLabel);
 
-                DrawToolRow("New Project Wizard", "Open", NewProjectWizard.ShowWindow);
-                DrawToolRow("PlayerPrefs Inspector", "Open", PlayerPrefsInspectorWindow.ShowWindow);
-                DrawToolRow("Layer Collision Matrix", "Open", LayerCollisionMatrixWindow.ShowWindow);
+                DrawToolRow("New Project Wizard", "Open", NewProjectWizard.ShowWindow,
+                    tooltip: "Guided wizard that runs all setup steps in order — use this to set up a new project from scratch.");
+
+                DrawToolRow("PlayerPrefs Inspector", "Open", PlayerPrefsInspectorWindow.ShowWindow,
+                    tooltip: "View, edit and delete all PlayerPrefs keys stored for this project.");
+
+                DrawToolRow("Layer Collision Matrix", "Open", LayerCollisionMatrixWindow.ShowWindow,
+                    tooltip: "Visual editor for configuring which physics layers collide with each other.");
 
                 GUILayout.Space(6);
 
                 // ── AI Assistance ─────────────────────────────────────────────
                 GUILayout.Label("AI Assistance", EditorStyles.miniLabel);
 
-                DrawToolRow("AI Files (LLM Instructions + Skills)", "Copy to Project", CopyAIFilesToProject.Execute, 120);
+                DrawToolRow("AI Files (LLM Instructions + Skills)", "Copy to Project", CopyAIFilesToProject.Execute, 120,
+                    tooltip: "Copies LLM instruction files to .github/instructions/ and AgentSkill files to .github/prompts/ and .claude/commands/ so AI assistants can reference them locally.");
             }
 
             EditorGUILayout.EndVertical();
         }
 
-        private static void DrawToolRow(string label, string buttonLabel, System.Action action, int buttonWidth = 60)
+        /// <summary>
+        /// Draws a standard tool row with a label, optional tooltip, and a single action button.
+        /// </summary>
+        private static void DrawToolRow(string label, string buttonLabel, System.Action action,
+            int buttonWidth = 60, string tooltip = "")
         {
             EditorGUILayout.BeginHorizontal();
-            GUILayout.Label(label, EditorStyles.label);
+            GUILayout.Label(new GUIContent(label, tooltip), EditorStyles.label);
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button(buttonLabel, GUILayout.Width(buttonWidth)))
+            if (GUILayout.Button(new GUIContent(buttonLabel, tooltip), GUILayout.Width(buttonWidth)))
                 action();
+            EditorGUILayout.EndHorizontal();
+        }
+
+        /// <summary>
+        /// Draws a tool row for a file-backed feature.
+        /// When the file already exists, shows a green "Found" badge and an "Open" button.
+        /// When absent, shows the standard "Run" button to generate it.
+        /// </summary>
+        private static void DrawFileToolRow(string label, string filePath, System.Action generateAction,
+            string tooltip = "")
+        {
+            bool exists = File.Exists(filePath);
+
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Label(new GUIContent(label, tooltip), EditorStyles.label);
+            GUILayout.FlexibleSpace();
+
+            if (exists)
+            {
+                var prevColor = GUI.color;
+                GUI.color = new Color(0.3f, 0.8f, 0.3f);
+                GUILayout.Label(new GUIContent("Found", tooltip), GUILayout.Width(40));
+                GUI.color = prevColor;
+
+                if (GUILayout.Button(new GUIContent("Open", "Open the file in the default editor"), GUILayout.Width(50)))
+                    InternalEditorUtility.OpenFileAtLineExternal(filePath, 1, 0);
+            }
+            else
+            {
+                if (GUILayout.Button(new GUIContent("Run", tooltip), GUILayout.Width(60)))
+                    generateAction();
+            }
+
             EditorGUILayout.EndHorizontal();
         }
 
@@ -359,10 +466,22 @@ namespace UnityBestPractices.Editor.Dashboard
                 }
                 else
                 {
+                    EditorGUILayout.BeginHorizontal();
                     string categoryLabel = $"{result.ValidatorName} ({result.Issues.Length} issue{(result.Issues.Length != 1 ? "s" : "")})";
                     GUILayout.Label(categoryLabel, EditorStyles.boldLabel);
-                    GUILayout.Space(5);
 
+                    if (result.FixAllAction != null)
+                    {
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button(result.FixAllLabel, GUILayout.Width(70)))
+                        {
+                            result.FixAllAction();
+                            ProjectDashboardData.RunValidation(_data);
+                            Repaint();
+                        }
+                    }
+
+                    EditorGUILayout.EndHorizontal();
                     foreach (var issue in result.Issues)
                     {
                         DrawIssue(issue);
@@ -424,7 +543,7 @@ namespace UnityBestPractices.Editor.Dashboard
             // Fix button — shown only when the validator provides a fix action
             if (issue.FixAction != null)
             {
-                if (GUILayout.Button("Fix", GUILayout.Width(36)))
+                if (GUILayout.Button(issue.FixLabel, GUILayout.Width(36)))
                 {
                     issue.FixAction();
                     ProjectDashboardData.RunValidation(_data);

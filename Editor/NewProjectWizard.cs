@@ -175,7 +175,7 @@ namespace Unity.BestPractices.Editor
         {
             SetupProjectFolders.Execute();
             GenerateAssemblyDefinitions.Execute();
-            ConfigurePresets.Execute();
+            ConfigurePresets.ApplyAllPresets();
             EditorApplication.ExecuteMenuItem("Window/Best Practices/Setup Tags and Layers");
             GenerateGitIgnore.Execute();
             GenerateEditorConfig.Execute();
