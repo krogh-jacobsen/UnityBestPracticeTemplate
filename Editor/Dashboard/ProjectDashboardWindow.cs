@@ -150,8 +150,7 @@ namespace UnityBestPractices.Editor.Dashboard
             {
                 foreach (var f in m_data.LLMInstructionFiles)
                 {
-                    string fp = Path.GetFullPath(Path.Combine(Application.dataPath, "..", f.AssetPath));
-                    if (File.Exists(CopyAIFilesToProject.GetLLMInstructionDestPath(fp, projectRoot))) llmInstalled++;
+                    if (!string.IsNullOrEmpty(f.FullPath) && File.Exists(CopyAIFilesToProject.GetLLMInstructionDestPath(f.FullPath, projectRoot))) llmInstalled++;
                 }
             }
             string header = $"LLM INSTRUCTION FILES — {llmInstalled}/{llmTotal} installed";
@@ -164,8 +163,7 @@ namespace UnityBestPractices.Editor.Dashboard
 
                 foreach (var file in m_data.LLMInstructionFiles)
                 {
-                    string fullPath = Path.GetFullPath(
-                        Path.Combine(Application.dataPath, "..", file.AssetPath));
+                    string fullPath = file.FullPath;
                     string destPath = CopyAIFilesToProject.GetLLMInstructionDestPath(fullPath, projectRoot);
                     bool installed = File.Exists(destPath);
                     bool outdated = installed && CopyAIFilesToProject.LLMInstructionIsOutdated(fullPath, projectRoot);
@@ -176,8 +174,8 @@ namespace UnityBestPractices.Editor.Dashboard
                     GUI.color = outdated ? new Color(0.9f, 0.75f, 0.2f)
                         : installed ? new Color(0.3f, 0.8f, 0.3f)
                         : new Color(0.7f, 0.7f, 0.7f);
-                    GUILayout.Label(outdated ? "[Outdated]" : installed ? "[Found]" : "[  ]",
-                        GUILayout.Width(outdated ? 70 : installed ? 56 : 36));
+                    GUILayout.Label(outdated ? "[Outdated]" : installed ? "[Configured]" : "[  ]",
+                        GUILayout.Width(outdated ? 70 : installed ? 84 : 36));
                     GUI.color = prevColor;
 
                     GUILayout.Label(file.DisplayName, EditorStyles.label);
@@ -228,8 +226,7 @@ namespace UnityBestPractices.Editor.Dashboard
             {
                 foreach (var s in m_data.AgentSkillFiles)
                 {
-                    string fp = Path.GetFullPath(Path.Combine(Application.dataPath, "..", s.AssetPath));
-                    if (File.Exists(CopyAIFilesToProject.GetAgentSkillPromptDestPath(fp, projectRoot))) skillInstalled++;
+                    if (!string.IsNullOrEmpty(s.FullPath) && File.Exists(CopyAIFilesToProject.GetAgentSkillPromptDestPath(s.FullPath, projectRoot))) skillInstalled++;
                 }
             }
             string header = $"AGENT SKILLS — {skillInstalled}/{skillTotal} installed";
@@ -242,8 +239,7 @@ namespace UnityBestPractices.Editor.Dashboard
 
                 foreach (var skill in m_data.AgentSkillFiles)
                 {
-                    string fullPath = Path.GetFullPath(
-                        Path.Combine(Application.dataPath, "..", skill.AssetPath));
+                    string fullPath = skill.FullPath;
                     string destPath = CopyAIFilesToProject.GetAgentSkillPromptDestPath(fullPath, projectRoot);
                     bool installed = File.Exists(destPath);
                     bool outdated = installed && CopyAIFilesToProject.AgentSkillIsOutdated(fullPath, projectRoot);
@@ -254,8 +250,8 @@ namespace UnityBestPractices.Editor.Dashboard
                     GUI.color = outdated ? new Color(0.9f, 0.75f, 0.2f)
                         : installed ? new Color(0.3f, 0.8f, 0.3f)
                         : new Color(0.7f, 0.7f, 0.7f);
-                    GUILayout.Label(outdated ? "[Outdated]" : installed ? "[Found]" : "[  ]",
-                        GUILayout.Width(outdated ? 70 : installed ? 56 : 36));
+                    GUILayout.Label(outdated ? "[Outdated]" : installed ? "[Configured]" : "[  ]",
+                        GUILayout.Width(outdated ? 70 : installed ? 84 : 36));
                     GUI.color = prevColor;
 
                     GUILayout.Label(skill.DisplayName, EditorStyles.label);

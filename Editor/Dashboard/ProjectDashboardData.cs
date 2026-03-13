@@ -10,12 +10,14 @@ namespace UnityBestPractices.Editor.Dashboard
     {
         public string DisplayName;
         public string AssetPath;
+        public string FullPath;   // Absolute path on disk, resolved via PackageInfo
     }
 
     public struct AgentSkillFile
     {
         public string DisplayName;
         public string AssetPath;
+        public string FullPath;   // Absolute path on disk, resolved via PackageInfo
     }
 
     public class ProjectDashboardData
@@ -138,11 +140,14 @@ namespace UnityBestPractices.Editor.Dashboard
                     if (!assetPath.EndsWith(".md", System.StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    string fileName = Path.GetFileNameWithoutExtension(assetPath);
+                    string fullPath = ResolveAssetPathToAbsolute(assetPath);
+                    if (string.IsNullOrEmpty(fullPath)) continue;
+
                     files.Add(new LLMInstructionFile
                     {
-                        DisplayName = fileName,
-                        AssetPath = assetPath
+                        DisplayName = Path.GetFileNameWithoutExtension(assetPath),
+                        AssetPath = assetPath,
+                        FullPath = fullPath
                     });
                 }
             }
@@ -170,16 +175,38 @@ namespace UnityBestPractices.Editor.Dashboard
                     if (!assetPath.EndsWith(".md", System.StringComparison.OrdinalIgnoreCase))
                         continue;
 
+                    string fullPath = ResolveAssetPathToAbsolute(assetPath);
+                    if (string.IsNullOrEmpty(fullPath)) continue;
+
                     files.Add(new AgentSkillFile
                     {
                         DisplayName = Path.GetFileNameWithoutExtension(assetPath),
-                        AssetPath = assetPath
+                        AssetPath = assetPath,
+                        FullPath = fullPath
                     });
                 }
             }
 
             files.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, System.StringComparison.OrdinalIgnoreCase));
             data.AgentSkillFiles = files.ToArray();
+        }
+
+        /// <summary>
+        /// Converts a Unity asset path ("Packages/..." or "Assets/...") to an absolute disk path.
+        /// Uses PackageInfo to correctly resolve local and registry packages.
+        /// </summary>
+        private static string ResolveAssetPathToAbsolute(string assetPath)
+        {
+            if (assetPath.StartsWith("Packages/", System.StringComparison.Ordinal))
+            {
+                var pkgInfo = UnityEditor.PackageManager.PackageInfo.FindForAssetPath(assetPath);
+                if (pkgInfo == null) return null;
+                string prefix = "Packages/" + pkgInfo.name + "/";
+                if (assetPath.Length <= prefix.Length) return null;
+                string relativeInPackage = assetPath.Substring(prefix.Length);
+                return Path.GetFullPath(Path.Combine(pkgInfo.resolvedPath, relativeInPackage));
+            }
+            return Path.GetFullPath(Path.Combine(Application.dataPath, "..", assetPath));
         }
 
         private static void GatherGitData(ProjectDashboardData data)
