@@ -15,6 +15,7 @@ namespace UnityBestPractices.Editor.Dashboard
         private bool _showSkills = false;
         private bool _showTools = true;
         private bool _showProjectSettings = true;
+        private bool _showIteration = true;
         private bool _showWindows = true;
         private bool _showPresets = false;
 
@@ -70,6 +71,9 @@ namespace UnityBestPractices.Editor.Dashboard
             DrawProjectSettings();
 
             GUILayout.Space(10);
+
+            // Iteration Settings
+            DrawIterationSettings();
 
             GUILayout.Space(10);
 
@@ -282,6 +286,197 @@ namespace UnityBestPractices.Editor.Dashboard
 
 
             EditorGUILayout.EndVertical();
+        }
+
+        private void DrawIterationSettings()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+            // Compute profile state for header label
+            var profile = ConfigureIterationSettings.CurrentProfile;
+            string profileLabel = profile switch
+            {
+                ConfigureIterationSettings.ProfileState.Dev     => "Dev Profile",
+                ConfigureIterationSettings.ProfileState.Release => "Release Profile",
+                ConfigureIterationSettings.ProfileState.Mixed   => "Mixed",
+                _                                               => "Unknown"
+            };
+            _showIteration = EditorGUILayout.Foldout(_showIteration,
+                $"ITERATION SETTINGS — {profileLabel}", true, EditorStyles.foldoutHeader);
+
+            if (_showIteration)
+            {
+                GUILayout.Space(4);
+
+                // Info banner
+                var prevColor = GUI.color;
+                GUI.color = new Color(1f, 0.92f, 0.6f);
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                GUI.color = prevColor;
+                GUILayout.Label(
+                    "These settings are tuned for day-to-day development speed — switch to Release Profile before profiling or shipping.",
+                    EditorStyles.wordWrappedMiniLabel);
+                EditorGUILayout.EndVertical();
+
+                GUILayout.Space(6);
+
+                // Profile buttons
+                EditorGUILayout.BeginHorizontal();
+                bool isDev = profile == ConfigureIterationSettings.ProfileState.Dev;
+                bool isRelease = profile == ConfigureIterationSettings.ProfileState.Release;
+
+                using (new EditorGUI.DisabledScope(isDev))
+                {
+                    if (GUILayout.Button(isDev ? "✓ Dev Profile" : "Apply Dev Profile", GUILayout.Height(26)))
+                    {
+                        ConfigureIterationSettings.ApplyDevFastProfile();
+                        Repaint();
+                    }
+                }
+                using (new EditorGUI.DisabledScope(isRelease))
+                {
+                    if (GUILayout.Button(isRelease ? "✓ Release Profile" : "Apply Release Profile", GUILayout.Height(26)))
+                    {
+                        ConfigureIterationSettings.ApplyReleasePerfProfile();
+                        Repaint();
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+
+                GUILayout.Space(6);
+
+                bool isMono = ConfigureIterationSettings.IsBackendDev;
+
+                // 1. Scripting Backend
+                DrawIterationCard(
+                    "Scripting Backend (Standalone)",
+                    "Mono: fastest compile + build loop for daily iteration.\nIL2CPP: required for release perf testing and final builds.",
+                    ConfigureIterationSettings.IsBackendDev,
+                    ConfigureIterationSettings.IsBackendRelease,
+                    ConfigureIterationSettings.ApplyBackendDev,
+                    ConfigureIterationSettings.ApplyBackendRelease);
+
+                // 2. IL2CPP Code Generation (N/A when Mono is active)
+                using (new EditorGUI.DisabledScope(isMono))
+                {
+                    DrawIterationCard(
+                        "IL2CPP Code Generation" + (isMono ? " [N/A — Mono active]" : ""),
+                        "Faster builds (OptimizeSize): shorter build times during dev.\nFaster runtime (OptimizeSpeed): maximises runtime performance for release.",
+                        ConfigureIterationSettings.IsIL2CppCodeGenDev,
+                        ConfigureIterationSettings.IsIL2CppCodeGenRelease,
+                        ConfigureIterationSettings.ApplyIL2CppCodeGenDev,
+                        ConfigureIterationSettings.ApplyIL2CppCodeGenRelease);
+                }
+
+                // 3. Script Changes While Playing (single recommended value — no Dev/Release split)
+                {
+                    bool set = ConfigureIterationSettings.IsScriptChangesConfigured;
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    EditorGUILayout.BeginHorizontal();
+                    var c = GUI.color;
+                    GUI.color = set ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.7f, 0.7f, 0.7f);
+                    GUILayout.Label(set ? "[Set]" : "[—]", GUILayout.Width(set ? 38 : 30));
+                    GUI.color = c;
+                    GUILayout.Label("Script Changes While Playing", EditorStyles.boldLabel);
+                    GUILayout.FlexibleSpace();
+                    using (new EditorGUI.DisabledScope(set))
+                    {
+                        if (GUILayout.Button("Apply", GUILayout.Width(50)))
+                        {
+                            ConfigureIterationSettings.ApplyScriptChanges();
+                            Repaint();
+                        }
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    GUILayout.Label("Stop Playing And Recompile — prevents stale code running mid-session.", EditorStyles.wordWrappedMiniLabel);
+                    EditorGUILayout.EndVertical();
+                    GUILayout.Space(2);
+                }
+
+                // 4. Auto Refresh (EditorPrefs — machine-local)
+                DrawIterationCard(
+                    "Auto Refresh (machine-local preference)",
+                    "Off (Dev): prevents surprise reimports mid-work — refresh manually with Cmd+R.\nOn (Release): restores default Unity behaviour.",
+                    ConfigureIterationSettings.IsAutoRefreshDisabled,
+                    !ConfigureIterationSettings.IsAutoRefreshDisabled,
+                    ConfigureIterationSettings.ApplyAutoRefreshOff,
+                    ConfigureIterationSettings.ApplyAutoRefreshOn);
+
+                // 5. Burst Async (only shown when Burst package is installed)
+                if (ConfigureIterationSettings.IsBurstInstalled)
+                {
+                    bool burstOk = ConfigureIterationSettings.IsBurstAsyncConfigured;
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    EditorGUILayout.BeginHorizontal();
+                    var c = GUI.color;
+                    GUI.color = burstOk ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.7f, 0.7f, 0.7f);
+                    GUILayout.Label(burstOk ? "[Dev]" : "[—]", GUILayout.Width(40));
+                    GUI.color = c;
+                    GUILayout.Label("Burst: Async Compilation", EditorStyles.boldLabel);
+                    GUILayout.FlexibleSpace();
+                    using (new EditorGUI.DisabledScope(burstOk))
+                    {
+                        if (GUILayout.Button("Apply", GUILayout.Width(50)))
+                        {
+                            ConfigureIterationSettings.ApplyBurstAsync();
+                            Repaint();
+                        }
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    GUILayout.Label("Disables synchronous Burst compilation — improves editor startup and responsiveness during iteration.", EditorStyles.wordWrappedMiniLabel);
+                    EditorGUILayout.EndVertical();
+                    GUILayout.Space(2);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawIterationCard(
+            string title, string description,
+            bool isDevMode, bool isReleaseMode,
+            System.Action applyDev, System.Action applyRelease)
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.BeginHorizontal();
+
+            var prevColor = GUI.color;
+            if (isDevMode)
+                GUI.color = new Color(0.3f, 0.8f, 0.3f);
+            else if (isReleaseMode)
+                GUI.color = new Color(0.4f, 0.7f, 1f);
+            else
+                GUI.color = new Color(0.7f, 0.7f, 0.7f);
+
+            string badge = isDevMode ? "[Dev]" : isReleaseMode ? "[Release]" : "[—]";
+            int badgeWidth = isReleaseMode ? 62 : 40;
+            GUILayout.Label(badge, GUILayout.Width(badgeWidth));
+            GUI.color = prevColor;
+
+            GUILayout.Label(title, EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+
+            using (new EditorGUI.DisabledScope(isDevMode))
+            {
+                if (GUILayout.Button("Dev", GUILayout.Width(40)))
+                {
+                    applyDev?.Invoke();
+                    Repaint();
+                }
+            }
+            using (new EditorGUI.DisabledScope(isReleaseMode))
+            {
+                if (GUILayout.Button("Release", GUILayout.Width(56)))
+                {
+                    applyRelease?.Invoke();
+                    Repaint();
+                }
+            }
+
+            EditorGUILayout.EndHorizontal();
+            GUILayout.Label(description, EditorStyles.wordWrappedMiniLabel);
+            EditorGUILayout.EndVertical();
+            GUILayout.Space(2);
         }
 
         private void DrawProjectSettings()
