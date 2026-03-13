@@ -827,10 +827,10 @@ namespace UnityBestPractices.Editor.Dashboard
                     editorconfigPath, GenerateEditorConfig.Execute);
 
                 DrawToolCard(
-                    "Generate Assembly Definitions",
-                    "Generates .asmdef files for Scripts, Editor and Tests using Company.Product as the namespace root. Run after Setup Project Folders.",
+                    "Assembly Definitions",
+                    "Manage and generate .asmdef files. Opens the Assembly Definitions panel where you can inspect all existing .asmdef files and generate the recommended set.",
                     false, "",
-                    "Run", GenerateAssemblyDefinitions.Execute);
+                    "Open", AssemblyDefinitionsWindow.ShowWindow);
 
                 // ── Import Presets ────────────────────────────────────────────
                 GUILayout.Space(4);
@@ -907,6 +907,10 @@ namespace UnityBestPractices.Editor.Dashboard
                 DrawWindowCard("Layer Collision Matrix",
                     "Visual editor for configuring which physics layers collide with each other.",
                     LayerCollisionMatrixWindow.ShowWindow);
+
+                DrawWindowCard("Assembly Definitions",
+                    "Lists all .asmdef files in the project with their key configuration data — names, namespaces, platform filters and references. Also provides a one-click Generate button.",
+                    AssemblyDefinitionsWindow.ShowWindow);
 
                 DrawWindowCard("Project Health",
                     "Runs validation checks across the project and lists errors, warnings and available auto-fixes.",
