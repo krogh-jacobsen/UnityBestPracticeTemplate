@@ -5,6 +5,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-03-13
+### Added
+- **Project Settings** — per-setting Disable/Reset toggle buttons let you revert individual settings without opening the settings window; `ConfigureProjectSettings` gains `DisableEnterPlayMode`, `DisableIncrementalGC`, `DisableCreateObjectsAtOrigin`, `DisableNewHierarchyWindow`, and `ResetAssetManagerImportLocation`
+- **Project Settings** — each card description now uses an "Enabled: … / Disabled: …" format so the effect of toggling is always visible inline
+- **Project Settings** — "Open" button replaced with "Settings" and routes to the correct Project Settings or Preferences panel per entry; file-linked buttons keep the "Open" label
+
+### Fixed
+- **Agent Skills / LLM Instructions** — presence detection was broken for local and registry packages because paths were resolved by string concatenation instead of `PackageInfo.FindForAssetPath`; `ProjectDashboardData` now stores a resolved `FullPath` on each file entry via `ResolveAssetPathToAbsolute()`
+- **Agent Skills / LLM Instructions** — installed files now show `[Configured]`; the "Add" button is hidden once a file is installed; outdated files show `[Outdated]` with an "Update" button
+- **Project Configuration** — `.gitignore`, `.gitattributes`, and `.editorconfig` cards now show `[Configured]` when the file exists (was `[OK]`)
+
 ## [1.4.0] - 2026-03-09
 ### Added
 - `Editor/NewProjectWizard.cs` — **Window → Best Practices → New Project Wizard** opens a guided setup window that runs all 7 setup steps (folders, assembly definitions, import presets, tags & layers, .gitignore, .editorconfig, project settings) individually or all at once via "Run Full Setup"
