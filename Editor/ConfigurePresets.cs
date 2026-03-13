@@ -287,8 +287,6 @@ namespace Unity.BestPractices.Editor
     }
 }
 
-
-// Serialized field names discovered from ProjectSettings/PresetManager.asset:
 // m_DefaultPresets[i].first          — PresetType struct (m_NativeTypeID, ...)
 // m_DefaultPresets[i].second[j]      — DefaultPreset entry
 // m_DefaultPresets[i].second[j].m_Filter  — glob filter string
