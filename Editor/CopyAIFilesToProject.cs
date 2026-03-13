@@ -56,21 +56,27 @@ namespace Unity.BestPractices.Editor
                 "OK");
         }
 
-        /// <summary>Returns true if the destination file for the given LLM instruction source already exists in the project.</summary>
-        public static bool LLMInstructionExistsInProject(string srcAbsPath, string projectRoot)
+        /// <summary>Returns the absolute destination path where the given LLM instruction source would be copied in the project.</summary>
+        public static string GetLLMInstructionDestPath(string srcAbsPath, string projectRoot)
         {
             string fileName = Path.GetFileName(srcAbsPath);
-            string destPath;
-
             if (string.Equals(fileName, k_CopilotInstructionsFile, System.StringComparison.OrdinalIgnoreCase))
-                destPath = Path.Combine(projectRoot, ".github", "copilot-instructions.md");
-            else
-            {
-                string baseName = Path.GetFileNameWithoutExtension(fileName);
-                destPath = Path.Combine(projectRoot, ".github", "instructions", baseName + ".instructions.md");
-            }
+                return Path.Combine(projectRoot, ".github", "copilot-instructions.md");
 
-            return File.Exists(destPath);
+            string baseName = Path.GetFileNameWithoutExtension(fileName);
+            return Path.Combine(projectRoot, ".github", "instructions", baseName + ".instructions.md");
+        }
+
+        /// <summary>Returns true if the destination file for the given LLM instruction source already exists in the project.</summary>
+        public static bool LLMInstructionExistsInProject(string srcAbsPath, string projectRoot)
+            => File.Exists(GetLLMInstructionDestPath(srcAbsPath, projectRoot));
+
+        /// <summary>Returns true if the local copy exists but its content differs from the package source.</summary>
+        public static bool LLMInstructionIsOutdated(string srcAbsPath, string projectRoot)
+        {
+            string destPath = GetLLMInstructionDestPath(srcAbsPath, projectRoot);
+            if (!File.Exists(destPath)) return false;
+            return File.ReadAllText(srcAbsPath) != File.ReadAllText(destPath);
         }
 
         /// <summary>Copies a single LLM instruction file to .github/instructions/ (and to .github/copilot-instructions.md if it is the consolidated file).</summary>

@@ -218,18 +218,31 @@ namespace UnityBestPractices.Editor.Dashboard
 
                     string fullPath = Path.GetFullPath(
                         Path.Combine(Application.dataPath, "..", file.AssetPath));
+                    string destPath = CopyAIFilesToProject.GetLLMInstructionDestPath(fullPath, projectRoot);
+                    bool installed = File.Exists(destPath);
+                    bool outdated = installed && CopyAIFilesToProject.LLMInstructionIsOutdated(fullPath, projectRoot);
 
-                    bool alreadyAdded = CopyAIFilesToProject.LLMInstructionExistsInProject(fullPath, projectRoot);
-                    if (alreadyAdded)
+                    if (installed)
                         GUILayout.Label("Found", greenStyle, GUILayout.Width(40));
 
                     GUILayout.FlexibleSpace();
 
-                    if (GUILayout.Button(new GUIContent("Open", "Open this file in the default editor"), GUILayout.Width(50)))
-                        InternalEditorUtility.OpenFileAtLineExternal(fullPath, 1, 0);
+                    if (installed)
+                    {
+                        if (GUILayout.Button(new GUIContent("Open", "Open the local copy of this file"), GUILayout.Width(50)))
+                            InternalEditorUtility.OpenFileAtLineExternal(destPath, 1, 0);
 
-                    if (GUILayout.Button(new GUIContent("Add", "Copy this file to .github/instructions/ in your project"), GUILayout.Width(40)))
-                        CopyAIFilesToProject.CopySingleLLMInstruction(fullPath, projectRoot);
+                        if (outdated && GUILayout.Button(new GUIContent("Update", "Overwrite the local copy with the latest version from the package"), GUILayout.Width(60)))
+                            CopyAIFilesToProject.CopySingleLLMInstruction(fullPath, projectRoot);
+                    }
+                    else
+                    {
+                        if (GUILayout.Button(new GUIContent("View", "View this file from the package"), GUILayout.Width(50)))
+                            InternalEditorUtility.OpenFileAtLineExternal(fullPath, 1, 0);
+
+                        if (GUILayout.Button(new GUIContent("Add", "Copy this file to .github/instructions/ in your project"), GUILayout.Width(40)))
+                            CopyAIFilesToProject.CopySingleLLMInstruction(fullPath, projectRoot);
+                    }
 
                     EditorGUILayout.EndHorizontal();
                 }
