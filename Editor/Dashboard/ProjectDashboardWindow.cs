@@ -16,6 +16,7 @@ namespace UnityBestPractices.Editor.Dashboard
         private bool _showSkills = false;
         private bool _showTools = true;
         private bool _showProjectSettings = true;
+        private bool _showWindows = true;
 
         [MenuItem("Tools/Unity Best Practices/Project Dashboard")]
         public static void ShowWindow()
@@ -57,6 +58,11 @@ namespace UnityBestPractices.Editor.Dashboard
 
             // Tools quick-actions
             DrawTools();
+
+            GUILayout.Space(10);
+
+            // Windows
+            DrawWindows();
 
             GUILayout.Space(10);
 
@@ -210,6 +216,10 @@ namespace UnityBestPractices.Editor.Dashboard
                 {
                     normal = { textColor = new Color(0.3f, 0.8f, 0.3f) }
                 };
+                var yellowStyle = new GUIStyle(EditorStyles.label)
+                {
+                    normal = { textColor = new Color(0.9f, 0.75f, 0.2f) }
+                };
 
                 foreach (var file in _data.LLMInstructionFiles)
                 {
@@ -222,8 +232,12 @@ namespace UnityBestPractices.Editor.Dashboard
                     bool installed = File.Exists(destPath);
                     bool outdated = installed && CopyAIFilesToProject.LLMInstructionIsOutdated(fullPath, projectRoot);
 
-                    if (installed)
+                    if (outdated)
+                        GUILayout.Label("Found but outdated", yellowStyle, GUILayout.Width(120));
+                    else if (installed)
                         GUILayout.Label("Found", greenStyle, GUILayout.Width(40));
+                    else
+                        GUILayout.Label("Missing", yellowStyle, GUILayout.Width(50));
 
                     GUILayout.FlexibleSpace();
 
@@ -368,7 +382,7 @@ namespace UnityBestPractices.Editor.Dashboard
 
             var prevColor = GUI.color;
             GUI.color = isConfigured ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.7f, 0.7f, 0.7f);
-            GUILayout.Label(isConfigured ? "[OK]" : "[  ]", GUILayout.Width(36));
+            GUILayout.Label(isConfigured ? "[Configured]" : "[  ]", GUILayout.Width(isConfigured ? 84 : 36));
             GUI.color = prevColor;
 
             GUILayout.Label(title, EditorStyles.boldLabel);
@@ -376,10 +390,6 @@ namespace UnityBestPractices.Editor.Dashboard
 
             if (isConfigured)
             {
-                prevColor = GUI.color;
-                GUI.color = new Color(0.3f, 0.8f, 0.3f);
-                GUILayout.Label("Configured", GUILayout.Width(74));
-                GUI.color = prevColor;
                 if (GUILayout.Button("Open", GUILayout.Width(44)))
                     SettingsService.OpenProjectSettings("Project/Player");
             }
@@ -402,7 +412,7 @@ namespace UnityBestPractices.Editor.Dashboard
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
-            _showTools = EditorGUILayout.Foldout(_showTools, "TOOLS", true, EditorStyles.foldoutHeader);
+            _showTools = EditorGUILayout.Foldout(_showTools, "PROJECT CONFIGURATION", true, EditorStyles.foldoutHeader);
 
             if (_showTools)
             {
@@ -449,8 +459,28 @@ namespace UnityBestPractices.Editor.Dashboard
 
                 GUILayout.Space(6);
 
-                // ── Windows ───────────────────────────────────────────────────
-                GUILayout.Label("Windows", EditorStyles.miniLabel);
+                // ── AI Assistance ─────────────────────────────────────────────
+                GUILayout.Label("AI Assistance", EditorStyles.miniLabel);
+
+                DrawToolCard(
+                    "AI Files — LLM Instructions + Skills",
+                    "Copies LLM instruction files to .github/instructions/ and AgentSkill files to .github/prompts/ and .claude/commands/ so AI assistants can reference them locally.",
+                    false, "",
+                    "Copy to Project", CopyAIFilesToProject.Execute, 110);
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawWindows()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+            _showWindows = EditorGUILayout.Foldout(_showWindows, "WINDOWS", true, EditorStyles.foldoutHeader);
+
+            if (_showWindows)
+            {
+                GUILayout.Space(4);
 
                 DrawToolCard(
                     "New Project Wizard",
@@ -469,17 +499,6 @@ namespace UnityBestPractices.Editor.Dashboard
                     "Visual editor for configuring which physics layers collide with each other.",
                     false, "",
                     "Open", LayerCollisionMatrixWindow.ShowWindow);
-
-                GUILayout.Space(6);
-
-                // ── AI Assistance ─────────────────────────────────────────────
-                GUILayout.Label("AI Assistance", EditorStyles.miniLabel);
-
-                DrawToolCard(
-                    "AI Files — LLM Instructions + Skills",
-                    "Copies LLM instruction files to .github/instructions/ and AgentSkill files to .github/prompts/ and .claude/commands/ so AI assistants can reference them locally.",
-                    false, "",
-                    "Copy to Project", CopyAIFilesToProject.Execute, 110);
             }
 
             EditorGUILayout.EndVertical();
