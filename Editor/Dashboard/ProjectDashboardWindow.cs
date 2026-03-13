@@ -13,6 +13,7 @@ namespace UnityBestPractices.Editor.Dashboard
         private Vector2 m_scrollPosition;
         private string m_projectName = "";
         private string m_subSystemName = "";
+        private bool m_subSystemCreateAsmdef = true;
         private bool m_showLLMFiles = false;
         private bool m_showSkills = false;
         private bool m_showTools = true;
@@ -1024,14 +1025,41 @@ namespace UnityBestPractices.Editor.Dashboard
             GUILayout.Space(2);
         }
 
+        // Returns the git repository root by walking up from startPath until a .git folder is found.
+        // Falls back to startPath if no .git folder is found.
+        private static string FindGitRoot(string startPath)
+        {
+            string dir = startPath;
+            while (!string.IsNullOrEmpty(dir))
+            {
+                if (Directory.Exists(Path.Combine(dir, ".git")))
+                    return dir;
+                string parent = Path.GetDirectoryName(dir);
+                if (parent == dir) break;
+                dir = parent;
+            }
+            return startPath;
+        }
+
+        // Returns the path of fileName if it exists at projectRoot, then at gitRoot, otherwise projectRoot path.
+        private static string ResolveFilePath(string projectRoot, string gitRoot, string fileName)
+        {
+            string atProject = Path.Combine(projectRoot, fileName);
+            if (File.Exists(atProject)) return atProject;
+            string atGit = Path.Combine(gitRoot, fileName);
+            if (File.Exists(atGit)) return atGit;
+            return atProject;
+        }
+
         private void DrawTools()
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
             string projectRoot = Path.GetDirectoryName(Application.dataPath);
-            string gitignorePath = Path.Combine(projectRoot, ".gitignore");
-            string gitattributesPath = Path.Combine(projectRoot, ".gitattributes");
-            string editorconfigPath = Path.Combine(projectRoot, ".editorconfig");
+            string gitRoot = FindGitRoot(projectRoot);
+            string gitignorePath = ResolveFilePath(projectRoot, gitRoot, ".gitignore");
+            string gitattributesPath = ResolveFilePath(projectRoot, gitRoot, ".gitattributes");
+            string editorconfigPath = ResolveFilePath(projectRoot, gitRoot, ".editorconfig");
             bool gitignoreExists = File.Exists(gitignorePath);
             bool gitattributesExists = File.Exists(gitattributesPath);
             bool editorconfigExists = File.Exists(editorconfigPath);
@@ -1074,12 +1102,48 @@ namespace UnityBestPractices.Editor.Dashboard
                         {
                             "A .gitignore tells Git which files and folders to exclude from version control. " +
                             "Without it, generated Unity output (Library/, Temp/, Builds/) and IDE-specific files " +
-                            "get committed, causing slow clones, unnecessary diffs and merge conflicts.",
-                            "The generated file is optimised for Unity projects and excludes: Library/, Temp/, " +
-                            "obj/, Builds/, Logs/, .DS_Store, *.pidb, *.suo, IDE project files and other " +
-                            "Unity-generated artefacts. The Assets/ folder and ProjectSettings/ are always included.",
-                            "Once created, click Open to inspect or customise it. Re-running the tool overwrites " +
-                            "only if you confirm the prompt."
+                            "get committed, causing slow clones, unnecessary diffs and merge conflicts.\n\n" +
+                            "Compared to the standard Unity .gitignore template on GitHub, this file adds:\n" +
+                            "  • /Packages/packages-lock.json — avoids locking all collaborators to the same resolved package revisions\n" +
+                            "  • [Rr]ecordings/ and [Mm]emoryCaptures/ — Unity Recorder and Memory Profiler output\n" +
+                            "  • Crashlytics and Gradle template files — Android build artefacts often auto-regenerated\n" +
+                            "  • *.apk, *.aab, *.app, *.unitypackage — build outputs that should never be committed\n" +
+                            "  • Broader IDE coverage: Rider (.idea/), Visual Studio (.vs/), and per-project files (*.pidb, *.booproj, *.svd, *.opendb, *.VC.db)",
+                            "Generated file preview:\n\n" +
+                            "# Unity generated\n" +
+                            "[Ll]ibrary/\n" +
+                            "[Tt]emp/\n" +
+                            "[Oo]bj/\n" +
+                            "[Bb]uild/\n" +
+                            "[Bb]uilds/\n" +
+                            "[Ll]ogs/\n" +
+                            "[Uu]ser[Ss]ettings/\n" +
+                            "[Mm]emoryCaptures/\n" +
+                            "[Rr]ecordings/\n\n" +
+                            "# Asset meta data should only be ignored when the\n" +
+                            "# corresponding asset is also ignored\n" +
+                            "!/[Aa]ssets/**/*.meta\n\n" +
+                            "# Autogenerated Packages\n" +
+                            "/[Pp]ackages/packages-lock.json\n\n" +
+                            "# Visual Studio / Rider\n" +
+                            ".vs/\n" +
+                            ".idea/\n" +
+                            "*.csproj  *.sln  *.suo  *.user  *.pidb\n" +
+                            "*.booproj  *.svd  *.pdb  *.mdb  *.opendb  *.VC.db\n\n" +
+                            "# OS generated\n" +
+                            ".DS_Store  .DS_Store?  ._*\n" +
+                            ".Spotlight-V100  .Trashes\n" +
+                            "ehthumbs.db  Thumbs.db\n\n" +
+                            "# Builds\n" +
+                            "*.apk  *.aab  *.unitypackage  *.app\n\n" +
+                            "# Crashlytics\n" +
+                            "crashlytics-build.properties\n\n" +
+                            "# Gradle\n" +
+                            "/[Aa]ssets/Plugins/Android/baseProjectTemplate.gradle\n" +
+                            "/[Aa]ssets/Plugins/Android/launcherTemplate.gradle\n" +
+                            "/[Aa]ssets/Plugins/Android/mainTemplate.gradle\n" +
+                            "/[Aa]ssets/Plugins/Android/gradleTemplate.properties",
+                            "Once created, click Open to inspect or customise it. Re-running the tool overwrites only if you confirm the prompt."
                         },
                         runLabel: "Generate Now",
                         runAction: GenerateGitIgnore.Execute));
@@ -1434,7 +1498,7 @@ namespace UnityBestPractices.Editor.Dashboard
             EditorGUILayout.EndHorizontal();
 
             GUILayout.Label(
-                "Creates a named sub-system folder under Assets/_ProjectName with Scripts/, UI/, and Art/ subfolders.",
+                "Creates a named sub-system folder under Assets/{ProjectName} with Scripts/, UI/, and Art/ subfolders.",
                 EditorStyles.wordWrappedMiniLabel);
 
             GUILayout.Space(4);
@@ -1446,12 +1510,22 @@ namespace UnityBestPractices.Editor.Dashboard
             {
                 if (GUILayout.Button("Create", GUILayout.Width(60)))
                 {
-                    SetupProjectFolders.CreateSubSystem(m_subSystemName.Trim());
+                    string trimmed = m_subSystemName.Trim();
+                    string projectName = EditorPrefs.GetString(SetupProjectFolders.k_ProjectNamePrefKey, "");
+                    SetupProjectFolders.CreateSubSystem(trimmed);
+                    if (m_subSystemCreateAsmdef && !string.IsNullOrEmpty(projectName))
+                        GenerateAssemblyDefinitions.CreateSubSystemAsmdef(projectName, trimmed);
                     m_subSystemName = "";
                     RefreshData();
                     GUI.FocusControl(null);
                 }
             }
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.BeginHorizontal();
+            m_subSystemCreateAsmdef = EditorGUILayout.ToggleLeft(
+                new GUIContent("Create Assembly Definition", "Generates a .asmdef in Scripts/ referencing the project's Runtime assembly"),
+                m_subSystemCreateAsmdef);
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.EndVertical();

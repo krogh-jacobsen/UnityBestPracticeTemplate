@@ -32,13 +32,14 @@ namespace Unity.BestPractices.Editor
         }
 
         /// <summary>
-        /// Creates assembly definition files under <c>Assets/_ProjectName</c>.
+        /// Creates assembly definition files under <c>Assets/{projectName}</c>,
+        /// where the project name is read from <see cref="SetupProjectFolders.k_ProjectNamePrefKey"/> in EditorPrefs.
         /// Skips any <c>.asmdef</c> files that already exist.
         /// </summary>
         [MenuItem("Window/Best Practices/Generate Assembly Definitions")]
         public static void Execute()
         {
-            string root = "_ProjectName";
+            string root = EditorPrefs.GetString(SetupProjectFolders.k_ProjectNamePrefKey, "_ProjectName");
             string basePath = $"Assets/{root}";
 
             if (!AssetDatabase.IsValidFolder(basePath))
@@ -121,6 +122,43 @@ namespace Unity.BestPractices.Editor
 
             AssetDatabase.Refresh();
             Debug.Log($"[BestPractice] Assembly definitions generated under {basePath} with namespace '{rootNamespace}'");
+        }
+
+        /// <summary>
+        /// Creates a runtime assembly definition in the <c>Scripts/</c> folder of the named sub-system,
+        /// referencing the project's main Runtime assembly.
+        /// </summary>
+        /// <param name="projectName">The root project folder name (e.g. <c>"MyGame"</c>).</param>
+        /// <param name="subSystemName">The sub-system folder name (e.g. <c>"Inventory"</c>).</param>
+        public static void CreateSubSystemAsmdef(string projectName, string subSystemName)
+        {
+            if (string.IsNullOrWhiteSpace(projectName) || string.IsNullOrWhiteSpace(subSystemName))
+                return;
+
+            string scriptsPath = $"Assets/{projectName}/{subSystemName}/Scripts";
+            if (!AssetDatabase.IsValidFolder(scriptsPath))
+            {
+                Debug.LogWarning($"[BestPractice] Scripts folder not found at '{scriptsPath}' — skipping asmdef.");
+                return;
+            }
+
+            string companyName = SanitizeIdentifier(PlayerSettings.companyName);
+            string productName = SanitizeIdentifier(PlayerSettings.productName);
+            string rootNamespace = $"{companyName}.{productName}";
+            string subNamespace = $"{rootNamespace}.{SanitizeIdentifier(subSystemName)}";
+
+            CreateAsmdef($"{scriptsPath}/{SanitizeIdentifier(subSystemName)}.asmdef", new AsmdefData
+            {
+                name = subNamespace,
+                rootNamespace = subNamespace,
+                references = new string[] { $"{rootNamespace}.Runtime" },
+                includePlatforms = new string[0],
+                excludePlatforms = new string[0],
+                autoReferenced = true
+            });
+
+            AssetDatabase.Refresh();
+            Debug.Log($"[BestPractice] Assembly definition created for sub-system '{subSystemName}' with namespace '{subNamespace}'");
         }
 
         /// Strips any character that is not a letter, digit, or underscore so the result
