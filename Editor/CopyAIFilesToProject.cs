@@ -56,6 +56,23 @@ namespace Unity.BestPractices.Editor
                 "OK");
         }
 
+        /// <summary>Returns true if the destination file for the given LLM instruction source already exists in the project.</summary>
+        public static bool LLMInstructionExistsInProject(string srcAbsPath, string projectRoot)
+        {
+            string fileName = Path.GetFileName(srcAbsPath);
+            string destPath;
+
+            if (string.Equals(fileName, k_CopilotInstructionsFile, System.StringComparison.OrdinalIgnoreCase))
+                destPath = Path.Combine(projectRoot, ".github", "copilot-instructions.md");
+            else
+            {
+                string baseName = Path.GetFileNameWithoutExtension(fileName);
+                destPath = Path.Combine(projectRoot, ".github", "instructions", baseName + ".instructions.md");
+            }
+
+            return File.Exists(destPath);
+        }
+
         /// <summary>Copies a single LLM instruction file to .github/instructions/ (and to .github/copilot-instructions.md if it is the consolidated file).</summary>
         public static void CopySingleLLMInstruction(string srcAbsPath, string projectRoot)
         {

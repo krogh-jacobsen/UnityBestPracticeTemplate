@@ -206,14 +206,24 @@ namespace UnityBestPractices.Editor.Dashboard
 
                 string projectRoot = Path.GetDirectoryName(Application.dataPath);
 
+                var greenStyle = new GUIStyle(EditorStyles.label)
+                {
+                    normal = { textColor = new Color(0.3f, 0.8f, 0.3f) }
+                };
+
                 foreach (var file in _data.LLMInstructionFiles)
                 {
                     EditorGUILayout.BeginHorizontal();
                     GUILayout.Label(file.DisplayName, EditorStyles.label);
-                    GUILayout.FlexibleSpace();
 
                     string fullPath = Path.GetFullPath(
                         Path.Combine(Application.dataPath, "..", file.AssetPath));
+
+                    bool alreadyAdded = CopyAIFilesToProject.LLMInstructionExistsInProject(fullPath, projectRoot);
+                    if (alreadyAdded)
+                        GUILayout.Label("Found", greenStyle, GUILayout.Width(40));
+
+                    GUILayout.FlexibleSpace();
 
                     if (GUILayout.Button(new GUIContent("Open", "Open this file in the default editor"), GUILayout.Width(50)))
                         InternalEditorUtility.OpenFileAtLineExternal(fullPath, 1, 0);
@@ -223,6 +233,20 @@ namespace UnityBestPractices.Editor.Dashboard
 
                     EditorGUILayout.EndHorizontal();
                 }
+
+                GUILayout.Space(4);
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button(new GUIContent("Add all", "Copy all LLM instruction files to .github/instructions/ in your project"), GUILayout.Width(70)))
+                {
+                    foreach (var file in _data.LLMInstructionFiles)
+                    {
+                        string fullPath = Path.GetFullPath(
+                            Path.Combine(Application.dataPath, "..", file.AssetPath));
+                        CopyAIFilesToProject.CopySingleLLMInstruction(fullPath, projectRoot);
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
             }
 
             EditorGUILayout.EndVertical();
