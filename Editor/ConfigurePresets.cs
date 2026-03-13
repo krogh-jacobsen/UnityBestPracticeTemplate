@@ -29,21 +29,21 @@ namespace Unity.BestPractices.Editor
 
         // ── Folder filters ────────────────────────────────────────────────────
 
-        private const string k_AmbienceFilter = "glob:\"Assets/_ProjectName/Art/Audio/Ambience/**\"";
-        private const string k_MusicFilter = "glob:\"Assets/_ProjectName/Art/Audio/Music/**\"";
-        private const string k_SFXFilter = "glob:\"Assets/_ProjectName/Art/Audio/SFX/**\"";
-        private const string k_UIAudioFilter = "glob:\"Assets/_ProjectName/Art/Audio/UI/**\"";
+        private const string k_AmbienceFilter = "glob:\"Assets/**/Audio/Ambience/**\"";
+        private const string k_MusicFilter = "glob:\"Assets/**/Audio/Music/**\"";
+        private const string k_SFXFilter = "glob:\"Assets/**/Audio/SFX/**\"";
+        private const string k_UIAudioFilter = "glob:\"Assets/**/Audio/UI/**\"";
 
-        private const string k_SingleSpriteFilter = "glob:\"Assets/_ProjectName/UI/Sprites/**\"";
-        private const string k_SpriteAtlasFilter = "glob:\"Assets/_ProjectName/UI/Sprites/Atlas/**\"";
-        private const string k_AlbedoFilter = "glob:\"Assets/_ProjectName/Art/Textures/Albedo/**\"";
-        private const string k_NormalFilter = "glob:\"Assets/_ProjectName/Art/Textures/Normal/**\"";
-        private const string k_RoughnessFilter = "glob:\"Assets/_ProjectName/Art/Textures/Roughness/**\"";
-        private const string k_MaskFilter = "glob:\"Assets/_ProjectName/Art/Textures/Mask/**\"";
-        private const string k_HDRIFilter = "glob:\"Assets/_ProjectName/Art/Textures/HDRI/**\"";
+        private const string k_SingleSpriteFilter = "glob:\"Assets/**/UI/Sprites/**\"";
+        private const string k_SpriteAtlasFilter = "glob:\"Assets/**/UI/Sprites/Atlas/**\"";
+        private const string k_AlbedoFilter = "glob:\"Assets/**/Textures/Albedo/**\"";
+        private const string k_NormalFilter = "glob:\"Assets/**/Textures/Normal/**\"";
+        private const string k_RoughnessFilter = "glob:\"Assets/**/Textures/Roughness/**\"";
+        private const string k_MaskFilter = "glob:\"Assets/**/Textures/Mask/**\"";
+        private const string k_HDRIFilter = "glob:\"Assets/**/Textures/HDRI/**\"";
 
-        private const string k_FBXModelFilter = "glob:\"Assets/_ProjectName/Art/Models/**\"";
-        private const string k_FBXAnimFilter = "glob:\"Assets/_ProjectName/Art/Animations/**\"";
+        private const string k_FBXModelFilter = "glob:\"Assets/**/Art/Models/**\"";
+        private const string k_FBXAnimFilter = "glob:\"Assets/**/Art/Animations/**\"";
 
         // ── Status checks ────────────────────────────────────────────────────
 

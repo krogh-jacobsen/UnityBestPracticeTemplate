@@ -61,42 +61,51 @@ namespace UnityBestPractices.Editor.Dashboard
             // Header
             DrawHeader();
 
-            GUILayout.Space(10);
+            DrawSectionDivider();
 
             // Windows
             DrawWindows();
 
-            GUILayout.Space(10);
+            DrawSectionDivider();
 
             // Tools quick-actions
             DrawTools();
 
-            GUILayout.Space(10);
+            DrawSectionDivider();
 
             // Project Settings
             DrawProjectSettings();
 
-            GUILayout.Space(10);
+            DrawSectionDivider();
 
             // Iteration Settings
             DrawIterationSettings();
 
-            GUILayout.Space(10);
+            DrawSectionDivider();
 
             // Asset Pipeline
             DrawAssetPipeline();
 
-            GUILayout.Space(10);
+            DrawSectionDivider();
 
             // LLM Instruction Files
             DrawLLMInstructions();
 
-            GUILayout.Space(10);
+            DrawSectionDivider();
 
             // Agent Skills
             DrawAgentSkills();
 
             EditorGUILayout.EndScrollView();
+        }
+
+        private void DrawSectionDivider()
+        {
+            GUILayout.Space(6);
+            Rect r = EditorGUILayout.GetControlRect(false, 1);
+            float alpha = EditorGUIUtility.isProSkin ? 0.25f : 0.2f;
+            EditorGUI.DrawRect(r, new Color(0.5f, 0.5f, 0.5f, alpha));
+            GUILayout.Space(6);
         }
 
         private void DrawHeader()
@@ -151,7 +160,7 @@ namespace UnityBestPractices.Editor.Dashboard
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
-            string projectRoot = Path.GetDirectoryName(Application.dataPath);
+            string projectRoot = FindGitRoot(Path.GetDirectoryName(Application.dataPath));
             int llmTotal = m_data.LLMInstructionFilesCount;
             int llmInstalled = 0;
             if (m_data.LLMInstructionFiles != null)
@@ -227,7 +236,7 @@ namespace UnityBestPractices.Editor.Dashboard
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
-            string projectRoot = Path.GetDirectoryName(Application.dataPath);
+            string projectRoot = FindGitRoot(Path.GetDirectoryName(Application.dataPath));
             int skillTotal = m_data.AgentSkillFilesCount;
             int skillInstalled = 0;
             if (m_data.AgentSkillFiles != null)
@@ -1001,7 +1010,7 @@ namespace UnityBestPractices.Editor.Dashboard
                 if (disableAction != null)
                 {
                     var dc = GUI.color;
-                    GUI.color = new Color(0.9f, 0.5f, 0.5f);
+                    GUI.color = new Color(0.85f, 0.65f, 0.65f);
                     if (GUILayout.Button(disableLabel, GUILayout.Width(52)))
                     {
                         disableAction.Invoke();
@@ -1238,28 +1247,28 @@ namespace UnityBestPractices.Editor.Dashboard
                 if (m_showPresets)
                 {
                     GUILayout.Label("AUDIO", EditorStyles.centeredGreyMiniLabel);
-                    DrawPresetCard("Ambience", "glob: Assets/_ProjectName/Art/Audio/Ambience/**", ConfigurePresets.IsAmbienceConfigured, ConfigurePresets.ApplyAmbience);
-                    DrawPresetCard("Music", "glob: Assets/_ProjectName/Art/Audio/Music/**", ConfigurePresets.IsMusicConfigured, ConfigurePresets.ApplyMusic);
-                    DrawPresetCard("SFX", "glob: Assets/_ProjectName/Art/Audio/SFX/**", ConfigurePresets.IsSFXConfigured, ConfigurePresets.ApplySFX);
-                    DrawPresetCard("UI Audio", "glob: Assets/_ProjectName/Art/Audio/UI/**", ConfigurePresets.IsUIAudioConfigured, ConfigurePresets.ApplyUIAudio);
+                    DrawPresetCard("Ambience", "glob: Assets/**/Audio/Ambience/**", ConfigurePresets.IsAmbienceConfigured, ConfigurePresets.ApplyAmbience);
+                    DrawPresetCard("Music", "glob: Assets/**/Audio/Music/**", ConfigurePresets.IsMusicConfigured, ConfigurePresets.ApplyMusic);
+                    DrawPresetCard("SFX", "glob: Assets/**/Audio/SFX/**", ConfigurePresets.IsSFXConfigured, ConfigurePresets.ApplySFX);
+                    DrawPresetCard("UI Audio", "glob: Assets/**/Audio/UI/**", ConfigurePresets.IsUIAudioConfigured, ConfigurePresets.ApplyUIAudio);
 
                     GUILayout.Space(2);
                     GUILayout.Label("TEXTURES", EditorStyles.centeredGreyMiniLabel);
-                    DrawPresetCard("Single Sprite", "glob: Assets/_ProjectName/UI/Sprites/**", ConfigurePresets.IsSingleSpriteConfigured, ConfigurePresets.ApplySingleSprite);
-                    DrawPresetCard("Sprite Atlas", "glob: Assets/_ProjectName/UI/Sprites/Atlas/**", ConfigurePresets.IsSpriteAtlasConfigured, ConfigurePresets.ApplySpriteAtlas);
-                    DrawPresetCard("Albedo", "glob: Assets/_ProjectName/Art/Textures/Albedo/**", ConfigurePresets.IsAlbedoConfigured, ConfigurePresets.ApplyAlbedo);
-                    DrawPresetCard("Normal", "glob: Assets/_ProjectName/Art/Textures/Normal/**", ConfigurePresets.IsNormalConfigured, ConfigurePresets.ApplyNormal);
-                    DrawPresetCard("Roughness", "glob: Assets/_ProjectName/Art/Textures/Roughness/**", ConfigurePresets.IsRoughnessConfigured, ConfigurePresets.ApplyRoughness);
-                    DrawPresetCard("Mask", "glob: Assets/_ProjectName/Art/Textures/Mask/**", ConfigurePresets.IsMaskConfigured, ConfigurePresets.ApplyMask);
-                    DrawPresetCard("HDRI", "glob: Assets/_ProjectName/Art/Textures/HDRI/**", ConfigurePresets.IsHDRIConfigured, ConfigurePresets.ApplyHDRI);
+                    DrawPresetCard("Single Sprite", "glob: Assets/**/UI/Sprites/**", ConfigurePresets.IsSingleSpriteConfigured, ConfigurePresets.ApplySingleSprite);
+                    DrawPresetCard("Sprite Atlas", "glob: Assets/**/UI/Sprites/Atlas/**", ConfigurePresets.IsSpriteAtlasConfigured, ConfigurePresets.ApplySpriteAtlas);
+                    DrawPresetCard("Albedo", "glob: Assets/**/Textures/Albedo/**", ConfigurePresets.IsAlbedoConfigured, ConfigurePresets.ApplyAlbedo);
+                    DrawPresetCard("Normal", "glob: Assets/**/Textures/Normal/**", ConfigurePresets.IsNormalConfigured, ConfigurePresets.ApplyNormal);
+                    DrawPresetCard("Roughness", "glob: Assets/**/Textures/Roughness/**", ConfigurePresets.IsRoughnessConfigured, ConfigurePresets.ApplyRoughness);
+                    DrawPresetCard("Mask", "glob: Assets/**/Textures/Mask/**", ConfigurePresets.IsMaskConfigured, ConfigurePresets.ApplyMask);
+                    DrawPresetCard("HDRI", "glob: Assets/**/Textures/HDRI/**", ConfigurePresets.IsHDRIConfigured, ConfigurePresets.ApplyHDRI);
 
                     GUILayout.Space(2);
                     GUILayout.Label("MODELS", EditorStyles.centeredGreyMiniLabel);
-                    DrawPresetCard("FBX Model", "glob: Assets/_ProjectName/Art/Models/**", ConfigurePresets.IsFBXModelConfigured, ConfigurePresets.ApplyFBXModel);
+                    DrawPresetCard("FBX Model", "glob: Assets/**/Art/Models/**", ConfigurePresets.IsFBXModelConfigured, ConfigurePresets.ApplyFBXModel);
 
                     GUILayout.Space(2);
                     GUILayout.Label("ANIMATIONS", EditorStyles.centeredGreyMiniLabel);
-                    DrawPresetCard("FBX Animation", "glob: Assets/_ProjectName/Art/Animations/**", ConfigurePresets.IsFBXAnimationConfigured, ConfigurePresets.ApplyFBXAnimation);
+                    DrawPresetCard("FBX Animation", "glob: Assets/**/Art/Animations/**", ConfigurePresets.IsFBXAnimationConfigured, ConfigurePresets.ApplyFBXAnimation);
                 }
 
                 EditorGUILayout.EndVertical();
