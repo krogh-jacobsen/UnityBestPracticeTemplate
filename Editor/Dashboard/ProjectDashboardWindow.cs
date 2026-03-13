@@ -71,9 +71,6 @@ namespace UnityBestPractices.Editor.Dashboard
 
             GUILayout.Space(10);
 
-            // Status Overview
-            DrawStatusOverview();
-
             GUILayout.Space(10);
 
             // LLM Instruction Files
@@ -119,62 +116,6 @@ namespace UnityBestPractices.Editor.Dashboard
             if (GUILayout.Button("New Project Wizard", GUILayout.Width(160)))
                 NewProjectWizard.ShowWindow();
             EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.EndVertical();
-        }
-
-        private void DrawStatusOverview()
-        {
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-
-            // Folder Structure
-            DrawStatusLine(
-                "Folder Structure",
-                $"{_data.ExistingFoldersCount}/{_data.TotalRecommendedFolders} folders",
-                _data.ExistingFoldersCount >= _data.TotalRecommendedFolders * 0.7f
-            );
-
-            // Presets
-            string presetStatus;
-            if (_data.HasAudioPresets && _data.HasTexturePresets)
-                presetStatus = "Audio: OK   Textures: OK";
-            else if (_data.HasAudioPresets)
-                presetStatus = "Audio: OK   Textures: missing";
-            else if (_data.HasTexturePresets)
-                presetStatus = "Audio: missing   Textures: OK";
-            else
-                presetStatus = "Audio: missing   Textures: missing";
-
-            DrawStatusLine(
-                "Presets",
-                presetStatus,
-                _data.HasAudioPresets && _data.HasTexturePresets
-            );
-
-            // LLM Instructions
-            DrawStatusLine(
-                "LLM Instructions",
-                $"{_data.LLMInstructionFilesCount} files",
-                _data.LLMInstructionFilesCount > 0
-            );
-
-            // Git & IDE Config
-            bool gitIdeGood = _data.IsGitInitialized && _data.HasGitIgnore && _data.HasEditorConfig;
-            string gitIdeStatus;
-            if (gitIdeGood)
-            {
-                gitIdeStatus = "All configured";
-            }
-            else
-            {
-                var missing = new System.Collections.Generic.List<string>();
-                if (!_data.IsGitInitialized) missing.Add("git");
-                if (!_data.HasGitIgnore) missing.Add(".gitignore");
-                if (!_data.HasEditorConfig) missing.Add(".editorconfig");
-                gitIdeStatus = "Missing: " + string.Join(", ", missing);
-            }
-
-            DrawStatusLine("Git & IDE", gitIdeStatus, gitIdeGood);
 
             EditorGUILayout.EndVertical();
         }
@@ -276,6 +217,15 @@ namespace UnityBestPractices.Editor.Dashboard
                 EditorGUILayout.EndHorizontal();
             }
 
+            // ── AI Assistance ─────────────────────────────────────────────
+            GUILayout.Label("AI Assistance", EditorStyles.miniLabel);
+
+            DrawToolCard(
+                "AI Files — LLM Instructions + Skills",
+                "Copies LLM instruction files to .github/instructions/ and AgentSkill files to .github/prompts/ and .claude/commands/ so AI assistants can reference them locally.",
+                false, "",
+                "Copy to Project", CopyAIFilesToProject.Execute, 110);
+
             EditorGUILayout.EndVertical();
         }
 
@@ -292,23 +242,68 @@ namespace UnityBestPractices.Editor.Dashboard
 
                 string projectRoot = Path.GetDirectoryName(Application.dataPath);
 
+                var greenStyle = new GUIStyle(EditorStyles.label)
+                {
+                    normal = { textColor = new Color(0.3f, 0.8f, 0.3f) }
+                };
+                var yellowStyle = new GUIStyle(EditorStyles.label)
+                {
+                    normal = { textColor = new Color(0.9f, 0.75f, 0.2f) }
+                };
+
                 foreach (var skill in _data.AgentSkillFiles)
                 {
                     EditorGUILayout.BeginHorizontal();
                     GUILayout.Label(skill.DisplayName, EditorStyles.label);
-                    GUILayout.FlexibleSpace();
 
                     string fullPath = Path.GetFullPath(
                         Path.Combine(Application.dataPath, "..", skill.AssetPath));
+                    string destPath = CopyAIFilesToProject.GetAgentSkillPromptDestPath(fullPath, projectRoot);
+                    bool installed = File.Exists(destPath);
+                    bool outdated = installed && CopyAIFilesToProject.AgentSkillIsOutdated(fullPath, projectRoot);
 
-                    if (GUILayout.Button(new GUIContent("Open", "Open this skill file in the default editor"), GUILayout.Width(50)))
-                        InternalEditorUtility.OpenFileAtLineExternal(fullPath, 1, 0);
+                    if (outdated)
+                        GUILayout.Label("Found but outdated", yellowStyle, GUILayout.Width(120));
+                    else if (installed)
+                        GUILayout.Label("Found", greenStyle, GUILayout.Width(40));
+                    else
+                        GUILayout.Label("Missing", yellowStyle, GUILayout.Width(50));
 
-                    if (GUILayout.Button(new GUIContent("Add", "Copy to .github/prompts/ (Copilot) and .claude/commands/ (Claude Code)"), GUILayout.Width(40)))
-                        CopyAIFilesToProject.CopySingleAgentSkill(fullPath, projectRoot);
+                    GUILayout.FlexibleSpace();
+
+                    if (installed)
+                    {
+                        if (GUILayout.Button(new GUIContent("Open", "Open the local copy of this skill"), GUILayout.Width(50)))
+                            InternalEditorUtility.OpenFileAtLineExternal(destPath, 1, 0);
+
+                        if (outdated && GUILayout.Button(new GUIContent("Update", "Overwrite the local copy with the latest version from the package"), GUILayout.Width(60)))
+                            CopyAIFilesToProject.CopySingleAgentSkill(fullPath, projectRoot);
+                    }
+                    else
+                    {
+                        if (GUILayout.Button(new GUIContent("View", "View this skill file from the package"), GUILayout.Width(50)))
+                            InternalEditorUtility.OpenFileAtLineExternal(fullPath, 1, 0);
+
+                        if (GUILayout.Button(new GUIContent("Add", "Copy to .github/prompts/ (Copilot) and .claude/commands/ (Claude Code)"), GUILayout.Width(40)))
+                            CopyAIFilesToProject.CopySingleAgentSkill(fullPath, projectRoot);
+                    }
 
                     EditorGUILayout.EndHorizontal();
                 }
+
+                GUILayout.Space(4);
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button(new GUIContent("Add all", "Copy all agent skill files to .github/prompts/ and .claude/commands/"), GUILayout.Width(70)))
+                {
+                    foreach (var skill in _data.AgentSkillFiles)
+                    {
+                        string fullPath = Path.GetFullPath(
+                            Path.Combine(Application.dataPath, "..", skill.AssetPath));
+                        CopyAIFilesToProject.CopySingleAgentSkill(fullPath, projectRoot);
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
             }
 
             EditorGUILayout.EndVertical();
@@ -482,26 +477,41 @@ namespace UnityBestPractices.Editor.Dashboard
             {
                 GUILayout.Space(4);
 
-                DrawToolCard(
-                    "New Project Wizard",
+                DrawWindowCard("New Project Wizard",
                     "Guided wizard that runs all setup steps in order — use this to configure a new project from scratch.",
-                    false, "",
-                    "Open", NewProjectWizard.ShowWindow);
+                    NewProjectWizard.ShowWindow);
 
-                DrawToolCard(
-                    "PlayerPrefs Inspector",
+                DrawWindowCard("PlayerPrefs Inspector",
                     "View, edit and delete all PlayerPrefs keys stored for this project.",
-                    false, "",
-                    "Open", PlayerPrefsInspectorWindow.ShowWindow);
+                    PlayerPrefsInspectorWindow.ShowWindow);
 
-                DrawToolCard(
-                    "Layer Collision Matrix",
+                DrawWindowCard("Layer Collision Matrix",
                     "Visual editor for configuring which physics layers collide with each other.",
-                    false, "",
-                    "Open", LayerCollisionMatrixWindow.ShowWindow);
+                    LayerCollisionMatrixWindow.ShowWindow);
             }
 
             EditorGUILayout.EndVertical();
+        }
+
+        private static void DrawWindowCard(string title, string description, System.Action openAction)
+        {
+            EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+
+            EditorGUILayout.BeginVertical();
+            GUILayout.Label(title, EditorStyles.boldLabel);
+            GUILayout.Label(description, EditorStyles.wordWrappedMiniLabel);
+            EditorGUILayout.EndVertical();
+
+            GUILayout.FlexibleSpace();
+
+            var prevColor = GUI.color;
+            GUI.color = new Color(0.6f, 0.85f, 1f);
+            if (GUILayout.Button("Open", GUILayout.Width(50), GUILayout.ExpandHeight(true)))
+                openAction?.Invoke();
+            GUI.color = prevColor;
+
+            EditorGUILayout.EndHorizontal();
+            GUILayout.Space(3);
         }
 
         private static void DrawToolCard(string title, string description, bool isComplete, string statusText,

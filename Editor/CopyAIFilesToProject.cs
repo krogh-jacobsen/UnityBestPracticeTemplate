@@ -99,6 +99,21 @@ namespace Unity.BestPractices.Editor
             }
         }
 
+        /// <summary>Returns the absolute destination path for the .github/prompts/ copy of the given AgentSkill source.</summary>
+        public static string GetAgentSkillPromptDestPath(string srcAbsPath, string projectRoot)
+        {
+            string baseName = Path.GetFileNameWithoutExtension(Path.GetFileName(srcAbsPath));
+            return Path.Combine(projectRoot, ".github", "prompts", baseName + ".prompt.md");
+        }
+
+        /// <summary>Returns true if the local copy exists but its content differs from the package source.</summary>
+        public static bool AgentSkillIsOutdated(string srcAbsPath, string projectRoot)
+        {
+            string destPath = GetAgentSkillPromptDestPath(srcAbsPath, projectRoot);
+            if (!File.Exists(destPath)) return false;
+            return File.ReadAllText(srcAbsPath) != File.ReadAllText(destPath);
+        }
+
         /// <summary>Copies a single AgentSkill file to .github/prompts/ and .claude/commands/.</summary>
         public static void CopySingleAgentSkill(string srcAbsPath, string projectRoot)
         {
