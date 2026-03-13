@@ -151,6 +151,10 @@ namespace Unity.BestPractices.Editor
             string subRoot = $"{root}/{subSystemName}";
             EditorController.CreateFolder(subRoot, "Scripts");
             EditorController.CreateFolder(subRoot, "UI");
+            EditorController.CreateFolder(subRoot, "UI/UXML");
+            EditorController.CreateFolder(subRoot, "UI/USS");
+            EditorController.CreateFolder(subRoot, "UI/Scripts");
+            EditorController.CreateFolder(subRoot, "Prefabs");
             EditorController.CreateFolder(subRoot, "Art");
 
             AssetDatabase.Refresh();

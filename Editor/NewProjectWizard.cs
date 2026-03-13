@@ -12,6 +12,7 @@ namespace Unity.BestPractices.Editor
     public class NewProjectWizard : EditorWindow
     {
         private Vector2 m_ScrollPosition;
+        private string m_projectName = "";
 
         [MenuItem("Window/Best Practices/New Project Wizard")]
         public static void ShowWindow()
@@ -19,6 +20,12 @@ namespace Unity.BestPractices.Editor
             var window = GetWindow<NewProjectWizard>("New Project Wizard");
             window.minSize = new Vector2(440, 520);
             window.Show();
+        }
+
+        private void OnEnable()
+        {
+            if (string.IsNullOrEmpty(m_projectName))
+                m_projectName = EditorPrefs.GetString(SetupProjectFolders.k_ProjectNamePrefKey, "");
         }
 
         private void OnGUI()
@@ -52,15 +59,25 @@ namespace Unity.BestPractices.Editor
                 "Run Full Setup applies all steps below in order without individual confirmation dialogs.",
                 EditorStyles.wordWrappedLabel);
             GUILayout.Space(5);
-            if (GUILayout.Button("Run Full Setup", GUILayout.Height(32)))
-                RunFullSetup();
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Label("Project name:", GUILayout.Width(90));
+            m_projectName = EditorGUILayout.TextField(m_projectName);
+            EditorGUILayout.EndHorizontal();
+            GUILayout.Space(5);
+            bool canRun = !string.IsNullOrWhiteSpace(m_projectName);
+            using (new EditorGUI.DisabledScope(!canRun))
+            {
+                if (GUILayout.Button("Run Full Setup", GUILayout.Height(32)))
+                    RunFullSetup();
+            }
             EditorGUILayout.EndVertical();
         }
 
         private void DrawSteps()
         {
             string projectRoot = Path.GetDirectoryName(Application.dataPath);
-            bool hasFolders = AssetDatabase.IsValidFolder("Assets/_ProjectName");
+            string savedProjectName = EditorPrefs.GetString(SetupProjectFolders.k_ProjectNamePrefKey, "");
+            bool hasFolders = !string.IsNullOrEmpty(savedProjectName) && AssetDatabase.IsValidFolder($"Assets/{savedProjectName}");
             bool hasGitIgnore = File.Exists(Path.Combine(projectRoot, ".gitignore"));
             bool hasGitAttributes = File.Exists(Path.Combine(projectRoot, ".gitattributes"));
             bool hasEditorConfig = File.Exists(Path.Combine(projectRoot, ".editorconfig"));
@@ -74,11 +91,11 @@ namespace Unity.BestPractices.Editor
 
             DrawStep(
                 "1. Project Folders",
-                "Creates the recommended Assets/_ProjectName folder hierarchy.",
-                hasFolders ? "Assets/_ProjectName exists" : "Not created",
+                "Creates the recommended folder hierarchy under Assets/{ProjectName}. Opens a prompt for the project name.",
+                hasFolders ? $"Assets/{savedProjectName} exists" : "Not created",
                 hasFolders,
                 "Run",
-                SetupProjectFolders.Execute,
+                ProjectFolderSetupPrompt.ShowWindow,
                 ShowProjectFoldersExplainer
             );
 
@@ -314,9 +331,9 @@ namespace Unity.BestPractices.Editor
             EditorGUI.indentLevel = 0;
         }
 
-        private static void RunFullSetup()
+        private void RunFullSetup()
         {
-            SetupProjectFolders.Execute();
+            SetupProjectFolders.Execute(m_projectName.Trim());
             GenerateAssemblyDefinitions.Execute();
             ConfigurePresets.ApplyAllPresets();
             EditorApplication.ExecuteMenuItem("Window/Best Practices/Setup Tags and Layers");
