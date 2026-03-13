@@ -17,8 +17,8 @@ namespace UnityBestPractices.Editor.Dashboard
         private int m_mcpStatus = 0;
         private string m_subSystemName = "";
         private bool m_subSystemCreateAsmdef = true;
-        private bool m_showLLMFiles = false;
-        private bool m_showSkills = false;
+        private bool m_showLLMFiles = true;
+        private bool m_showSkills = true;
         private bool m_showTools = true;
         private bool m_showProjectSettings = true;
         private bool m_showIteration = true;
