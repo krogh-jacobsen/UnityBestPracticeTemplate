@@ -65,6 +65,12 @@ namespace Unity.BestPractices.Editor
             bool hasGitAttributes = File.Exists(Path.Combine(projectRoot, ".gitattributes"));
             bool hasEditorConfig = File.Exists(Path.Combine(projectRoot, ".editorconfig"));
             bool hasEnterPlayMode = EditorSettings.enterPlayModeOptionsEnabled;
+            bool iterationConfigured = ConfigureIterationSettings.IsScriptChangesConfigured
+                && ConfigureIterationSettings.IsAsyncShadersDev
+                && ConfigureIterationSettings.IsManagedStrippingDev;
+            bool assetPipelineConfigured = ConfigureAssetPipeline.IsAutoRefreshRecommended
+                && ConfigureAssetPipeline.IsImportWorkerCountRecommended
+                && ConfigureAssetPipeline.IsCompressTexturesConfigured;
 
             DrawStep(
                 "1. Project Folders",
@@ -72,7 +78,8 @@ namespace Unity.BestPractices.Editor
                 hasFolders ? "Assets/_ProjectName exists" : "Not created",
                 hasFolders,
                 "Run",
-                SetupProjectFolders.Execute
+                SetupProjectFolders.Execute,
+                ShowProjectFoldersExplainer
             );
 
             DrawStep(
@@ -131,11 +138,39 @@ namespace Unity.BestPractices.Editor
 
             DrawStep(
                 "8. Project Settings",
-                "Applies recommended Unity 6 settings: Enter Play Mode, IL2CPP scripting backend, .NET Standard 2.1.",
+                "Applies recommended Unity 6 settings: Enter Play Mode, IL2CPP backend, .NET Standard 2.1, Input System, Incremental GC, Asset Serialization, Version Control, Create at Origin, New Hierarchy, Asset Manager import location.",
                 hasEnterPlayMode ? "Enter Play Mode enabled" : "Not configured",
                 hasEnterPlayMode,
                 "Run",
                 ConfigureProjectSettings.ApplySettings
+            );
+
+            DrawStep(
+                "9. Iteration Settings",
+                "Applies universal iteration defaults: Script Changes → Recompile After Finished Playing, Async Shader Compilation on, Managed Stripping disabled. Keeps your Play sessions intact and editor responsive.",
+                iterationConfigured ? "Configured" : "Not configured",
+                iterationConfigured,
+                "Run",
+                () =>
+                {
+                    ConfigureIterationSettings.ApplyScriptChanges();
+                    ConfigureIterationSettings.ApplyAsyncShadersOn();
+                    ConfigureIterationSettings.ApplyManagedStrippingDev();
+                }
+            );
+
+            DrawStep(
+                "10. Asset Pipeline",
+                "Sets Auto Refresh to Outside Playmode, Import Worker Count to 50%, and enables Compress Textures on Import. Auto Refresh and Worker Count are machine-local preferences (not committed to VCS).",
+                assetPipelineConfigured ? "Configured" : "Not configured",
+                assetPipelineConfigured,
+                "Run",
+                () =>
+                {
+                    ConfigureAssetPipeline.ApplyAutoRefreshRecommended();
+                    ConfigureAssetPipeline.ApplyImportWorkerCountRecommended();
+                    ConfigureAssetPipeline.ApplyCompressTextures();
+                }
             );
         }
 
@@ -145,7 +180,8 @@ namespace Unity.BestPractices.Editor
             string statusText,
             bool isComplete,
             string buttonLabel,
-            System.Action action)
+            System.Action action,
+            System.Action explainerAction = null)
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
@@ -160,7 +196,14 @@ namespace Unity.BestPractices.Editor
             GUILayout.Label(title, EditorStyles.boldLabel);
             GUILayout.FlexibleSpace();
 
-            // Button
+            // Explainer button
+            if (explainerAction != null)
+            {
+                if (GUILayout.Button("?", GUILayout.Width(22), GUILayout.Height(18)))
+                    explainerAction.Invoke();
+            }
+
+            // Run button
             if (GUILayout.Button(buttonLabel, GUILayout.Width(60)))
                 action?.Invoke();
 
@@ -181,6 +224,96 @@ namespace Unity.BestPractices.Editor
             GUILayout.Space(3);
         }
 
+        private static void ShowProjectFoldersExplainer()
+        {
+            WizardExplainerWindow.Show("Project Folders — Structure", DrawProjectFoldersContent);
+        }
+
+        private static void DrawProjectFoldersContent()
+        {
+            GUILayout.Label(
+                "The following folders are created under Assets/_ProjectName/. Existing folders are skipped.",
+                EditorStyles.wordWrappedMiniLabel);
+            GUILayout.Space(6);
+
+            void Folder(string label, int depth)
+            {
+                EditorGUI.indentLevel = depth;
+                EditorGUILayout.LabelField(label + "/");
+            }
+
+            Folder("Assets", 0);
+            Folder("  _ProjectName", 0);
+
+            EditorGUI.indentLevel = 0;
+            GUILayout.Space(4);
+            GUILayout.Label("Art", EditorStyles.boldLabel);
+            Folder("Art", 1);
+            Folder("Animations", 2);
+            Folder("Clips", 3);
+            Folder("Controllers", 3);
+            Folder("Audio", 2);
+            Folder("Ambience", 3);
+            Folder("Music", 3);
+            Folder("SFX", 3);
+            Folder("UI", 3);
+            Folder("Fonts", 2);
+            Folder("Materials", 2);
+            Folder("Physics", 3);
+            Folder("Models", 2);
+            Folder("Shaders", 2);
+            Folder("Sprites", 2);
+            Folder("Textures", 2);
+            Folder("Albedo", 3);
+            Folder("Normal", 3);
+            Folder("Roughness", 3);
+            Folder("Mask", 3);
+            Folder("HDRI", 3);
+            Folder("VFX", 2);
+
+            EditorGUI.indentLevel = 0;
+            GUILayout.Space(4);
+            GUILayout.Label("Code", EditorStyles.boldLabel);
+            Folder("Scripts", 1);
+            Folder("Core", 2);
+            Folder("UI", 2);
+            Folder("Utilities", 2);
+            Folder("Editor", 1);
+
+            EditorGUI.indentLevel = 0;
+            GUILayout.Space(4);
+            GUILayout.Label("Data", EditorStyles.boldLabel);
+            Folder("Data", 1);
+            Folder("Prefabs", 1);
+            Folder("Scenes", 1);
+            Folder("Settings", 1);
+
+            EditorGUI.indentLevel = 0;
+            GUILayout.Space(4);
+            GUILayout.Label("UI Toolkit", EditorStyles.boldLabel);
+            Folder("UI", 1);
+            Folder("Sprites", 2);
+            Folder("Atlas", 3);
+            Folder("UXML", 2);
+            Folder("USS", 2);
+            Folder("Settings", 2);
+
+            EditorGUI.indentLevel = 0;
+            GUILayout.Space(4);
+            GUILayout.Label("Special Unity Folders", EditorStyles.boldLabel);
+            Folder("Resources", 1);
+            Folder("StreamingAssets", 1);
+
+            EditorGUI.indentLevel = 0;
+            GUILayout.Space(4);
+            GUILayout.Label("Organisation", EditorStyles.boldLabel);
+            Folder("Documentation", 1);
+            Folder("Plugins", 1);
+            Folder("ThirdParty", 1);
+
+            EditorGUI.indentLevel = 0;
+        }
+
         private static void RunFullSetup()
         {
             SetupProjectFolders.Execute();
@@ -191,6 +324,12 @@ namespace Unity.BestPractices.Editor
             GenerateGitAttributes.Execute();
             GenerateEditorConfig.Execute();
             ConfigureProjectSettings.ApplySettings();
+            ConfigureIterationSettings.ApplyScriptChanges();
+            ConfigureIterationSettings.ApplyAsyncShadersOn();
+            ConfigureIterationSettings.ApplyManagedStrippingDev();
+            ConfigureAssetPipeline.ApplyAutoRefreshRecommended();
+            ConfigureAssetPipeline.ApplyImportWorkerCountRecommended();
+            ConfigureAssetPipeline.ApplyCompressTextures();
 
             Debug.Log("[Best Practices] Full project setup complete.");
         }
