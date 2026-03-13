@@ -151,6 +151,40 @@ namespace Unity.BestPractices.Editor
             Debug.Log("[Best Practices] Asset Manager default import location set to Assets/ThirdPartyAssets with subfolder creation enabled.");
         }
 
+        // ── Individual disable / revert methods ──────────────────────────────────
+
+        public static void DisableEnterPlayMode()
+        {
+            EditorSettings.enterPlayModeOptionsEnabled = false;
+            Debug.Log("[Best Practices] Enter Play Mode options disabled. Full domain reload will run on every Play mode entry.");
+        }
+
+        public static void DisableIncrementalGC()
+        {
+            PlayerSettings.gcIncremental = false;
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Best Practices] Incremental GC disabled.");
+        }
+
+        public static void DisableCreateObjectsAtOrigin()
+        {
+            EditorPrefs.SetBool("Scene/CreateObjectsAtWorldOrigin", false);
+            Debug.Log("[Best Practices] Create Objects at Origin disabled. New GameObjects will spawn at the Scene View camera position.");
+        }
+
+        public static void DisableNewHierarchyWindow()
+        {
+            EditorPrefs.SetBool("Hierarchy/UseNewHierarchyWindow", false);
+            Debug.Log("[Best Practices] New Hierarchy window disabled. Reopen the Hierarchy window to apply.");
+        }
+
+        public static void ResetAssetManagerImportLocation()
+        {
+            EditorPrefs.SetString(k_AssetManagerImportLocationKey, "Assets");
+            EditorPrefs.SetBool(k_AssetManagerSubfolderKey, false);
+            Debug.Log("[Best Practices] Asset Manager import location reset to Assets.");
+        }
+
         // ── Apply all (used by New Project Wizard) ────────────────────────────
 
         /// <summary>Applies all recommended settings without showing a confirmation dialog.</summary>

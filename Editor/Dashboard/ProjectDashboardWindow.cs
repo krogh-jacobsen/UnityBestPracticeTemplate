@@ -304,10 +304,10 @@ namespace UnityBestPractices.Editor.Dashboard
             var profile = ConfigureIterationSettings.CurrentProfile;
             string profileLabel = profile switch
             {
-                ConfigureIterationSettings.ProfileState.Dev     => "Dev Profile",
+                ConfigureIterationSettings.ProfileState.Dev => "Dev Profile",
                 ConfigureIterationSettings.ProfileState.Release => "Release Profile",
-                ConfigureIterationSettings.ProfileState.Mixed   => "Mixed",
-                _                                               => "Unknown"
+                ConfigureIterationSettings.ProfileState.Mixed => "Mixed",
+                _ => "Unknown"
             };
             m_showIteration = EditorGUILayout.Foldout(m_showIteration,
                 $"ITERATION SETTINGS — {profileLabel}", true, EditorStyles.foldoutHeader);
@@ -522,15 +522,15 @@ namespace UnityBestPractices.Editor.Dashboard
                 // 1. Auto Refresh — 3-way picker
                 {
                     bool isRecommended = ConfigureAssetPipeline.IsAutoRefreshRecommended;  // mode == 2
-                    bool isOff         = ConfigureAssetPipeline.IsAutoRefreshDisabled;      // mode == 0
-                    bool isAlwaysOn    = ConfigureAssetPipeline.IsAutoRefreshAlwaysOn;      // mode == 1
+                    bool isOff = ConfigureAssetPipeline.IsAutoRefreshDisabled;      // mode == 0
+                    bool isAlwaysOn = ConfigureAssetPipeline.IsAutoRefreshAlwaysOn;      // mode == 1
 
                     EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                     EditorGUILayout.BeginHorizontal();
                     var c = GUI.color;
                     GUI.color = isRecommended ? new Color(0.3f, 0.8f, 0.3f)
-                              : isOff         ? new Color(0.7f, 0.7f, 0.7f)
-                              :                 new Color(0.4f, 0.7f, 1f);
+                              : isOff ? new Color(0.7f, 0.7f, 0.7f)
+                              : new Color(0.4f, 0.7f, 1f);
                     GUILayout.Label(isRecommended ? "[Set]" : "[—]", GUILayout.Width(isRecommended ? 38 : 30));
                     GUI.color = c;
                     GUILayout.Label("Auto Refresh", EditorStyles.boldLabel);
@@ -668,74 +668,90 @@ namespace UnityBestPractices.Editor.Dashboard
 
                 DrawSettingCard(
                     "Enter Play Mode",
-                    "Enables DisableDomainReload + DisableSceneReload for faster iteration.\nRequires static state to be reset manually via [RuntimeInitializeOnLoadMethod].",
+                    "Enabled: Unity skips domain and scene reload on entering Play mode — much faster iteration. Requires static state to be reset manually via [RuntimeInitializeOnLoadMethod].\nDisabled: Full domain reload runs on every Play mode entry — slower but requires no extra cleanup code.",
                     ConfigureProjectSettings.IsEnterPlayModeConfigured,
-                    ConfigureProjectSettings.ApplyEnterPlayMode);
+                    ConfigureProjectSettings.ApplyEnterPlayMode,
+                    openSettingsPath: "Project/Editor",
+                    disableAction: ConfigureProjectSettings.DisableEnterPlayMode);
 
                 DrawSettingCard(
                     "Scripting Backend: IL2CPP",
-                    "Sets IL2CPP as the scripting backend for Standalone, Android and iOS builds.\nImproves runtime performance and enables full AOT compilation.",
+                    "IL2CPP: best runtime performance and required for iOS. Enables full AOT compilation and better stripping.\nMono (default): faster editor build times but lower runtime performance — use Mono for fast iteration via Iteration Settings.",
                     ConfigureProjectSettings.IsIL2CPPConfigured,
                     ConfigureProjectSettings.ApplyIL2CPP,
-                    "Apply");
+                    "Apply",
+                    openSettingsPath: "Project/Player");
 
                 DrawSettingCard(
                     "API Compatibility: .NET Standard 2.1",
-                    "Sets API compatibility to .NET Standard 2.1 for Standalone.\nBroadens library compatibility and aligns with modern .NET practices.",
+                    ".NET Standard 2.1: broadest library compatibility with NuGet packages and aligns with modern .NET practices.\n.NET Framework (default): gives access to Unity's full internal API surface, but can cause compatibility issues with external libraries.",
                     ConfigureProjectSettings.IsApiCompatibilityConfigured,
                     ConfigureProjectSettings.ApplyApiCompatibility,
-                    "Apply");
+                    "Apply",
+                    openSettingsPath: "Project/Player");
 
                 DrawSettingCard(
                     "Asset Serialization: Force Text",
-                    "Forces all assets to serialize as readable YAML text.\nMakes diffs meaningful and merges possible in version control.",
+                    "Force Text: all assets serialize as readable YAML — diffs are meaningful and merges are possible in version control.\nBinary or Mixed (default): assets may be stored as binary blobs, making diff and merge in source control impractical.",
                     ConfigureProjectSettings.IsAssetSerializationConfigured,
                     ConfigureProjectSettings.ApplyAssetSerialization,
-                    "Apply");
+                    "Apply",
+                    openSettingsPath: "Project/Editor");
 
                 DrawSettingCard(
                     "Version Control: Visible Meta Files",
-                    "Ensures .meta files are written to disk so source control can track them.\nPrevents GUID regeneration which would break all references to tracked assets.",
+                    "Visible Meta Files: .meta files are written to disk so source control tracks them — prevents GUID regeneration that breaks asset references.\nHidden Meta Files (default): .meta files are hidden; source control will miss them unless configured manually.",
                     ConfigureProjectSettings.IsVersionControlConfigured,
                     ConfigureProjectSettings.ApplyVersionControl,
-                    "Apply");
+                    "Apply",
+                    openSettingsPath: "Project/Editor");
 
                 DrawSettingCard(
                     "Input System: New Input System Package",
-                    "Switches Active Input Handling to the new Input System package.\nRequires com.unity.inputsystem to be installed. A Unity restart may be needed after applying.",
+                    "New Input System: event-driven, multi-device, cross-platform input with rebinding support. Required for modern input workflows.\nLegacy Input Manager (default): simple but limited — no controller rebinding, no multi-player input routing. Requires com.unity.inputsystem to be installed; a Unity restart may be needed.",
                     ConfigureProjectSettings.IsInputSystemConfigured,
                     ConfigureProjectSettings.ApplyInputSystem,
-                    "Apply");
+                    "Apply",
+                    openSettingsPath: "Project/Player");
 
                 DrawSettingCard(
                     "Incremental GC",
-                    "Enables incremental garbage collection, spreading GC work across multiple frames.\nReduces frame-rate spikes caused by full GC passes during gameplay.",
+                    "Enabled: GC work is spread across multiple frames, eliminating stop-the-world spikes during gameplay.\nDisabled: full stop-the-world GC passes run as needed — may cause visible frame drops in GC-heavy scenes.",
                     ConfigureProjectSettings.IsIncrementalGCConfigured,
-                    ConfigureProjectSettings.ApplyIncrementalGC);
+                    ConfigureProjectSettings.ApplyIncrementalGC,
+                    openSettingsPath: "Project/Player",
+                    disableAction: ConfigureProjectSettings.DisableIncrementalGC);
 
                 DrawSettingCard(
                     "Scene View: Create Objects at Origin",
-                    "New GameObjects created from the GameObject menu will always spawn at (0,0,0) instead of the current Scene View camera position.\nConfigured via Preferences > Scene View > Create Objects at World Origin.",
+                    "Enabled: new GameObjects always spawn at world origin (0,0,0) — predictable placement regardless of camera position.\nDisabled: new GameObjects spawn in front of the Scene View camera — convenient but inconsistent across machines.",
                     ConfigureProjectSettings.IsCreateObjectsAtOriginConfigured,
-                    ConfigureProjectSettings.ApplyCreateObjectsAtOrigin);
+                    ConfigureProjectSettings.ApplyCreateObjectsAtOrigin,
+                    openSettingsPath: "Preferences/Scene View",
+                    disableAction: ConfigureProjectSettings.DisableCreateObjectsAtOrigin);
 
                 DrawSettingCard(
                     "Hierarchy: Use New Hierarchy Window",
-                    "Enables the redesigned Hierarchy window with better performance for large scenes.\nAlso unlocks the Query Builder for filtering objects by component type — useful for scenes with many entities.\nConfigured via Preferences > Hierarchy > Use new Hierarchy window.",
+                    "Enabled: redesigned Hierarchy with better rendering performance for large scenes and the Query Builder for filtering by component type.\nDisabled: legacy Hierarchy window — no Query Builder, slower with many objects.",
                     ConfigureProjectSettings.IsNewHierarchyWindowConfigured,
-                    ConfigureProjectSettings.ApplyNewHierarchyWindow);
+                    ConfigureProjectSettings.ApplyNewHierarchyWindow,
+                    openSettingsPath: "Preferences/Hierarchy",
+                    disableAction: ConfigureProjectSettings.DisableNewHierarchyWindow);
 
                 DrawSettingCard(
                     "Asset Manager: Import to ThirdPartyAssets",
-                    "Sets the Asset Manager default import location to Assets/ThirdPartyAssets and enables subfolder creation on import.\nKeeps third-party assets isolated from your own project folders.\nConfigured via Preferences > Asset Manager > Import Settings.",
+                    "Configured: Asset Manager imports to Assets/ThirdPartyAssets with subfolder creation — keeps third-party assets isolated from your own project folders.\nReset: imports go to Assets/ root — third-party packages mixed with project files, harder to audit and update.",
                     ConfigureProjectSettings.IsAssetManagerImportLocationConfigured,
-                    ConfigureProjectSettings.ApplyAssetManagerImportLocation);
+                    ConfigureProjectSettings.ApplyAssetManagerImportLocation,
+                    openSettingsPath: "Preferences/Asset Manager",
+                    disableAction: ConfigureProjectSettings.ResetAssetManagerImportLocation,
+                    disableLabel: "Reset");
             }
 
             EditorGUILayout.EndVertical();
         }
 
-        private void DrawSettingCard(string title, string description, bool isConfigured, System.Action applyAction, string buttonLabel = "Enable")
+        private void DrawSettingCard(string title, string description, bool isConfigured, System.Action applyAction, string buttonLabel = "Enable", string openSettingsPath = "Project/Player", System.Action disableAction = null, string disableLabel = "Disable")
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
@@ -750,8 +766,24 @@ namespace UnityBestPractices.Editor.Dashboard
 
             if (isConfigured)
             {
-                if (GUILayout.Button("Open", GUILayout.Width(44)))
-                    SettingsService.OpenProjectSettings("Project/Player");
+                if (GUILayout.Button("Settings", GUILayout.Width(58)))
+                {
+                    if (openSettingsPath.StartsWith("Preferences/"))
+                        SettingsService.OpenUserPreferences(openSettingsPath);
+                    else
+                        SettingsService.OpenProjectSettings(openSettingsPath);
+                }
+                if (disableAction != null)
+                {
+                    var dc = GUI.color;
+                    GUI.color = new Color(0.9f, 0.5f, 0.5f);
+                    if (GUILayout.Button(disableLabel, GUILayout.Width(52)))
+                    {
+                        disableAction.Invoke();
+                        Repaint();
+                    }
+                    GUI.color = dc;
+                }
             }
             else
             {
@@ -1014,7 +1046,7 @@ namespace UnityBestPractices.Editor.Dashboard
 
             var prevColor = GUI.color;
             GUI.color = exists ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.7f, 0.7f, 0.7f);
-            GUILayout.Label(exists ? "[OK]" : "[  ]", GUILayout.Width(36));
+            GUILayout.Label(exists ? "[Configured]" : "[  ]", GUILayout.Width(exists ? 84 : 36));
             GUI.color = prevColor;
 
             GUILayout.Label(title, EditorStyles.boldLabel);
