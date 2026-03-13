@@ -6,9 +6,9 @@ namespace UnityBestPractices.Editor.Dashboard
 {
     public class ProjectHealthWindow : EditorWindow
     {
-        private ProjectDashboardData _data;
-        private Vector2 _scrollPosition;
-        private bool _showDetails = true;
+        private ProjectDashboardData m_data;
+        private Vector2 m_scrollPosition;
+        private bool m_showDetails = true;
 
         [MenuItem("Tools/Unity Best Practices/Project Health")]
         public static void ShowWindow()
@@ -20,23 +20,23 @@ namespace UnityBestPractices.Editor.Dashboard
 
         private void OnEnable()
         {
-            _data = ProjectDashboardData.Gather();
+            m_data = ProjectDashboardData.Gather();
         }
 
         private void OnFocus()
         {
-            _data = ProjectDashboardData.Gather();
+            m_data = ProjectDashboardData.Gather();
         }
 
         private void OnGUI()
         {
-            if (_data == null)
+            if (m_data == null)
             {
-                _data = ProjectDashboardData.Gather();
+                m_data = ProjectDashboardData.Gather();
                 return;
             }
 
-            _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
+            m_scrollPosition = EditorGUILayout.BeginScrollView(m_scrollPosition);
 
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
@@ -44,7 +44,7 @@ namespace UnityBestPractices.Editor.Dashboard
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Run Analysis", GUILayout.Width(110)))
             {
-                ProjectDashboardData.RunValidation(_data);
+                ProjectDashboardData.RunValidation(m_data);
                 Repaint();
             }
             EditorGUILayout.EndHorizontal();
@@ -52,7 +52,7 @@ namespace UnityBestPractices.Editor.Dashboard
 
             GUILayout.Space(6);
 
-            if (_data.ValidationResults == null)
+            if (m_data.ValidationResults == null)
             {
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                 var prevColor = GUI.color;
@@ -65,8 +65,8 @@ namespace UnityBestPractices.Editor.Dashboard
             {
                 DrawHealthSummary();
                 GUILayout.Space(8);
-                _showDetails = EditorGUILayout.Foldout(_showDetails, "Details", true, EditorStyles.foldoutHeader);
-                if (_showDetails)
+                m_showDetails = EditorGUILayout.Foldout(m_showDetails, "Details", true, EditorStyles.foldoutHeader);
+                if (m_showDetails)
                 {
                     GUILayout.Space(4);
                     DrawValidationDetails();
@@ -81,10 +81,10 @@ namespace UnityBestPractices.Editor.Dashboard
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
 
-            if (_data.TotalErrors > 0)
+            if (m_data.TotalErrors > 0)
             {
                 GUI.color = new Color(0.9f, 0.3f, 0.3f);
-                GUILayout.Label($"{_data.TotalErrors} Error{(_data.TotalErrors != 1 ? "s" : "")}", GUILayout.Width(100));
+                GUILayout.Label($"{m_data.TotalErrors} Error{(m_data.TotalErrors != 1 ? "s" : "")}", GUILayout.Width(100));
                 GUI.color = Color.white;
             }
             else
@@ -94,10 +94,10 @@ namespace UnityBestPractices.Editor.Dashboard
                 GUI.color = Color.white;
             }
 
-            if (_data.TotalWarnings > 0)
+            if (m_data.TotalWarnings > 0)
             {
                 GUI.color = new Color(0.9f, 0.7f, 0.2f);
-                GUILayout.Label($"{_data.TotalWarnings} Warning{(_data.TotalWarnings != 1 ? "s" : "")}");
+                GUILayout.Label($"{m_data.TotalWarnings} Warning{(m_data.TotalWarnings != 1 ? "s" : "")}");
                 GUI.color = Color.white;
             }
             else
@@ -109,7 +109,7 @@ namespace UnityBestPractices.Editor.Dashboard
 
             EditorGUILayout.EndHorizontal();
 
-            if (_data.TotalErrors == 0 && _data.TotalWarnings == 0)
+            if (m_data.TotalErrors == 0 && m_data.TotalWarnings == 0)
             {
                 GUI.color = new Color(0.3f, 0.8f, 0.3f);
                 GUILayout.Label("All checks passed!");
@@ -121,10 +121,10 @@ namespace UnityBestPractices.Editor.Dashboard
 
         private void DrawValidationDetails()
         {
-            if (_data.ValidationResults == null || _data.ValidationResults.Length == 0)
+            if (m_data.ValidationResults == null || m_data.ValidationResults.Length == 0)
                 return;
 
-            foreach (var result in _data.ValidationResults)
+            foreach (var result in m_data.ValidationResults)
             {
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
@@ -149,7 +149,7 @@ namespace UnityBestPractices.Editor.Dashboard
                         if (GUILayout.Button(result.FixAllLabel, GUILayout.Width(70)))
                         {
                             result.FixAllAction();
-                            ProjectDashboardData.RunValidation(_data);
+                            ProjectDashboardData.RunValidation(m_data);
                             Repaint();
                         }
                     }
@@ -202,7 +202,7 @@ namespace UnityBestPractices.Editor.Dashboard
                 if (GUILayout.Button(issue.FixLabel, GUILayout.Width(36)))
                 {
                     issue.FixAction();
-                    ProjectDashboardData.RunValidation(_data);
+                    ProjectDashboardData.RunValidation(m_data);
                     Repaint();
                 }
             }

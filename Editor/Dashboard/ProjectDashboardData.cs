@@ -38,6 +38,7 @@ namespace UnityBestPractices.Editor.Dashboard
 
         // Git & IDE Config
         public bool HasGitIgnore;
+        public bool HasGitAttributes;
         public bool IsGitInitialized;
         public bool HasEditorConfig;
 
@@ -187,6 +188,7 @@ namespace UnityBestPractices.Editor.Dashboard
 
             data.IsGitInitialized = Directory.Exists(Path.Combine(projectRoot, ".git"));
             data.HasGitIgnore = File.Exists(Path.Combine(projectRoot, ".gitignore"));
+            data.HasGitAttributes = File.Exists(Path.Combine(projectRoot, ".gitattributes"));
             data.HasEditorConfig = File.Exists(Path.Combine(projectRoot, ".editorconfig"));
         }
 

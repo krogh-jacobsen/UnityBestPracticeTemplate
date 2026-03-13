@@ -55,6 +55,14 @@ namespace Unity.BestPractices.Editor
         public static bool IsNewHierarchyWindowConfigured =>
             EditorPrefs.GetBool("Hierarchy/UseNewHierarchyWindow", false);
 
+        const string k_AssetManagerImportLocationKey = "System.String::AM4U.defaultImportLocation";
+        const string k_AssetManagerSubfolderKey = "System.Boolean::AM4U.isSubfolderCreationEnabled";
+        const string k_ThirdPartyAssetsPath = "Assets/ThirdPartyAssets";
+
+        public static bool IsAssetManagerImportLocationConfigured =>
+            EditorPrefs.GetString(k_AssetManagerImportLocationKey, "Assets") == k_ThirdPartyAssetsPath &&
+            EditorPrefs.GetBool(k_AssetManagerSubfolderKey, false);
+
         // ── Individual apply methods ──────────────────────────────────────────
 
         [MenuItem("Window/Best Practices/Configure Project Settings")]
@@ -134,6 +142,15 @@ namespace Unity.BestPractices.Editor
             Debug.Log("[Best Practices] New Hierarchy window enabled. Reopen the Hierarchy window to apply.");
         }
 
+        public static void ApplyAssetManagerImportLocation()
+        {
+            if (!AssetDatabase.IsValidFolder(k_ThirdPartyAssetsPath))
+                AssetDatabase.CreateFolder("Assets", "ThirdPartyAssets");
+            EditorPrefs.SetString(k_AssetManagerImportLocationKey, k_ThirdPartyAssetsPath);
+            EditorPrefs.SetBool(k_AssetManagerSubfolderKey, true);
+            Debug.Log("[Best Practices] Asset Manager default import location set to Assets/ThirdPartyAssets with subfolder creation enabled.");
+        }
+
         // ── Apply all (used by New Project Wizard) ────────────────────────────
 
         /// <summary>Applies all recommended settings without showing a confirmation dialog.</summary>
@@ -148,6 +165,7 @@ namespace Unity.BestPractices.Editor
             ApplyIncrementalGC();
             ApplyCreateObjectsAtOrigin();
             ApplyNewHierarchyWindow();
+            ApplyAssetManagerImportLocation();
             Debug.Log("[Best Practices] All project settings configured. Review them in Edit > Project Settings.");
         }
     }

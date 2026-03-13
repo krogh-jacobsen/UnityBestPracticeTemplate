@@ -9,15 +9,16 @@ namespace UnityBestPractices.Editor.Dashboard
 {
     public class ProjectDashboardWindow : EditorWindow
     {
-        private ProjectDashboardData _data;
-        private Vector2 _scrollPosition;
-        private bool _showLLMFiles = false;
-        private bool _showSkills = false;
-        private bool _showTools = true;
-        private bool _showProjectSettings = true;
-        private bool _showIteration = true;
-        private bool _showWindows = true;
-        private bool _showPresets = false;
+        private ProjectDashboardData m_data;
+        private Vector2 m_scrollPosition;
+        private bool m_showLLMFiles = false;
+        private bool m_showSkills = false;
+        private bool m_showTools = true;
+        private bool m_showProjectSettings = true;
+        private bool m_showIteration = true;
+        private bool m_showAssetPipeline = true;
+        private bool m_showWindows = true;
+        private bool m_showPresets = false;
 
         [MenuItem("Tools/Unity Best Practices/Project Dashboard")]
         public static void ShowWindow()
@@ -39,18 +40,18 @@ namespace UnityBestPractices.Editor.Dashboard
 
         private void RefreshData()
         {
-            _data = ProjectDashboardData.Gather();
+            m_data = ProjectDashboardData.Gather();
         }
 
         private void OnGUI()
         {
-            if (_data == null)
+            if (m_data == null)
             {
                 RefreshData();
                 return;
             }
 
-            _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
+            m_scrollPosition = EditorGUILayout.BeginScrollView(m_scrollPosition);
 
             // Header
             DrawHeader();
@@ -77,6 +78,11 @@ namespace UnityBestPractices.Editor.Dashboard
 
             GUILayout.Space(10);
 
+            // Asset Pipeline
+            DrawAssetPipeline();
+
+            GUILayout.Space(10);
+
             // LLM Instruction Files
             DrawLLMInstructions();
 
@@ -95,8 +101,8 @@ namespace UnityBestPractices.Editor.Dashboard
             EditorGUILayout.BeginHorizontal();
             GUILayout.Label("PROJECT DASHBOARD", EditorStyles.boldLabel);
             GUILayout.FlexibleSpace();
-            if (_data.PackageVersion != null)
-                GUILayout.Label($"v{_data.PackageVersion}", EditorStyles.miniLabel);
+            if (m_data.PackageVersion != null)
+                GUILayout.Label($"v{m_data.PackageVersion}", EditorStyles.miniLabel);
             EditorGUILayout.EndHorizontal();
 
             GUILayout.Space(5);
@@ -138,25 +144,25 @@ namespace UnityBestPractices.Editor.Dashboard
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
             string projectRoot = Path.GetDirectoryName(Application.dataPath);
-            int llmTotal = _data.LLMInstructionFilesCount;
+            int llmTotal = m_data.LLMInstructionFilesCount;
             int llmInstalled = 0;
-            if (_data.LLMInstructionFiles != null)
+            if (m_data.LLMInstructionFiles != null)
             {
-                foreach (var f in _data.LLMInstructionFiles)
+                foreach (var f in m_data.LLMInstructionFiles)
                 {
                     string fp = Path.GetFullPath(Path.Combine(Application.dataPath, "..", f.AssetPath));
                     if (File.Exists(CopyAIFilesToProject.GetLLMInstructionDestPath(fp, projectRoot))) llmInstalled++;
                 }
             }
             string header = $"LLM INSTRUCTION FILES — {llmInstalled}/{llmTotal} installed";
-            _showLLMFiles = EditorGUILayout.Foldout(_showLLMFiles, header, true, EditorStyles.foldoutHeader);
+            m_showLLMFiles = EditorGUILayout.Foldout(m_showLLMFiles, header, true, EditorStyles.foldoutHeader);
             GUILayout.Label("Markdown files that give AI assistants context about your project's coding standards and Unity conventions. Copied to .github/instructions/ so GitHub Copilot, Cursor, and other editors pick them up automatically.", EditorStyles.wordWrappedMiniLabel);
 
-            if (_showLLMFiles && _data.LLMInstructionFiles != null)
+            if (m_showLLMFiles && m_data.LLMInstructionFiles != null)
             {
                 GUILayout.Space(4);
 
-                foreach (var file in _data.LLMInstructionFiles)
+                foreach (var file in m_data.LLMInstructionFiles)
                 {
                     string fullPath = Path.GetFullPath(
                         Path.Combine(Application.dataPath, "..", file.AssetPath));
@@ -216,25 +222,25 @@ namespace UnityBestPractices.Editor.Dashboard
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
             string projectRoot = Path.GetDirectoryName(Application.dataPath);
-            int skillTotal = _data.AgentSkillFilesCount;
+            int skillTotal = m_data.AgentSkillFilesCount;
             int skillInstalled = 0;
-            if (_data.AgentSkillFiles != null)
+            if (m_data.AgentSkillFiles != null)
             {
-                foreach (var s in _data.AgentSkillFiles)
+                foreach (var s in m_data.AgentSkillFiles)
                 {
                     string fp = Path.GetFullPath(Path.Combine(Application.dataPath, "..", s.AssetPath));
                     if (File.Exists(CopyAIFilesToProject.GetAgentSkillPromptDestPath(fp, projectRoot))) skillInstalled++;
                 }
             }
             string header = $"AGENT SKILLS — {skillInstalled}/{skillTotal} installed";
-            _showSkills = EditorGUILayout.Foldout(_showSkills, header, true, EditorStyles.foldoutHeader);
+            m_showSkills = EditorGUILayout.Foldout(m_showSkills, header, true, EditorStyles.foldoutHeader);
             GUILayout.Label("Reusable prompt templates that define specialized AI workflows for your project. Copied to .github/prompts/ (GitHub Copilot reusable prompts) and .claude/commands/ (Claude Code slash commands).", EditorStyles.wordWrappedMiniLabel);
 
-            if (_showSkills && _data.AgentSkillFiles != null)
+            if (m_showSkills && m_data.AgentSkillFiles != null)
             {
                 GUILayout.Space(4);
 
-                foreach (var skill in _data.AgentSkillFiles)
+                foreach (var skill in m_data.AgentSkillFiles)
                 {
                     string fullPath = Path.GetFullPath(
                         Path.Combine(Application.dataPath, "..", skill.AssetPath));
@@ -303,10 +309,10 @@ namespace UnityBestPractices.Editor.Dashboard
                 ConfigureIterationSettings.ProfileState.Mixed   => "Mixed",
                 _                                               => "Unknown"
             };
-            _showIteration = EditorGUILayout.Foldout(_showIteration,
+            m_showIteration = EditorGUILayout.Foldout(m_showIteration,
                 $"ITERATION SETTINGS — {profileLabel}", true, EditorStyles.foldoutHeader);
 
-            if (_showIteration)
+            if (m_showIteration)
             {
                 GUILayout.Space(4);
 
@@ -395,16 +401,7 @@ namespace UnityBestPractices.Editor.Dashboard
                     GUILayout.Space(2);
                 }
 
-                // 4. Auto Refresh (EditorPrefs — machine-local)
-                DrawIterationCard(
-                    "Auto Refresh (machine-local preference)",
-                    "Off (Dev): prevents surprise reimports mid-work — refresh manually with Cmd+R.\nOn (Release): restores default Unity behaviour.",
-                    ConfigureIterationSettings.IsAutoRefreshDisabled,
-                    !ConfigureIterationSettings.IsAutoRefreshDisabled,
-                    ConfigureIterationSettings.ApplyAutoRefreshOff,
-                    ConfigureIterationSettings.ApplyAutoRefreshOn);
-
-                // 5. Async Shader Compilation
+                // 4. Async Shader Compilation
                 DrawIterationCard(
                     "Async Shader Compilation",
                     "On (Dev): shader variants compile in the background — no hitches while iterating.\nOff (Release): fully deterministic compilation, no pink placeholder shaders in builds.",
@@ -413,7 +410,7 @@ namespace UnityBestPractices.Editor.Dashboard
                     ConfigureIterationSettings.ApplyAsyncShadersOn,
                     ConfigureIterationSettings.ApplyAsyncShadersOff);
 
-                // 6. Managed Stripping Level
+                // 5. Managed Stripping Level
                 DrawIterationCard(
                     "Managed Stripping Level (Standalone)",
                     "Disabled (Dev): faster builds, full symbols, easier debugging — nothing is stripped.\nMinimal (Release): safely removes unused IL, reducing build size without breaking reflection.",
@@ -422,7 +419,7 @@ namespace UnityBestPractices.Editor.Dashboard
                     ConfigureIterationSettings.ApplyManagedStrippingDev,
                     ConfigureIterationSettings.ApplyManagedStrippingRelease);
 
-                // 7. Burst Async (only shown when Burst package is installed)
+                // 6. Burst Async (only shown when Burst package is installed)
                 if (ConfigureIterationSettings.IsBurstInstalled)
                 {
                     bool burstOk = ConfigureIterationSettings.IsBurstAsyncConfigured;
@@ -499,6 +496,143 @@ namespace UnityBestPractices.Editor.Dashboard
             GUILayout.Space(2);
         }
 
+        private void DrawAssetPipeline()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+            m_showAssetPipeline = EditorGUILayout.Foldout(m_showAssetPipeline,
+                "ASSET PIPELINE", true, EditorStyles.foldoutHeader);
+
+            if (m_showAssetPipeline)
+            {
+                GUILayout.Space(4);
+
+                // Info banner
+                var prevColor = GUI.color;
+                GUI.color = new Color(1f, 0.92f, 0.6f);
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                GUI.color = prevColor;
+                GUILayout.Label(
+                    "These preferences are machine-local (EditorPrefs) and are not committed to version control.",
+                    EditorStyles.wordWrappedMiniLabel);
+                EditorGUILayout.EndVertical();
+
+                GUILayout.Space(6);
+
+                // 1. Auto Refresh — 3-way picker
+                {
+                    bool isRecommended = ConfigureAssetPipeline.IsAutoRefreshRecommended;  // mode == 2
+                    bool isOff         = ConfigureAssetPipeline.IsAutoRefreshDisabled;      // mode == 0
+                    bool isAlwaysOn    = ConfigureAssetPipeline.IsAutoRefreshAlwaysOn;      // mode == 1
+
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    EditorGUILayout.BeginHorizontal();
+                    var c = GUI.color;
+                    GUI.color = isRecommended ? new Color(0.3f, 0.8f, 0.3f)
+                              : isOff         ? new Color(0.7f, 0.7f, 0.7f)
+                              :                 new Color(0.4f, 0.7f, 1f);
+                    GUILayout.Label(isRecommended ? "[Set]" : "[—]", GUILayout.Width(isRecommended ? 38 : 30));
+                    GUI.color = c;
+                    GUILayout.Label("Auto Refresh", EditorStyles.boldLabel);
+                    GUILayout.FlexibleSpace();
+
+                    using (new EditorGUI.DisabledScope(isOff))
+                    {
+                        if (GUILayout.Button("Disabled", GUILayout.Width(65)))
+                        {
+                            ConfigureAssetPipeline.ApplyAutoRefreshOff();
+                            Repaint();
+                        }
+                    }
+                    using (new EditorGUI.DisabledScope(isRecommended))
+                    {
+                        var orig = GUI.backgroundColor;
+                        if (!isRecommended) GUI.backgroundColor = new Color(0.3f, 0.9f, 0.3f);
+                        if (GUILayout.Button("Outside Playmode ★", GUILayout.Width(148)))
+                        {
+                            ConfigureAssetPipeline.ApplyAutoRefreshRecommended();
+                            Repaint();
+                        }
+                        GUI.backgroundColor = orig;
+                    }
+                    using (new EditorGUI.DisabledScope(isAlwaysOn))
+                    {
+                        if (GUILayout.Button("Always On", GUILayout.Width(72)))
+                        {
+                            ConfigureAssetPipeline.ApplyAutoRefreshAlwaysOn();
+                            Repaint();
+                        }
+                    }
+
+                    EditorGUILayout.EndHorizontal();
+                    GUILayout.Label(
+                        "Outside Playmode (recommended): Unity only refreshes assets when not in Play mode — prevents surprise reimports breaking your Play session.\nDisabled: manual refresh only (Cmd+R). Always On: default Unity behaviour.",
+                        EditorStyles.wordWrappedMiniLabel);
+                    EditorGUILayout.EndVertical();
+                    GUILayout.Space(2);
+                }
+
+                // 2. Import Worker Count
+                {
+                    int pct = ConfigureAssetPipeline.ImportWorkerCountPct;
+                    bool isRecommended = ConfigureAssetPipeline.IsImportWorkerCountRecommended;
+
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    EditorGUILayout.BeginHorizontal();
+                    var c = GUI.color;
+                    GUI.color = isRecommended ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.7f, 0.7f, 0.7f);
+                    GUILayout.Label(isRecommended ? "[Set]" : "[—]", GUILayout.Width(isRecommended ? 38 : 30));
+                    GUI.color = c;
+                    GUILayout.Label($"Import Worker Count — {pct}%", EditorStyles.boldLabel);
+                    GUILayout.FlexibleSpace();
+                    using (new EditorGUI.DisabledScope(isRecommended))
+                    {
+                        if (GUILayout.Button("Recommended (50%)", GUILayout.Width(140)))
+                        {
+                            ConfigureAssetPipeline.ApplyImportWorkerCountRecommended();
+                            Repaint();
+                        }
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    GUILayout.Label(
+                        "Parallel asset import workers as a percentage of logical CPU cores. 50% balances import speed with editor responsiveness. Default is 25%.",
+                        EditorStyles.wordWrappedMiniLabel);
+                    EditorGUILayout.EndVertical();
+                    GUILayout.Space(2);
+                }
+
+                // 3. Compress Textures on Import
+                {
+                    bool ok = ConfigureAssetPipeline.IsCompressTexturesConfigured;
+
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    EditorGUILayout.BeginHorizontal();
+                    var c = GUI.color;
+                    GUI.color = ok ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.7f, 0.7f, 0.7f);
+                    GUILayout.Label(ok ? "[Set]" : "[—]", GUILayout.Width(ok ? 38 : 30));
+                    GUI.color = c;
+                    GUILayout.Label("Compress Textures on Import", EditorStyles.boldLabel);
+                    GUILayout.FlexibleSpace();
+                    using (new EditorGUI.DisabledScope(ok))
+                    {
+                        if (GUILayout.Button("Enable", GUILayout.Width(58)))
+                        {
+                            ConfigureAssetPipeline.ApplyCompressTextures();
+                            Repaint();
+                        }
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    GUILayout.Label(
+                        "Ensures texture compression runs at import time, reducing GPU memory and build size. Should be enabled in all projects.",
+                        EditorStyles.wordWrappedMiniLabel);
+                    EditorGUILayout.EndVertical();
+                    GUILayout.Space(2);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
         private void DrawProjectSettings()
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
@@ -511,14 +645,15 @@ namespace UnityBestPractices.Editor.Dashboard
                 + (ConfigureProjectSettings.IsInputSystemConfigured ? 1 : 0)
                 + (ConfigureProjectSettings.IsIncrementalGCConfigured ? 1 : 0)
                 + (ConfigureProjectSettings.IsCreateObjectsAtOriginConfigured ? 1 : 0)
-                + (ConfigureProjectSettings.IsNewHierarchyWindowConfigured ? 1 : 0);
-            _showProjectSettings = EditorGUILayout.Foldout(_showProjectSettings, $"PROJECT SETTINGS — {settingsOk}/9 configured", true, EditorStyles.foldoutHeader);
+                + (ConfigureProjectSettings.IsNewHierarchyWindowConfigured ? 1 : 0)
+                + (ConfigureProjectSettings.IsAssetManagerImportLocationConfigured ? 1 : 0);
+            m_showProjectSettings = EditorGUILayout.Foldout(m_showProjectSettings, $"PROJECT SETTINGS — {settingsOk}/10 configured", true, EditorStyles.foldoutHeader);
 
-            if (_showProjectSettings)
+            if (m_showProjectSettings)
             {
                 GUILayout.Space(4);
 
-                bool allOk = settingsOk == 9;
+                bool allOk = settingsOk == 10;
 
                 using (new EditorGUI.DisabledScope(allOk))
                 {
@@ -589,6 +724,12 @@ namespace UnityBestPractices.Editor.Dashboard
                     "Enables the redesigned Hierarchy window with better performance for large scenes.\nAlso unlocks the Query Builder for filtering objects by component type — useful for scenes with many entities.\nConfigured via Preferences > Hierarchy > Use new Hierarchy window.",
                     ConfigureProjectSettings.IsNewHierarchyWindowConfigured,
                     ConfigureProjectSettings.ApplyNewHierarchyWindow);
+
+                DrawSettingCard(
+                    "Asset Manager: Import to ThirdPartyAssets",
+                    "Sets the Asset Manager default import location to Assets/ThirdPartyAssets and enables subfolder creation on import.\nKeeps third-party assets isolated from your own project folders.\nConfigured via Preferences > Asset Manager > Import Settings.",
+                    ConfigureProjectSettings.IsAssetManagerImportLocationConfigured,
+                    ConfigureProjectSettings.ApplyAssetManagerImportLocation);
             }
 
             EditorGUILayout.EndVertical();
@@ -633,10 +774,12 @@ namespace UnityBestPractices.Editor.Dashboard
 
             string projectRoot = Path.GetDirectoryName(Application.dataPath);
             string gitignorePath = Path.Combine(projectRoot, ".gitignore");
+            string gitattributesPath = Path.Combine(projectRoot, ".gitattributes");
             string editorconfigPath = Path.Combine(projectRoot, ".editorconfig");
             bool gitignoreExists = File.Exists(gitignorePath);
+            bool gitattributesExists = File.Exists(gitattributesPath);
             bool editorconfigExists = File.Exists(editorconfigPath);
-            bool foldersOk = _data.ExistingFoldersCount >= _data.TotalRecommendedFolders * 0.7f;
+            bool foldersOk = m_data.ExistingFoldersCount >= m_data.TotalRecommendedFolders * 0.7f;
             int presetCount = (ConfigurePresets.IsAmbienceConfigured ? 1 : 0)
                 + (ConfigurePresets.IsMusicConfigured ? 1 : 0)
                 + (ConfigurePresets.IsSFXConfigured ? 1 : 0)
@@ -650,11 +793,11 @@ namespace UnityBestPractices.Editor.Dashboard
                 + (ConfigurePresets.IsHDRIConfigured ? 1 : 0)
                 + (ConfigurePresets.IsFBXModelConfigured ? 1 : 0)
                 + (ConfigurePresets.IsFBXAnimationConfigured ? 1 : 0);
-            int setupDone = (foldersOk ? 1 : 0) + (gitignoreExists ? 1 : 0) + (editorconfigExists ? 1 : 0) + (presetCount == 13 ? 1 : 0);
+            int setupDone = (foldersOk ? 1 : 0) + (gitignoreExists ? 1 : 0) + (gitattributesExists ? 1 : 0) + (editorconfigExists ? 1 : 0) + (presetCount == 13 ? 1 : 0);
 
-            _showTools = EditorGUILayout.Foldout(_showTools, $"PROJECT CONFIGURATION — {setupDone}/4 done", true, EditorStyles.foldoutHeader);
+            m_showTools = EditorGUILayout.Foldout(m_showTools, $"PROJECT CONFIGURATION — {setupDone}/5 done", true, EditorStyles.foldoutHeader);
 
-            if (_showTools)
+            if (m_showTools)
             {
                 GUILayout.Space(4);
 
@@ -665,13 +808,18 @@ namespace UnityBestPractices.Editor.Dashboard
                     "Setup Project Folders",
                     "Creates the recommended folder structure under Assets/_ProjectName (Art, Audio, Prefabs, Scripts, Scenes, Settings, UI).",
                     foldersOk,
-                    foldersOk ? $"{_data.ExistingFoldersCount}/{_data.TotalRecommendedFolders} folders present" : $"{_data.ExistingFoldersCount}/{_data.TotalRecommendedFolders} folders — run to create missing ones",
+                    foldersOk ? $"{m_data.ExistingFoldersCount}/{m_data.TotalRecommendedFolders} folders present" : $"{m_data.ExistingFoldersCount}/{m_data.TotalRecommendedFolders} folders — run to create missing ones",
                     "Run", SetupProjectFolders.Execute);
 
                 DrawFileToolCard(
                     "Generate .gitignore",
                     "Creates a Unity-optimised .gitignore at the project root, excluding Library, Temp, build outputs and IDE files.",
                     gitignorePath, GenerateGitIgnore.Execute);
+
+                DrawFileToolCard(
+                    "Generate .gitattributes",
+                    "Creates a .gitattributes at the project root that sets LF line endings for text files, configures UnityYAMLMerge for Unity YAML assets, and marks binary assets so Git never attempts text diffs on them.",
+                    gitattributesPath, GenerateGitAttributes.Execute);
 
                 DrawFileToolCard(
                     "Generate .editorconfig",
@@ -693,7 +841,7 @@ namespace UnityBestPractices.Editor.Dashboard
                 bool allPresetsOk = presetCount == 13;
 
                 EditorGUILayout.BeginHorizontal();
-                _showPresets = EditorGUILayout.Foldout(_showPresets, $"Configure Import Presets — {presetCount}/13 registered", true, EditorStyles.foldoutHeader);
+                m_showPresets = EditorGUILayout.Foldout(m_showPresets, $"Configure Import Presets — {presetCount}/13 registered", true, EditorStyles.foldoutHeader);
                 GUILayout.FlexibleSpace();
                 using (new EditorGUI.DisabledScope(allPresetsOk))
                 {
@@ -705,7 +853,7 @@ namespace UnityBestPractices.Editor.Dashboard
                 }
                 EditorGUILayout.EndHorizontal();
 
-                if (_showPresets)
+                if (m_showPresets)
                 {
                     GUILayout.Label("AUDIO", EditorStyles.centeredGreyMiniLabel);
                     DrawPresetCard("Ambience", "glob: Assets/_ProjectName/Art/Audio/Ambience/**", ConfigurePresets.IsAmbienceConfigured, ConfigurePresets.ApplyAmbience);
@@ -742,9 +890,9 @@ namespace UnityBestPractices.Editor.Dashboard
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
-            _showWindows = EditorGUILayout.Foldout(_showWindows, "WINDOWS", true, EditorStyles.foldoutHeader);
+            m_showWindows = EditorGUILayout.Foldout(m_showWindows, "WINDOWS", true, EditorStyles.foldoutHeader);
 
-            if (_showWindows)
+            if (m_showWindows)
             {
                 GUILayout.Space(4);
 

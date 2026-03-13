@@ -47,10 +47,6 @@ namespace Unity.BestPractices.Editor
             }
         }
 
-        /// <summary>Auto refresh is stored in EditorPrefs — machine-local, not committed to VCS.</summary>
-        public static bool IsAutoRefreshDisabled =>
-            EditorPrefs.GetInt("kAutoRefreshMode", 1) == 0;
-
         // ── Burst (optional package — resolved via reflection) ────────────────
 
         /// <summary>True when the Burst package is installed in this project.</summary>
@@ -93,14 +89,13 @@ namespace Unity.BestPractices.Editor
                 bool devCodeGen = !relBackend || IsIL2CppCodeGenDev;   // N/A when Mono — counts as dev-ok
                 bool relCodeGen = !relBackend || IsIL2CppCodeGenRelease;
                 bool scriptChanges = IsScriptChangesConfigured;
-                bool autoRefreshDev = IsAutoRefreshDisabled;
                 bool asyncShadersDev = IsAsyncShadersDev;
                 bool strippingDev = IsManagedStrippingDev;
                 bool strippingRel = IsManagedStrippingRelease;
                 bool burstOk = !IsBurstInstalled || IsBurstAsyncConfigured;
 
-                bool allDev = devBackend && devCodeGen && scriptChanges && autoRefreshDev && asyncShadersDev && strippingDev && burstOk;
-                bool allRelease = relBackend && relCodeGen && scriptChanges && !autoRefreshDev && !asyncShadersDev && strippingRel;
+                bool allDev = devBackend && devCodeGen && scriptChanges && asyncShadersDev && strippingDev && burstOk;
+                bool allRelease = relBackend && relCodeGen && scriptChanges && !asyncShadersDev && strippingRel;
 
                 if (allDev) return ProfileState.Dev;
                 if (allRelease) return ProfileState.Release;
@@ -116,12 +111,11 @@ namespace Unity.BestPractices.Editor
             ApplyBackendDev();
             PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Standalone, Il2CppCodeGeneration.OptimizeSize);
             ApplyScriptChanges();
-            ApplyAutoRefreshOff();
             ApplyAsyncShadersOn();
             ApplyManagedStrippingDev();
             if (IsBurstInstalled) ApplyBurstAsync();
             AssetDatabase.SaveAssets();
-            Debug.Log("[Best Practices] Dev Fast profile applied: Mono backend, OptimizeSize IL2CPP codegen, Async Shaders on, Stripping disabled, Auto Refresh off, Burst async.");
+            Debug.Log("[Best Practices] Dev Fast profile applied: Mono backend, OptimizeSize IL2CPP codegen, Async Shaders on, Stripping disabled, Burst async.");
         }
 
         public static void ApplyReleasePerfProfile()
@@ -129,11 +123,10 @@ namespace Unity.BestPractices.Editor
             ApplyBackendRelease();
             PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Standalone, Il2CppCodeGeneration.OptimizeSpeed);
             ApplyScriptChanges();
-            ApplyAutoRefreshOn();
             ApplyAsyncShadersOff();
             ApplyManagedStrippingRelease();
             AssetDatabase.SaveAssets();
-            Debug.Log("[Best Practices] Release Perf profile applied: IL2CPP backend, OptimizeSpeed codegen, Async Shaders off, Stripping minimal, Auto Refresh on.");
+            Debug.Log("[Best Practices] Release Perf profile applied: IL2CPP backend, OptimizeSpeed codegen, Async Shaders off, Stripping minimal.");
         }
 
         // ── Individual apply methods ─────────────────────────────────────────
@@ -179,18 +172,6 @@ namespace Unity.BestPractices.Editor
                 so.ApplyModifiedProperties();
             }
             Debug.Log("[Best Practices] Script Changes While Playing set to Recompile After Finished Playing.");
-        }
-
-        public static void ApplyAutoRefreshOff()
-        {
-            EditorPrefs.SetInt("kAutoRefreshMode", 0);
-            Debug.Log("[Best Practices] Auto Refresh disabled. Use Ctrl/Cmd+R to refresh manually.");
-        }
-
-        public static void ApplyAutoRefreshOn()
-        {
-            EditorPrefs.SetInt("kAutoRefreshMode", 1);
-            Debug.Log("[Best Practices] Auto Refresh re-enabled.");
         }
 
         public static void ApplyBurstAsync()

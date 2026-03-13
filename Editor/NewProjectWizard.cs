@@ -62,6 +62,7 @@ namespace Unity.BestPractices.Editor
             string projectRoot = Path.GetDirectoryName(Application.dataPath);
             bool hasFolders = AssetDatabase.IsValidFolder("Assets/_ProjectName");
             bool hasGitIgnore = File.Exists(Path.Combine(projectRoot, ".gitignore"));
+            bool hasGitAttributes = File.Exists(Path.Combine(projectRoot, ".gitattributes"));
             bool hasEditorConfig = File.Exists(Path.Combine(projectRoot, ".editorconfig"));
             bool hasEnterPlayMode = EditorSettings.enterPlayModeOptionsEnabled;
 
@@ -111,7 +112,16 @@ namespace Unity.BestPractices.Editor
             );
 
             DrawStep(
-                "6. Generate .editorconfig",
+                "6. Generate .gitattributes",
+                "Creates a .gitattributes that configures UnityYAMLMerge for YAML files, LF endings for source files, and binary flags for assets.",
+                hasGitAttributes ? ".gitattributes present" : "Not created",
+                hasGitAttributes,
+                "Run",
+                GenerateGitAttributes.Execute
+            );
+
+            DrawStep(
+                "7. Generate .editorconfig",
                 "Creates an .editorconfig enforcing the package C# naming and formatting conventions.",
                 hasEditorConfig ? ".editorconfig present" : "Not created",
                 hasEditorConfig,
@@ -120,7 +130,7 @@ namespace Unity.BestPractices.Editor
             );
 
             DrawStep(
-                "7. Project Settings",
+                "8. Project Settings",
                 "Applies recommended Unity 6 settings: Enter Play Mode, IL2CPP scripting backend, .NET Standard 2.1.",
                 hasEnterPlayMode ? "Enter Play Mode enabled" : "Not configured",
                 hasEnterPlayMode,
@@ -178,6 +188,7 @@ namespace Unity.BestPractices.Editor
             ConfigurePresets.ApplyAllPresets();
             EditorApplication.ExecuteMenuItem("Window/Best Practices/Setup Tags and Layers");
             GenerateGitIgnore.Execute();
+            GenerateGitAttributes.Execute();
             GenerateEditorConfig.Execute();
             ConfigureProjectSettings.ApplySettings();
 
