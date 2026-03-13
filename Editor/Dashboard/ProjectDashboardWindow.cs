@@ -11,7 +11,7 @@ namespace UnityBestPractices.Editor.Dashboard
     {
         private ProjectDashboardData _data;
         private Vector2 _scrollPosition;
-        private bool _showValidationDetails = true;
+        private bool _showValidationDetails = false;
         private bool _showLLMFiles = false;
         private bool _showTools = true;
 
@@ -220,49 +220,75 @@ namespace UnityBestPractices.Editor.Dashboard
             {
                 GUILayout.Space(4);
 
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.Label("PlayerPrefs Inspector", EditorStyles.label);
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("Open", GUILayout.Width(60)))
-                    PlayerPrefsInspectorWindow.ShowWindow();
-                EditorGUILayout.EndHorizontal();
+                // ── Setup Actions ────────────────────────────────────────────
+                GUILayout.Label("Setup Actions", EditorStyles.miniLabel);
 
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.Label("Layer Collision Matrix", EditorStyles.label);
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("Open", GUILayout.Width(60)))
-                    LayerCollisionMatrixWindow.ShowWindow();
-                EditorGUILayout.EndHorizontal();
+                DrawToolRow("Setup Project Folders", "Run", SetupProjectFolders.Execute);
+                DrawToolRow("Generate .gitignore", "Run", GenerateGitIgnore.Execute);
+                DrawToolRow("Generate .editorconfig", "Run", GenerateEditorConfig.Execute);
+                DrawToolRow("Generate Assembly Defs", "Run", GenerateAssemblyDefinitions.Execute);
+                DrawToolRow("Configure Import Presets", "Run", ConfigurePresets.Execute);
+                DrawToolRow("Configure Project Settings", "Run", ConfigureProjectSettings.ApplySettings);
 
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.Label("AI Files (LLM Instructions + Skills)", EditorStyles.label);
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("Copy to Project", GUILayout.Width(120)))
-                    CopyAIFilesToProject.Execute();
-                EditorGUILayout.EndHorizontal();
+                GUILayout.Space(6);
+
+                // ── Windows ──────────────────────────────────────────────────
+                GUILayout.Label("Windows", EditorStyles.miniLabel);
+
+                DrawToolRow("New Project Wizard", "Open", NewProjectWizard.ShowWindow);
+                DrawToolRow("PlayerPrefs Inspector", "Open", PlayerPrefsInspectorWindow.ShowWindow);
+                DrawToolRow("Layer Collision Matrix", "Open", LayerCollisionMatrixWindow.ShowWindow);
+
+                GUILayout.Space(6);
+
+                // ── AI Assistance ─────────────────────────────────────────────
+                GUILayout.Label("AI Assistance", EditorStyles.miniLabel);
+
+                DrawToolRow("AI Files (LLM Instructions + Skills)", "Copy to Project", CopyAIFilesToProject.Execute, 120);
             }
 
             EditorGUILayout.EndVertical();
+        }
+
+        private static void DrawToolRow(string label, string buttonLabel, System.Action action, int buttonWidth = 60)
+        {
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Label(label, EditorStyles.label);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button(buttonLabel, GUILayout.Width(buttonWidth)))
+                action();
+            EditorGUILayout.EndHorizontal();
         }
 
         private void DrawProjectHealth()
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
-            // Title with fold-out
             EditorGUILayout.BeginHorizontal();
             GUILayout.Label("PROJECT HEALTH", EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("Run Analysis", GUILayout.Width(110)))
+            {
+                ProjectDashboardData.RunValidation(_data);
+                Repaint();
+            }
             EditorGUILayout.EndHorizontal();
 
             GUILayout.Space(5);
 
-            // Summary counts
-            DrawHealthSummary();
-
-            GUILayout.Space(10);
-
-            // Toggle for details
-            _showValidationDetails = EditorGUILayout.Foldout(_showValidationDetails, "Show Details", true);
+            if (_data.ValidationResults == null)
+            {
+                var prevColor = GUI.color;
+                GUI.color = new Color(0.6f, 0.6f, 0.6f);
+                GUILayout.Label("Not analyzed yet — click Run Analysis.", EditorStyles.wordWrappedLabel);
+                GUI.color = prevColor;
+            }
+            else
+            {
+                DrawHealthSummary();
+                GUILayout.Space(10);
+                _showValidationDetails = EditorGUILayout.Foldout(_showValidationDetails, "Show Details", true);
+            }
 
             EditorGUILayout.EndVertical();
         }

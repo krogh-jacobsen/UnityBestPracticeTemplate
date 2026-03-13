@@ -49,9 +49,17 @@ namespace UnityBestPractices.Editor.Dashboard
             GatherPresetData(data);
             GatherLLMInstructionData(data);
             GatherGitData(data);
-            GatherValidationData(data);
 
             return data;
+        }
+
+        /// <summary>
+        /// Runs all validators and populates <see cref="ValidationResults"/> and the totals.
+        /// Called explicitly from the dashboard when the user clicks Run Analysis.
+        /// </summary>
+        public static void RunValidation(ProjectDashboardData data)
+        {
+            GatherValidationData(data);
         }
 
         private static void GatherPackageVersion(ProjectDashboardData data)

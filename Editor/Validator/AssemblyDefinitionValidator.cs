@@ -8,63 +8,69 @@ namespace UnityBestPractices.Editor.Validator
     public class AssemblyDefinitionValidator : IValidator
     {
         public string Name => "Assembly Definitions";
-        public string Description => "Checks for missing .asmdef files in script folders";
+        public string Description => "Checks whether script folders have .asmdef coverage";
 
         public ValidationResult Validate()
         {
             var issues = new List<ValidationIssue>();
 
-            // Find all directories containing .cs files
             string[] allCsFiles = Directory.GetFiles(Application.dataPath, "*.cs", SearchOption.AllDirectories);
-            var directoriesWithScripts = new HashSet<string>();
+
+            // Collect top-level Assets sub-folders that contain uncovered scripts
+            var uncoveredTopLevelFolders = new HashSet<string>();
 
             foreach (var csFile in allCsFiles)
             {
-                // Skip editor default resources and packages
                 if (csFile.Contains("Editor Default Resources") || csFile.Contains("/Packages/"))
                     continue;
 
                 string directory = Path.GetDirectoryName(csFile);
-                directoriesWithScripts.Add(directory);
+
+                if (!IsCoveredByAsmdef(directory))
+                {
+                    string topLevel = GetTopLevelFolder(directory);
+                    if (topLevel != null)
+                        uncoveredTopLevelFolders.Add(topLevel);
+                }
             }
 
-            // Check each directory for .asmdef file
-            foreach (var directory in directoriesWithScripts)
+            foreach (var folder in uncoveredTopLevelFolders)
             {
-                bool hasAsmdef = false;
-                string currentDir = directory;
-
-                // Check current directory and parent directories up to Assets
-                while (currentDir.Contains("Assets") && !hasAsmdef)
-                {
-                    string[] asmdefFiles = Directory.GetFiles(currentDir, "*.asmdef", SearchOption.TopDirectoryOnly);
-                    if (asmdefFiles.Length > 0)
-                    {
-                        hasAsmdef = true;
-                        break;
-                    }
-
-                    // Move to parent directory
-                    string parentDir = Directory.GetParent(currentDir)?.FullName;
-                    if (parentDir == null || !parentDir.Contains("Assets"))
-                        break;
-                    currentDir = parentDir;
-                }
-
-                if (!hasAsmdef)
-                {
-                    // Convert to relative path for display
-                    string relativePath = "Assets" + directory.Substring(Application.dataPath.Length);
-                    issues.Add(new ValidationIssue(
-                        $"Missing .asmdef in: {relativePath}",
-                        ValidationSeverity.Warning,
-                        relativePath,
-                        Name
-                    ));
-                }
+                string relPath = "Assets/" + folder;
+                issues.Add(new ValidationIssue(
+                    $"No .asmdef covers scripts under {relPath}/",
+                    ValidationSeverity.Warning,
+                    relPath,
+                    Name
+                ));
             }
 
             return new ValidationResult(Name, issues.ToArray());
+        }
+
+        private static bool IsCoveredByAsmdef(string directory)
+        {
+            string current = directory;
+            while (current.StartsWith(Application.dataPath))
+            {
+                if (Directory.GetFiles(current, "*.asmdef", SearchOption.TopDirectoryOnly).Length > 0)
+                    return true;
+                string parent = Directory.GetParent(current)?.FullName;
+                if (parent == null) break;
+                current = parent;
+            }
+            return false;
+        }
+
+        /// <summary>Returns the immediate child folder name directly under Assets/, or null.</summary>
+        private static string GetTopLevelFolder(string directory)
+        {
+            // directory is an absolute path; trim the dataPath prefix to get the relative part
+            if (!directory.StartsWith(Application.dataPath)) return null;
+            string relative = directory.Substring(Application.dataPath.Length).TrimStart('/', '\\');
+            if (string.IsNullOrEmpty(relative)) return null;
+            int sep = relative.IndexOfAny(new[] { '/', '\\' });
+            return sep < 0 ? relative : relative.Substring(0, sep);
         }
     }
 }
