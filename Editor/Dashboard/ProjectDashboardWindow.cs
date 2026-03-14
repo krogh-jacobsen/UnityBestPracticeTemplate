@@ -160,7 +160,7 @@ namespace UnityBestPractices.Editor.Dashboard
                 bool running = m_mcpStatus == 2;
                 var prevColor = GUI.color;
                 GUI.color = running ? new Color(0.3f, 0.85f, 0.3f) : new Color(0.6f, 0.6f, 0.6f);
-                string label = running ? "● MCP Running" : "○ MCP Stopped";
+                string label = running ? "● Unity MCP Running" : "○ Unity MCP Stopped";
                 if (GUILayout.Button(new GUIContent(label, "Unity MCP Bridge — click to open settings"),
                     EditorStyles.miniLabel, GUILayout.ExpandWidth(false)))
                 {
@@ -930,6 +930,7 @@ namespace UnityBestPractices.Editor.Dashboard
                     ConfigureProjectSettings.ApplyIncrementalGC,
                     openSettingsPath: "Project/Player",
                     disableAction: ConfigureProjectSettings.DisableIncrementalGC,
+                    configuredLabel: "[Enabled]",
                     helpAction: () => ExplainerWindow.Show(
                         "Incremental Garbage Collection",
                         new[]
@@ -954,6 +955,7 @@ namespace UnityBestPractices.Editor.Dashboard
                     ConfigureProjectSettings.ApplyCreateObjectsAtOrigin,
                     openSettingsPath: "Preferences/Scene View",
                     disableAction: ConfigureProjectSettings.DisableCreateObjectsAtOrigin,
+                    configuredLabel: "[Enabled]",
                     helpAction: () => ExplainerWindow.Show(
                         "Create Objects at Origin",
                         new[]
@@ -976,6 +978,7 @@ namespace UnityBestPractices.Editor.Dashboard
                     ConfigureProjectSettings.ApplyNewHierarchyWindow,
                     openSettingsPath: "Preferences/Hierarchy",
                     disableAction: ConfigureProjectSettings.DisableNewHierarchyWindow,
+                    configuredLabel: "[Enabled]",
                     helpAction: () => ExplainerWindow.Show(
                         "New Hierarchy Window",
                         new[]
@@ -992,12 +995,13 @@ namespace UnityBestPractices.Editor.Dashboard
 
                 DrawSettingCard(
                     "Asset Manager: Import to ThirdPartyAssets",
-                    "Configured: Asset Manager imports to Assets/ThirdPartyAssets with subfolder creation — keeps third-party assets isolated from your own project folders.\nReset: imports go to Assets/ root — third-party packages mixed with project files, harder to audit and update.",
+                    "Enabled: Asset Manager imports to Assets/ThirdPartyAssets with subfolder creation — keeps third-party assets isolated from your own project folders.\nReset: imports go to Assets/ root — third-party packages mixed with project files, harder to audit and update.",
                     ConfigureProjectSettings.IsAssetManagerImportLocationConfigured,
                     ConfigureProjectSettings.ApplyAssetManagerImportLocation,
                     openSettingsPath: "Preferences/Asset Manager",
                     disableAction: ConfigureProjectSettings.ResetAssetManagerImportLocation,
                     disableLabel: "Reset",
+                    configuredLabel: "[Enabled]",
                     helpAction: () => ExplainerWindow.Show(
                         "Asset Manager: Import Location",
                         new[]
@@ -1017,14 +1021,15 @@ namespace UnityBestPractices.Editor.Dashboard
             EditorGUILayout.EndVertical();
         }
 
-        private void DrawSettingCard(string title, string description, bool isConfigured, System.Action applyAction, string buttonLabel = "Enable", string openSettingsPath = "Project/Player", System.Action disableAction = null, string disableLabel = "Disable", System.Action helpAction = null)
+        private void DrawSettingCard(string title, string description, bool isConfigured, System.Action applyAction, string buttonLabel = "Enable", string openSettingsPath = "Project/Player", System.Action disableAction = null, string disableLabel = "Disable", System.Action helpAction = null, string configuredLabel = "[Configured]")
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
 
             var prevColor = GUI.color;
             GUI.color = isConfigured ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.7f, 0.7f, 0.7f);
-            GUILayout.Label(isConfigured ? "[Configured]" : "[  ]", GUILayout.Width(isConfigured ? 84 : 36));
+            int labelWidth = isConfigured ? (configuredLabel.Length * 7) : 36;
+            GUILayout.Label(isConfigured ? configuredLabel : "[  ]", GUILayout.Width(labelWidth));
             GUI.color = prevColor;
 
             GUILayout.Label(title, EditorStyles.boldLabel);

@@ -153,24 +153,18 @@ namespace Unity.BestPractices.Editor
             Preset preset = AssetDatabase.LoadAssetAtPath<Preset>(presetPath);
             if (preset == null) return false;
 
-            SerializedObject presetSO = new SerializedObject(preset);
-            SerializedProperty nativeTypeIDProp = presetSO.FindProperty("m_TargetType.m_NativeTypeID");
-            if (nativeTypeIDProp == null) return false;
-            int nativeTypeID = nativeTypeIDProp.intValue;
-
+            // Match by preset object reference so the status reflects any registration,
+            // regardless of which filter path was used when the entry was created.
             for (int i = 0; i < defaultList.arraySize; i++)
             {
                 SerializedProperty entry = defaultList.GetArrayElementAtIndex(i);
-                SerializedProperty typeID = entry.FindPropertyRelative("first.m_NativeTypeID");
-                if (typeID == null || typeID.intValue != nativeTypeID) continue;
-
                 SerializedProperty innerArray = entry.FindPropertyRelative("second");
                 if (innerArray == null) continue;
 
                 for (int j = 0; j < innerArray.arraySize; j++)
                 {
-                    SerializedProperty filterProp = innerArray.GetArrayElementAtIndex(j).FindPropertyRelative("m_Filter");
-                    if (filterProp != null && filterProp.stringValue == folderFilter)
+                    SerializedProperty presetProp = innerArray.GetArrayElementAtIndex(j).FindPropertyRelative("m_Preset");
+                    if (presetProp != null && presetProp.objectReferenceValue == preset)
                         return true;
                 }
             }
@@ -258,12 +252,12 @@ namespace Unity.BestPractices.Editor
             SerializedProperty group = defaultList.GetArrayElementAtIndex(typeIndex);
             SerializedProperty innerArray = group.FindPropertyRelative("second");
 
-            // Skip if this filter path is already registered.
+            // Skip if this preset asset is already registered (regardless of filter path).
             for (int i = 0; i < innerArray.arraySize; i++)
             {
                 SerializedProperty innerEntry = innerArray.GetArrayElementAtIndex(i);
-                SerializedProperty filterProp = innerEntry.FindPropertyRelative("m_Filter");
-                if (filterProp != null && filterProp.stringValue == folderFilter)
+                SerializedProperty presetRef = innerEntry.FindPropertyRelative("m_Preset");
+                if (presetRef != null && presetRef.objectReferenceValue == preset)
                     return 0;
             }
 
