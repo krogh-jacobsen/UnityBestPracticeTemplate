@@ -22,7 +22,7 @@ namespace Unity.BestPractices.Editor
         /// Creates or overwrites the <c>.gitattributes</c> file at the Unity project root.
         /// Prompts the user for confirmation if the file already exists.
         /// </summary>
-        [MenuItem("Window/Best Practices/Generate .gitattributes")]
+        [MenuItem("Tools/Unity Best Practices/Version Control/Generate .gitattributes", false, 151)]
         public static void Execute()
         {
             string projectRoot = Path.GetDirectoryName(Application.dataPath);

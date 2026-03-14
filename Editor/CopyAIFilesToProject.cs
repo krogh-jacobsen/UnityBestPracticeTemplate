@@ -24,7 +24,7 @@ namespace Unity.BestPractices.Editor
         private const string k_AgentSkillsFolder = "Editor/AgentSkills";
         private const string k_CopilotInstructionsFile = "copilot-instructions.md";
 
-        [MenuItem("Window/Best Practices/Copy AI Files to Project")]
+        [MenuItem("Tools/Unity Best Practices/AI/Copy AI Files to Project", false, 200)]
         public static void Execute()
         {
             var packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(

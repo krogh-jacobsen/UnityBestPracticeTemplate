@@ -19,7 +19,7 @@ namespace Unity.BestPractices.Editor
         /// Creates or overwrites the <c>.editorconfig</c> file at the Unity project root.
         /// Prompts the user for confirmation if the file already exists.
         /// </summary>
-        [MenuItem("Window/Best Practices/Generate .editorconfig")]
+        [MenuItem("Tools/Unity Best Practices/Code/Generate .editorconfig", false, 102)]
         public static void Execute()
         {
             string projectRoot = Path.GetDirectoryName(Application.dataPath);

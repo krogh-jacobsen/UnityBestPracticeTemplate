@@ -65,7 +65,7 @@ namespace Unity.BestPractices.Editor
 
         // ── Individual apply methods ──────────────────────────────────────────
 
-        [MenuItem("Window/Best Practices/Configure Project Settings")]
+        [MenuItem("Tools/Unity Best Practices/Setup/Configure Project Settings", false, 51)]
         public static void Execute()
         {
             ProjectSettingsWindow.ShowWindow();

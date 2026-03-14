@@ -49,7 +49,7 @@ namespace Unity.BestPractices.Editor
 
         #region Editor Window
 
-        [MenuItem("Window/Best Practices/PlayerPrefs Inspector")]
+        [MenuItem("Tools/Unity Best Practices/Utilities/PlayerPrefs Inspector", false, 251)]
         public static void ShowWindow()
         {
             var w = GetWindow<PlayerPrefsInspectorWindow>("PlayerPrefs Inspector");

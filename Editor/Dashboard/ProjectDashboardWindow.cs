@@ -26,7 +26,7 @@ namespace UnityBestPractices.Editor.Dashboard
         private bool m_showWindows = true;
         private bool m_showPresets = false;
 
-        [MenuItem("Tools/Unity Best Practices/Project Dashboard")]
+        [MenuItem("Tools/Unity Best Practices/Open Dashboard", false, 1)]
         public static void ShowWindow()
         {
             var window = GetWindow<ProjectDashboardWindow>("Project Dashboard");

@@ -80,7 +80,7 @@ namespace Unity.BestPractices.Editor
         };
 
         /// <summary>Opens the project-name prompt window from the menu bar.</summary>
-        [MenuItem("Window/Best Practices/Setup Project Folders")]
+        [MenuItem("Tools/Unity Best Practices/Setup/Setup Project Folders", false, 50)]
         public static void OpenPrompt()
         {
             ProjectFolderSetupPrompt.ShowWindow();
@@ -160,9 +160,10 @@ namespace Unity.BestPractices.Editor
             string subRoot = $"{root}/{subSystemName}";
             EditorController.CreateFolder(subRoot, "Scripts");
             EditorController.CreateFolder(subRoot, "UI");
-            EditorController.CreateFolder(subRoot, "UI/UXML");
-            EditorController.CreateFolder(subRoot, "UI/USS");
-            EditorController.CreateFolder(subRoot, "UI/Scripts");
+            string subUI = $"{subRoot}/UI";
+            EditorController.CreateFolder(subUI, "UXML");
+            EditorController.CreateFolder(subUI, "USS");
+            EditorController.CreateFolder(subUI, "Scripts");
             EditorController.CreateFolder(subRoot, "Prefabs");
             EditorController.CreateFolder(subRoot, "Art");
 

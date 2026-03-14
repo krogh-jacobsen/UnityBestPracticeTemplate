@@ -10,7 +10,7 @@ namespace UnityBestPractices.Editor.Dashboard
         private Vector2 m_scrollPosition;
         private bool m_showDetails = true;
 
-        [MenuItem("Tools/Unity Best Practices/Project Health")]
+        [MenuItem("Tools/Unity Best Practices/Project Health", false, 21)]
         public static void ShowWindow()
         {
             var window = GetWindow<ProjectHealthWindow>("Project Health");
@@ -173,9 +173,9 @@ namespace UnityBestPractices.Editor.Dashboard
             Color iconColor = Color.white;
             switch (issue.Severity)
             {
-                case ValidationSeverity.Error:   icon = "L"; iconColor = new Color(0.9f, 0.3f, 0.3f); break;
+                case ValidationSeverity.Error: icon = "L"; iconColor = new Color(0.9f, 0.3f, 0.3f); break;
                 case ValidationSeverity.Warning: icon = "⚠"; iconColor = new Color(0.9f, 0.7f, 0.2f); break;
-                case ValidationSeverity.Info:    icon = "i"; iconColor = new Color(0.4f, 0.7f, 0.9f); break;
+                case ValidationSeverity.Info: icon = "i"; iconColor = new Color(0.4f, 0.7f, 0.9f); break;
             }
 
             GUI.color = iconColor;

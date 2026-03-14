@@ -18,7 +18,7 @@ namespace Unity.BestPractices.Editor
         /// Creates or overwrites the <c>.gitignore</c> file at the Unity project root.
         /// Prompts the user for confirmation if the file already exists.
         /// </summary>
-        [MenuItem("Window/Best Practices/Generate .gitignore")]
+        [MenuItem("Tools/Unity Best Practices/Version Control/Generate .gitignore", false, 150)]
         public static void Execute()
         {
             string projectRoot = Path.GetDirectoryName(Application.dataPath);

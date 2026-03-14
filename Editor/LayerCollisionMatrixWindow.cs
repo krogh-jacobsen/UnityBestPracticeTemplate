@@ -13,24 +13,24 @@ namespace Unity.BestPractices.Editor
     {
         #region Constants
 
-        private const int k_MaxLayers  = 32;
-        private const int k_CellSize   = 18;
+        private const int k_MaxLayers = 32;
+        private const int k_CellSize = 18;
         private const int k_LabelWidth = 130;
 
         #endregion
 
         #region Fields
 
-        private bool[,]  m_Matrix            = new bool[k_MaxLayers, k_MaxLayers];
-        private string[] m_LayerNames        = new string[k_MaxLayers];
-        private int[]    m_ActiveLayerIndices = System.Array.Empty<int>();
-        private Vector2  m_ScrollPosition;
+        private bool[,] m_Matrix = new bool[k_MaxLayers, k_MaxLayers];
+        private string[] m_LayerNames = new string[k_MaxLayers];
+        private int[] m_ActiveLayerIndices = System.Array.Empty<int>();
+        private Vector2 m_ScrollPosition;
 
         #endregion
 
         #region Editor Window Methods
 
-        [MenuItem("Window/Best Practices/Layer Collision Matrix")]
+        [MenuItem("Tools/Unity Best Practices/Utilities/Layer Collision Matrix", false, 250)]
         public static void ShowWindow()
         {
             var window = GetWindow<LayerCollisionMatrixWindow>("Layer Collision Matrix");
@@ -96,8 +96,8 @@ namespace Unity.BestPractices.Editor
             GUILayout.Space(k_LabelWidth + 4);
             for (int ci = 0; ci < count; ci++)
             {
-                int   idx     = m_ActiveLayerIndices[ci];
-                var   content = new GUIContent(m_LayerNames[idx], $"Layer {idx}");
+                int idx = m_ActiveLayerIndices[ci];
+                var content = new GUIContent(m_LayerNames[idx], $"Layer {idx}");
                 GUILayout.Label(content, EditorStyles.miniLabel,
                     GUILayout.Width(k_CellSize),
                     GUILayout.Height(k_LabelWidth));
@@ -168,9 +168,9 @@ namespace Unity.BestPractices.Editor
             {
                 for (int b = a; b < k_MaxLayers; b++)
                 {
-                    bool collides   = !Physics.GetIgnoreLayerCollision(a, b);
-                    m_Matrix[a, b]  = collides;
-                    m_Matrix[b, a]  = collides;
+                    bool collides = !Physics.GetIgnoreLayerCollision(a, b);
+                    m_Matrix[a, b] = collides;
+                    m_Matrix[b, a] = collides;
                 }
             }
 
@@ -185,7 +185,7 @@ namespace Unity.BestPractices.Editor
             {
                 for (int b = a; b < k_MaxLayers; b++)
                 {
-                    bool shouldIgnore  = !m_Matrix[a, b];
+                    bool shouldIgnore = !m_Matrix[a, b];
                     bool currentIgnore = Physics.GetIgnoreLayerCollision(a, b);
 
                     if (shouldIgnore != currentIgnore)
@@ -236,8 +236,8 @@ namespace Unity.BestPractices.Editor
 
         private void SaveToConfigAsset()
         {
-            string[] guids     = AssetDatabase.FindAssets("t:LayerCollisionConfig");
-            string   assetPath = guids.Length > 0
+            string[] guids = AssetDatabase.FindAssets("t:LayerCollisionConfig");
+            string assetPath = guids.Length > 0
                 ? AssetDatabase.GUIDToAssetPath(guids[0])
                 : "Assets/LayerCollisionConfig.asset";
 
@@ -257,8 +257,8 @@ namespace Unity.BestPractices.Editor
 
                     config.Rules.Add(new LayerPairRule
                     {
-                        LayerA          = a,
-                        LayerB          = b,
+                        LayerA = a,
+                        LayerB = b,
                         IgnoreCollision = !m_Matrix[a, b]
                     });
                 }
