@@ -65,7 +65,7 @@ namespace Unity.BestPractices.Editor
 
         // ── Menu entry ────────────────────────────────────────────────────────
 
-        [MenuItem("Tools/Unity Best Practices/Setup/Configure Import Presets", false, 52)]
+        [MenuItem("Tools/Unity Workbench/Setup/Configure Import Presets", false, 52)]
         public static void Execute()
         {
             PresetsWindow.ShowWindow();

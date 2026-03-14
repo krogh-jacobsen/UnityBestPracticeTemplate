@@ -26,7 +26,7 @@ namespace Unity.BestPractices.Editor
     /// via <b>Window → Best Practices → Layer Collision Matrix</b>.
     /// </summary>
     [CreateAssetMenu(fileName = "LayerCollisionConfig",
-        menuName = "Best Practices/Layer Collision Config",
+        menuName = "Workbench/Layer Collision Config",
         order = 11)]
     public class LayerCollisionConfig : ScriptableObject
     {

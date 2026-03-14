@@ -36,7 +36,7 @@ namespace Unity.BestPractices.Editor
         /// where the project name is read from <see cref="SetupProjectFolders.k_ProjectNamePrefKey"/> in EditorPrefs.
         /// Skips any <c>.asmdef</c> files that already exist.
         /// </summary>
-        [MenuItem("Tools/Unity Best Practices/Code/Generate Assembly Definitions", false, 101)]
+        [MenuItem("Tools/Unity Workbench/Code/Generate Assembly Definitions", false, 101)]
         public static void Execute()
         {
             string root = EditorPrefs.GetString(SetupProjectFolders.k_ProjectNamePrefKey, "_ProjectName");

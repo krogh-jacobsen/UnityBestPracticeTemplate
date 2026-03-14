@@ -14,7 +14,7 @@ namespace Unity.BestPractices.Editor
         private Vector2 m_ScrollPosition;
         private string m_projectName = "";
 
-        [MenuItem("Tools/Unity Best Practices/New Project Wizard", false, 20)]
+        [MenuItem("Tools/Unity Workbench/New Project Wizard", false, 20)]
         public static void ShowWindow()
         {
             var window = GetWindow<NewProjectWizard>("New Project Wizard");
@@ -123,7 +123,7 @@ namespace Unity.BestPractices.Editor
                 "",
                 false,
                 "Run",
-                () => EditorApplication.ExecuteMenuItem("Tools/Unity Best Practices/Setup/Setup Tags and Layers")
+                () => EditorApplication.ExecuteMenuItem("Tools/Unity Workbench/Setup/Setup Tags and Layers")
             );
 
             DrawStep(
@@ -336,7 +336,7 @@ namespace Unity.BestPractices.Editor
             SetupProjectFolders.Execute(m_projectName.Trim());
             GenerateAssemblyDefinitions.Execute();
             ConfigurePresets.ApplyAllPresets();
-            EditorApplication.ExecuteMenuItem("Tools/Unity Best Practices/Setup/Setup Tags and Layers");
+            EditorApplication.ExecuteMenuItem("Tools/Unity Workbench/Setup/Setup Tags and Layers");
             GenerateGitIgnore.Execute();
             GenerateGitAttributes.Execute();
             GenerateEditorConfig.Execute();

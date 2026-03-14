@@ -80,7 +80,7 @@ namespace Unity.BestPractices.Editor
         };
 
         /// <summary>Opens the project-name prompt window from the menu bar.</summary>
-        [MenuItem("Tools/Unity Best Practices/Setup/Setup Project Folders", false, 50)]
+        [MenuItem("Tools/Unity Workbench/Setup/Setup Project Folders", false, 50)]
         public static void OpenPrompt()
         {
             ProjectFolderSetupPrompt.ShowWindow();

@@ -1,9 +1,9 @@
 {
   "name": "com.unity.best-practices",
-  "version": "1.4.1",
-  "displayName": "Unity Best Practices",
+  "version": "1.4.2",
+  "displayName": "Unity Workbench",
   "unity": "6000.3",
-  "description": "Unity C# coding style guide, best practices and LLM instructions to boost your productivity.",
+  "description": "A Unity editor toolkit that accelerates project setup, enforces C# coding standards, and supercharges AI-assisted development with curated LLM instruction files and agent skills.",
   "author": {
     "name": "Krogh-Jacobsen",
     "url": "https://github.com/krogh-jacobsen/"
