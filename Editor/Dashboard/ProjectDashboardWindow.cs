@@ -209,7 +209,41 @@ namespace UnityBestPractices.Editor.Dashboard
                 }
             }
             string header = $"LLM INSTRUCTION FILES — {llmInstalled}/{llmTotal} installed";
+            EditorGUILayout.BeginHorizontal();
             m_showLLMFiles = EditorGUILayout.Foldout(m_showLLMFiles, header, true, EditorStyles.foldoutHeader);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("?", GUILayout.Width(20)))
+            {
+                ExplainerWindow.Show(
+                    "LLM Instruction Files",
+                    new[]
+                    {
+                        "Instruction files are Markdown documents that give AI coding assistants " +
+                        "(GitHub Copilot, Cursor, Claude, Gemini) persistent context about your " +
+                        "project's coding standards and Unity conventions. Without them, each " +
+                        "prompt starts with no knowledge of your naming rules, patterns, or " +
+                        "project structure.",
+                        "HOW THEY ARE PICKED UP\n" +
+                        "Files are copied to .github/instructions/ with an .instructions.md " +
+                        "suffix. This is the standard location recognised by GitHub Copilot and " +
+                        "many other editors. Cursor and Claude Code can also be pointed at these " +
+                        "files via their own config.",
+                        "WHAT EACH FILE COVERS\n" +
+                        "Code Style       — naming rules, field prefixes, Allman braces\n" +
+                        "Performance      — allocation avoidance, caching, hot-path patterns\n" +
+                        "Design Patterns  — SOLID, Observer, State Machine, Object Pool\n" +
+                        "Debugging        — triage order, per-system strategies\n" +
+                        "UI Toolkit       — USS/UXML, BEM naming, MVP pattern\n" +
+                        "Project Config   — Preset Manager, Enter Play Mode, Burst\n" +
+                        "Documentation   — README structure and tone guide\n" +
+                        "Game Design Doc  — full GDD template\n" +
+                        "Custom Packages  — package manifest conventions",
+                        "Use 'Add' to install individual files or 'Copy to Project' to install " +
+                        "all at once. 'Update' overwrites an installed file with the latest " +
+                        "version from the package."
+                    });
+            }
+            EditorGUILayout.EndHorizontal();
             GUILayout.Label("Markdown files that give AI assistants context about your project's coding standards and Unity conventions. Copied to .github/instructions/ so GitHub Copilot, Cursor, and other editors pick them up automatically.", EditorStyles.wordWrappedMiniLabel);
 
             if (m_showLLMFiles && m_data.LLMInstructionFiles != null)
@@ -285,7 +319,35 @@ namespace UnityBestPractices.Editor.Dashboard
                 }
             }
             string header = $"AGENT SKILLS — {skillInstalled}/{skillTotal} installed";
+            EditorGUILayout.BeginHorizontal();
             m_showSkills = EditorGUILayout.Foldout(m_showSkills, header, true, EditorStyles.foldoutHeader);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("?", GUILayout.Width(20)))
+            {
+                ExplainerWindow.Show(
+                    "Agent Skills",
+                    new[]
+                    {
+                        "Agent Skills are reusable prompt templates that define specialised AI " +
+                        "workflows for your project. Each skill encodes a repeatable task — such " +
+                        "as writing a unit test, reviewing a PR, or scaffolding a new system — " +
+                        "so you can invoke it with a single command instead of typing the same " +
+                        "prompt from scratch every time.",
+                        "HOW THEY ARE INSTALLED\n" +
+                        "Skills are copied to two locations:\n\n" +
+                        ".github/prompts/     — GitHub Copilot reusable prompts (Chat → #file)\n" +
+                        ".claude/commands/    — Claude Code slash commands (/skill-name)",
+                        "HOW TO USE THEM\n" +
+                        "In GitHub Copilot Chat, reference a prompt file with #file or use the " +
+                        "reusable prompts picker.\n\n" +
+                        "In Claude Code, type /skill-name in the terminal to invoke the skill " +
+                        "directly. Claude expands the template and executes the workflow.",
+                        "Use 'Add' to install individual skills or 'Copy to Project' to install " +
+                        "all at once. 'Update' overwrites an installed skill with the latest " +
+                        "version from the package."
+                    });
+            }
+            EditorGUILayout.EndHorizontal();
             GUILayout.Label("Reusable prompt templates that define specialized AI workflows for your project. Copied to .github/prompts/ (GitHub Copilot reusable prompts) and .claude/commands/ (Claude Code slash commands).", EditorStyles.wordWrappedMiniLabel);
 
             if (m_showSkills && m_data.AgentSkillFiles != null)
@@ -407,8 +469,11 @@ namespace UnityBestPractices.Editor.Dashboard
                 bool isMono = ConfigureIterationSettings.IsBackendDev;
 
                 // 1. Scripting Backend
+                string backendLabel = isMono ? "Mono"
+                    : ConfigureIterationSettings.IsBackendRelease ? "IL2CPP"
+                    : "Unknown";
                 DrawIterationCard(
-                    "Scripting Backend (Standalone)",
+                    $"Scripting Backend (Standalone) — {backendLabel}",
                     "Mono: fastest compile + build loop for daily iteration.\nIL2CPP: required for release perf testing and final builds.",
                     ConfigureIterationSettings.IsBackendDev,
                     ConfigureIterationSettings.IsBackendRelease,
@@ -466,6 +531,31 @@ namespace UnityBestPractices.Editor.Dashboard
                     GUI.color = c;
                     GUILayout.Label("Script Changes While Playing", EditorStyles.boldLabel);
                     GUILayout.FlexibleSpace();
+                    if (GUILayout.Button("?", GUILayout.Width(20)))
+                    {
+                        ExplainerWindow.Show(
+                            "Script Changes While Playing",
+                            new[]
+                            {
+                                "Controls what Unity does when scripts are recompiled while the editor " +
+                                "is in Play mode. The recommended setting is " +
+                                "'Recompile After Finished Playing'.",
+                                "RECOMPILE AFTER FINISHED PLAYING (recommended)\n" +
+                                "Unity queues the recompile and waits until you exit Play mode before " +
+                                "applying it. Your Play session runs to completion without interruption, " +
+                                "so all runtime state (scores, positions, timers) remains intact.",
+                                "RECOMPILE AND CONTINUE PLAYING (Unity default)\n" +
+                                "Unity triggers a domain reload mid-session. This destroys all managed " +
+                                "state and reconstructs the scripting environment while the game is " +
+                                "running. DI containers (e.g. VContainer, Zenject), event buses, and " +
+                                "any static state will be wiped, causing hard-to-reproduce bugs and " +
+                                "NullReferenceExceptions that only appear in the editor.",
+                                "STOP PLAYING AND RECOMPILE\n" +
+                                "Unity exits Play mode immediately when a recompile is triggered. " +
+                                "Avoids mid-session domain reloads but interrupts your test session " +
+                                "without warning."
+                            });
+                    }
                     using (new EditorGUI.DisabledScope(set))
                     {
                         if (GUILayout.Button("Apply", GUILayout.Width(50)))
@@ -615,8 +705,41 @@ namespace UnityBestPractices.Editor.Dashboard
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
+            EditorGUILayout.BeginHorizontal();
             m_showAssetPipeline = EditorGUILayout.Foldout(m_showAssetPipeline,
                 "ASSET PIPELINE", true, EditorStyles.foldoutHeader);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("?", GUILayout.Width(20)))
+            {
+                ExplainerWindow.Show(
+                    "Asset Pipeline",
+                    new[]
+                    {
+                        "These settings control how Unity discovers, imports, and processes assets " +
+                        "on disk. Tuning them reduces unnecessary reimports and keeps the editor " +
+                        "responsive during development.",
+                        "AUTO REFRESH\n" +
+                        "Determines when Unity scans for changed assets on disk.\n\n" +
+                        "Outside Playmode (recommended): Unity only refreshes when you are not in " +
+                        "Play mode. This prevents a mid-session domain reload from interrupting " +
+                        "your test run.\n\n" +
+                        "Enabled (Unity default): Unity refreshes at any time, including during " +
+                        "Play mode, which can cause unexpected domain reloads.",
+                        "IMPORT WORKER COUNT\n" +
+                        "Sets how many background worker processes Unity spawns to parallelise " +
+                        "asset imports.\n\n" +
+                        "50% of logical CPUs (recommended): balances import throughput with editor " +
+                        "responsiveness — the editor stays usable while a large batch imports.\n\n" +
+                        "This is a per-machine preference and is not committed to version control.",
+                        "COMPRESS TEXTURES ON IMPORT\n" +
+                        "When enabled, Unity applies platform compression to textures at import " +
+                        "time rather than deferring it. Compressed textures use less GPU memory " +
+                        "and upload faster at runtime.\n\n" +
+                        "Disable temporarily if you need to inspect raw texture data or are " +
+                        "iterating rapidly on texture settings."
+                    });
+            }
+            EditorGUILayout.EndHorizontal();
 
             if (m_showAssetPipeline)
             {
@@ -1277,6 +1400,31 @@ namespace UnityBestPractices.Editor.Dashboard
                 EditorGUILayout.BeginHorizontal();
                 m_showPresets = EditorGUILayout.Foldout(m_showPresets, $"Configure Import Presets — {presetCount}/13 registered", true, EditorStyles.foldoutHeader);
                 GUILayout.FlexibleSpace();
+                if (GUILayout.Button("?", GUILayout.Width(20)))
+                {
+                    ExplainerWindow.Show(
+                        "Configure Import Presets",
+                        new[]
+                        {
+                            "Import Presets let you define default import settings for a category of " +
+                            "assets and have Unity apply them automatically whenever a matching file " +
+                            "is imported. Instead of adjusting each texture or audio clip by hand, " +
+                            "you configure the preset once and the Preset Manager enforces it.",
+                            "HOW IT WORKS\n" +
+                            "Each preset is paired with a glob filter that targets a specific folder " +
+                            "path (e.g. Assets/**/Audio/SFX/**). When a file lands in that folder " +
+                            "Unity uses the preset's settings as the import defaults. The filter " +
+                            "uses ** to match any folder depth, so it works regardless of whether " +
+                            "the file is in your main project folder or a sub-system folder.",
+                            "WHAT IS REGISTERED\n" +
+                            "Audio: Ambience, Music, SFX, UI Audio\n" +
+                            "Textures: Single Sprite, Sprite Atlas, Albedo, Normal, Roughness, Mask, HDRI\n" +
+                            "Models: FBX Model\n" +
+                            "Animations: FBX Animation",
+                            "You can inspect or override any preset in " +
+                            "Edit → Project Settings → Preset Manager."
+                        });
+                }
                 using (new EditorGUI.DisabledScope(allPresetsOk))
                 {
                     if (GUILayout.Button("Apply All", GUILayout.Width(70)))
@@ -1349,6 +1497,10 @@ namespace UnityBestPractices.Editor.Dashboard
                 DrawWindowCard("Project Health",
                     "Runs validation checks across the project and lists errors, warnings and available auto-fixes.",
                     ProjectHealthWindow.ShowWindow);
+
+                DrawWindowCard("Project Auditor",
+                    "Unity's static analysis tool — scans code, assets, and project settings for performance issues, build size problems, and best-practice violations.",
+                    () => EditorApplication.ExecuteMenuItem("Window/Analysis/Project Auditor"));
             }
 
             EditorGUILayout.EndVertical();
@@ -1520,7 +1672,13 @@ namespace UnityBestPractices.Editor.Dashboard
             bool canRun = !string.IsNullOrWhiteSpace(m_projectName);
             using (new EditorGUI.DisabledScope(!canRun))
             {
-                if (GUILayout.Button("Run", GUILayout.Width(44)))
+                if (GUILayout.Button(new GUIContent("Save Name", "Save the project name to EditorPrefs without creating any folders — lets other tools (e.g. sub-system creation) use it immediately"), GUILayout.Width(80)))
+                {
+                    SetupProjectFolders.SaveProjectName(m_projectName.Trim());
+                    RefreshData();
+                    GUI.FocusControl(null);
+                }
+                if (GUILayout.Button(new GUIContent("Create Folders", "Create the full recommended folder structure under Assets/{ProjectName}"), GUILayout.Width(100)))
                 {
                     SetupProjectFolders.Execute(m_projectName.Trim());
                     RefreshData();
@@ -1547,17 +1705,76 @@ namespace UnityBestPractices.Editor.Dashboard
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
             GUILayout.Label("Create Game Sub-system", EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("?", GUILayout.Width(20)))
+            {
+                ExplainerWindow.Show(
+                    "Create Game Sub-system",
+                    new[]
+                    {
+                        "Creates a self-contained feature folder under Assets/{ProjectName}/{SubSystemName} " +
+                        "with a consistent internal layout:\n\n" +
+                        "  Scripts/   — C# scripts for this feature\n" +
+                        "  UI/        — UXML, USS, and UI scripts\n" +
+                        "  Prefabs/   — prefabs owned by this sub-system\n" +
+                        "  Art/       — art assets scoped to this feature",
+                        "Keeping each game feature in its own folder makes it easy to locate " +
+                        "everything related to a system (e.g. Inventory, Combat, Audio) without " +
+                        "searching across the whole project. It also simplifies removing or " +
+                        "extracting a feature later.",
+                        "ASSEMBLY DEFINITION (optional)\n" +
+                        "When 'Create Assembly Definition' is checked, a .asmdef is generated " +
+                        "in Scripts/ with a namespace derived from Company.Product.{SubSystemName}. " +
+                        "It references the project's Runtime assembly so the sub-system can use " +
+                        "shared code while keeping its own compile scope."
+                    });
+            }
             EditorGUILayout.EndHorizontal();
 
             GUILayout.Label(
-                "Creates a named sub-system folder under Assets/{ProjectName} with Scripts/, UI/, and Art/ subfolders.",
+                "Creates a named sub-system folder under Assets/{ProjectName} with Scripts/, UI/, Prefabs/, and Art/ subfolders.",
                 EditorStyles.wordWrappedMiniLabel);
 
             GUILayout.Space(4);
 
+            // Project name row — show saved name or inline field if not set
+            string savedProject = EditorPrefs.GetString(SetupProjectFolders.k_ProjectNamePrefKey, "");
+            bool hasProjectName = !string.IsNullOrWhiteSpace(savedProject);
+
+            if (hasProjectName)
+            {
+                EditorGUILayout.BeginHorizontal();
+                var c = GUI.color;
+                GUI.color = new Color(0.5f, 0.8f, 0.5f);
+                GUILayout.Label($"Project root: Assets/{savedProject}", EditorStyles.miniLabel);
+                GUI.color = c;
+                EditorGUILayout.EndHorizontal();
+            }
+            else
+            {
+                EditorGUILayout.BeginHorizontal();
+                var c = GUI.color;
+                GUI.color = new Color(0.9f, 0.7f, 0.3f);
+                GUILayout.Label("Project name:", EditorStyles.miniLabel, GUILayout.Width(82));
+                GUI.color = c;
+                m_projectName = EditorGUILayout.TextField(m_projectName);
+                bool canSave = !string.IsNullOrWhiteSpace(m_projectName);
+                using (new EditorGUI.DisabledScope(!canSave))
+                {
+                    if (GUILayout.Button(new GUIContent("Save", "Save project name so sub-systems know where to create folders"), GUILayout.Width(44)))
+                    {
+                        SetupProjectFolders.SaveProjectName(m_projectName.Trim());
+                        RefreshData();
+                        GUI.FocusControl(null);
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+                GUILayout.Space(2);
+            }
+
             EditorGUILayout.BeginHorizontal();
             m_subSystemName = EditorGUILayout.TextField(m_subSystemName);
-            bool canCreate = !string.IsNullOrWhiteSpace(m_subSystemName);
+            bool canCreate = !string.IsNullOrWhiteSpace(m_subSystemName) && hasProjectName;
             using (new EditorGUI.DisabledScope(!canCreate))
             {
                 if (GUILayout.Button("Create", GUILayout.Width(60)))

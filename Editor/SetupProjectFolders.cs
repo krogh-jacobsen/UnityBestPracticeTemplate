@@ -87,6 +87,19 @@ namespace Unity.BestPractices.Editor
         }
 
         /// <summary>
+        /// Saves <paramref name="projectName"/> to <see cref="EditorPrefs"/> without creating any folders.
+        /// Use this when you want other tools (e.g. sub-system creation) to know the project root
+        /// without running the full folder scaffold.
+        /// </summary>
+        /// <param name="projectName">The root folder name (e.g. "MyGame").</param>
+        public static void SaveProjectName(string projectName)
+        {
+            if (string.IsNullOrWhiteSpace(projectName)) return;
+            EditorPrefs.SetString(k_ProjectNamePrefKey, projectName.Trim());
+            Debug.Log($"[BestPractice] Project name set to '{projectName.Trim()}'.");
+        }
+
+        /// <summary>
         /// Creates the full project folder structure under <c>Assets/{projectName}</c>
         /// and saves the project name to <see cref="EditorPrefs"/> for later use.
         /// </summary>
@@ -141,11 +154,7 @@ namespace Unity.BestPractices.Editor
             }
 
             string root = $"Assets/{projectName}";
-            if (!AssetDatabase.IsValidFolder(root))
-            {
-                Debug.LogWarning($"[BestPractice] Project folder '{root}' does not exist — run Setup Project Folders first.");
-                return;
-            }
+            EditorController.CreateFolder("Assets", projectName);
 
             EditorController.CreateFolder(root, subSystemName);
             string subRoot = $"{root}/{subSystemName}";
