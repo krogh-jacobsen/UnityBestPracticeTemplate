@@ -90,40 +90,25 @@ namespace Unity.BestPractices.Editor
             // ── Textures ──────────────────────────────────────────────────────
             GUILayout.Label("TEXTURES", EditorStyles.boldLabel);
 
-            DrawPresetRow("Single Sprite",
-                "Assets/_ProjectName/UI/Sprites/**",
-                ConfigurePresets.IsSingleSpriteConfigured,
-                ConfigurePresets.ApplySingleSprite);
-
-            DrawPresetRow("Sprite Atlas",
-                "Assets/_ProjectName/UI/Sprites/Atlas/**",
-                ConfigurePresets.IsSpriteAtlasConfigured,
-                ConfigurePresets.ApplySpriteAtlas);
+            DrawPresetRow("UI Sprite",
+                "Assets/_ProjectName/Art/Textures/UI/**",
+                ConfigurePresets.IsUISpriteConfigured,
+                ConfigurePresets.ApplyUISprite);
 
             DrawPresetRow("Albedo",
-                "Assets/_ProjectName/Art/Textures/Albedo/**",
+                "Assets/_ProjectName/Art/Textures/Environment/Albedo/**",
                 ConfigurePresets.IsAlbedoConfigured,
                 ConfigurePresets.ApplyAlbedo);
 
             DrawPresetRow("Normal Map",
-                "Assets/_ProjectName/Art/Textures/Normal/**",
+                "Assets/_ProjectName/Art/Textures/Environment/Normal/**",
                 ConfigurePresets.IsNormalConfigured,
                 ConfigurePresets.ApplyNormal);
 
-            DrawPresetRow("Roughness",
-                "Assets/_ProjectName/Art/Textures/Roughness/**",
-                ConfigurePresets.IsRoughnessConfigured,
-                ConfigurePresets.ApplyRoughness);
-
             DrawPresetRow("Mask",
-                "Assets/_ProjectName/Art/Textures/Mask/**",
+                "Assets/_ProjectName/Art/Textures/Environment/Masks/**",
                 ConfigurePresets.IsMaskConfigured,
                 ConfigurePresets.ApplyMask);
-
-            DrawPresetRow("HDRI",
-                "Assets/_ProjectName/Art/Textures/HDRI/**",
-                ConfigurePresets.IsHDRIConfigured,
-                ConfigurePresets.ApplyHDRI);
 
             GUILayout.Space(6);
 

@@ -5,6 +5,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] - 2026-03-15
+### Added
+- **Unity MCP relay** — `ConfigureUnityMCP.cs` writes `UserSettings/mcp.json` to wire up the Unity MCP relay server; menu item `Tools → Unity Project Configurator → AI → Configure Unity MCP`; detects whether the relay binary is installed and whether the file already exists before writing
+- **Fix VS Code .slnx** — `FixVSCodeSlnx.cs` resolves the "Active document not part of open workspace" error in VS Code by removing the OmniSharp preference and adding the C# Dev Kit extension recommendation; menu item `Tools → Unity Project Configurator → Fix VS Code .slnx`
+- **PlayerPrefs Inspector** — `PlayerPrefsInspectorWindow.cs` lets you view, search, add, edit, and delete PlayerPrefs entries (String / Int / Float) without leaving the editor; menu item `Tools → Unity Project Configurator → Utilities → PlayerPrefs Inspector`
+- **Layer Collision Matrix editor** — `LayerCollisionMatrixWindow.cs` renders the physics layer collision matrix as an editable triangular grid and saves/loads configurations to `LayerCollisionConfig` assets; menu item `Tools → Unity Project Configurator → Utilities → Layer Collision Matrix`
+
+### Changed
+- **Texture import presets consolidated** — reduced from 7 presets to 4 to match the recommended asset pipeline: `SingleSprite` + `SpriteAtlas` merged into `UISprite`; `Roughness` merged into `Mask`; `HDRI` removed; folder filters updated to `Assets/**/Textures/UI/**`, `Assets/**/Textures/Environment/Albedo/**`, `Assets/**/Textures/Environment/Normal/**`, and `Assets/**/Textures/Environment/Masks/**`
+- **Copy AI Files to Project** — `CopyAIFilesToProject.cs` now copies LLM instruction files to `.github/instructions/*.instructions.md` (VS Code Copilot workspace instructions) and agent skill files to both `.github/prompts/*.prompt.md` (Copilot reusable prompts) and `.claude/commands/*.md` (Claude Code slash commands)
+
 ## [1.4.2] - 2026-03-14
 ### Added
 - **? Explainer buttons** — every card in the Project Configuration panel now has a `?` button that opens a reusable `ExplainerWindow` popup with a description, folder/settings preview, and an optional "Run Now" action

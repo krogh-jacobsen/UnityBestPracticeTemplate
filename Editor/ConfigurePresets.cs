@@ -16,13 +16,10 @@ namespace Unity.BestPractices.Editor
         private static readonly string k_SFXPath = $"{k_PackagePresetsPath}/Audio/SFXAudioImporter.preset";
         private static readonly string k_UIAudioPath = $"{k_PackagePresetsPath}/Audio/UIAudioImporter.preset";
 
-        private static readonly string k_SingleSpritePath = $"{k_PackagePresetsPath}/Textures/SingleSpriteTextureImporter.preset";
-        private static readonly string k_SpriteAtlasPath = $"{k_PackagePresetsPath}/Textures/SpriteAtlasTextureImporter.preset";
+        private static readonly string k_UISpritePath = $"{k_PackagePresetsPath}/Textures/UISpriteTextureImporter.preset";
         private static readonly string k_AlbedoPath = $"{k_PackagePresetsPath}/Textures/AlbedoTextureImporter.preset";
         private static readonly string k_NormalPath = $"{k_PackagePresetsPath}/Textures/NormalTextureImporter.preset";
-        private static readonly string k_RoughnessPath = $"{k_PackagePresetsPath}/Textures/RoughnessTextureImporter.preset";
         private static readonly string k_MaskPath = $"{k_PackagePresetsPath}/Textures/MaskTextureImporter.preset";
-        private static readonly string k_HDRIPath = $"{k_PackagePresetsPath}/Textures/HDRITextureImporter.preset";
 
         private static readonly string k_FBXModelPath = $"{k_PackagePresetsPath}/Models/FBXModelImporter.preset";
         private static readonly string k_FBXAnimPath = $"{k_PackagePresetsPath}/Animations/FBXAnimationImporter.preset";
@@ -34,13 +31,10 @@ namespace Unity.BestPractices.Editor
         private const string k_SFXFilter = "glob:\"Assets/**/Audio/SFX/**\"";
         private const string k_UIAudioFilter = "glob:\"Assets/**/Audio/UI/**\"";
 
-        private const string k_SingleSpriteFilter = "glob:\"Assets/**/UI/Sprites/**\"";
-        private const string k_SpriteAtlasFilter = "glob:\"Assets/**/UI/Sprites/Atlas/**\"";
-        private const string k_AlbedoFilter = "glob:\"Assets/**/Textures/Albedo/**\"";
-        private const string k_NormalFilter = "glob:\"Assets/**/Textures/Normal/**\"";
-        private const string k_RoughnessFilter = "glob:\"Assets/**/Textures/Roughness/**\"";
-        private const string k_MaskFilter = "glob:\"Assets/**/Textures/Mask/**\"";
-        private const string k_HDRIFilter = "glob:\"Assets/**/Textures/HDRI/**\"";
+        private const string k_UISpriteFilter = "glob:\"Assets/**/Textures/UI/**\"";
+        private const string k_AlbedoFilter = "glob:\"Assets/**/Textures/Environment/Albedo/**\"";
+        private const string k_NormalFilter = "glob:\"Assets/**/Textures/Environment/Normal/**\"";
+        private const string k_MaskFilter = "glob:\"Assets/**/Textures/Environment/Masks/**\"";
 
         private const string k_FBXModelFilter = "glob:\"Assets/**/Art/Models/**\"";
         private const string k_FBXAnimFilter = "glob:\"Assets/**/Art/Animations/**\"";
@@ -52,13 +46,10 @@ namespace Unity.BestPractices.Editor
         public static bool IsSFXConfigured => IsPresetRegistered(k_SFXPath, k_SFXFilter);
         public static bool IsUIAudioConfigured => IsPresetRegistered(k_UIAudioPath, k_UIAudioFilter);
 
-        public static bool IsSingleSpriteConfigured => IsPresetRegistered(k_SingleSpritePath, k_SingleSpriteFilter);
-        public static bool IsSpriteAtlasConfigured => IsPresetRegistered(k_SpriteAtlasPath, k_SpriteAtlasFilter);
+        public static bool IsUISpriteConfigured => IsPresetRegistered(k_UISpritePath, k_UISpriteFilter);
         public static bool IsAlbedoConfigured => IsPresetRegistered(k_AlbedoPath, k_AlbedoFilter);
         public static bool IsNormalConfigured => IsPresetRegistered(k_NormalPath, k_NormalFilter);
-        public static bool IsRoughnessConfigured => IsPresetRegistered(k_RoughnessPath, k_RoughnessFilter);
         public static bool IsMaskConfigured => IsPresetRegistered(k_MaskPath, k_MaskFilter);
-        public static bool IsHDRIConfigured => IsPresetRegistered(k_HDRIPath, k_HDRIFilter);
 
         public static bool IsFBXModelConfigured => IsPresetRegistered(k_FBXModelPath, k_FBXModelFilter);
         public static bool IsFBXAnimationConfigured => IsPresetRegistered(k_FBXAnimPath, k_FBXAnimFilter);
@@ -78,13 +69,10 @@ namespace Unity.BestPractices.Editor
         public static void ApplySFX() => ApplySingle(k_SFXPath, k_SFXFilter);
         public static void ApplyUIAudio() => ApplySingle(k_UIAudioPath, k_UIAudioFilter);
 
-        public static void ApplySingleSprite() => ApplySingle(k_SingleSpritePath, k_SingleSpriteFilter);
-        public static void ApplySpriteAtlas() => ApplySingle(k_SpriteAtlasPath, k_SpriteAtlasFilter);
+        public static void ApplyUISprite() => ApplySingle(k_UISpritePath, k_UISpriteFilter);
         public static void ApplyAlbedo() => ApplySingle(k_AlbedoPath, k_AlbedoFilter);
         public static void ApplyNormal() => ApplySingle(k_NormalPath, k_NormalFilter);
-        public static void ApplyRoughness() => ApplySingle(k_RoughnessPath, k_RoughnessFilter);
         public static void ApplyMask() => ApplySingle(k_MaskPath, k_MaskFilter);
-        public static void ApplyHDRI() => ApplySingle(k_HDRIPath, k_HDRIFilter);
 
         public static void ApplyFBXModel() => ApplySingle(k_FBXModelPath, k_FBXModelFilter);
         public static void ApplyFBXAnimation() => ApplySingle(k_FBXAnimPath, k_FBXAnimFilter);
@@ -101,13 +89,10 @@ namespace Unity.BestPractices.Editor
             addedCount += RegisterPreset(defaultList, k_MusicPath, k_MusicFilter);
             addedCount += RegisterPreset(defaultList, k_SFXPath, k_SFXFilter);
             addedCount += RegisterPreset(defaultList, k_UIAudioPath, k_UIAudioFilter);
-            addedCount += RegisterPreset(defaultList, k_SingleSpritePath, k_SingleSpriteFilter);
-            addedCount += RegisterPreset(defaultList, k_SpriteAtlasPath, k_SpriteAtlasFilter);
+            addedCount += RegisterPreset(defaultList, k_UISpritePath, k_UISpriteFilter);
             addedCount += RegisterPreset(defaultList, k_AlbedoPath, k_AlbedoFilter);
             addedCount += RegisterPreset(defaultList, k_NormalPath, k_NormalFilter);
-            addedCount += RegisterPreset(defaultList, k_RoughnessPath, k_RoughnessFilter);
             addedCount += RegisterPreset(defaultList, k_MaskPath, k_MaskFilter);
-            addedCount += RegisterPreset(defaultList, k_HDRIPath, k_HDRIFilter);
             addedCount += RegisterPreset(defaultList, k_FBXModelPath, k_FBXModelFilter);
             addedCount += RegisterPreset(defaultList, k_FBXAnimPath, k_FBXAnimFilter);
 
