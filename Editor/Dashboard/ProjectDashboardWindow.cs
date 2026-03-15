@@ -1243,16 +1243,13 @@ namespace UnityBestPractices.Editor.Dashboard
                 + (ConfigurePresets.IsMusicConfigured ? 1 : 0)
                 + (ConfigurePresets.IsSFXConfigured ? 1 : 0)
                 + (ConfigurePresets.IsUIAudioConfigured ? 1 : 0)
-                + (ConfigurePresets.IsSingleSpriteConfigured ? 1 : 0)
-                + (ConfigurePresets.IsSpriteAtlasConfigured ? 1 : 0)
+                + (ConfigurePresets.IsUISpriteConfigured ? 1 : 0)
                 + (ConfigurePresets.IsAlbedoConfigured ? 1 : 0)
                 + (ConfigurePresets.IsNormalConfigured ? 1 : 0)
-                + (ConfigurePresets.IsRoughnessConfigured ? 1 : 0)
                 + (ConfigurePresets.IsMaskConfigured ? 1 : 0)
-                + (ConfigurePresets.IsHDRIConfigured ? 1 : 0)
                 + (ConfigurePresets.IsFBXModelConfigured ? 1 : 0)
                 + (ConfigurePresets.IsFBXAnimationConfigured ? 1 : 0);
-            int setupDone = (foldersOk ? 1 : 0) + (gitignoreExists ? 1 : 0) + (gitattributesExists ? 1 : 0) + (editorconfigExists ? 1 : 0) + (presetCount == 13 ? 1 : 0);
+            int setupDone = (foldersOk ? 1 : 0) + (gitignoreExists ? 1 : 0) + (gitattributesExists ? 1 : 0) + (editorconfigExists ? 1 : 0) + (presetCount == 10 ? 1 : 0);
 
             m_showTools = EditorGUILayout.Foldout(m_showTools, $"PROJECT CONFIGURATION — {setupDone}/5 done", true, EditorStyles.foldoutHeader);
 
@@ -1477,13 +1474,10 @@ namespace UnityBestPractices.Editor.Dashboard
 
                     GUILayout.Space(2);
                     GUILayout.Label("TEXTURES", EditorStyles.centeredGreyMiniLabel);
-                    DrawPresetCard("Single Sprite", "glob: Assets/**/UI/Sprites/**", ConfigurePresets.IsSingleSpriteConfigured, ConfigurePresets.ApplySingleSprite);
-                    DrawPresetCard("Sprite Atlas", "glob: Assets/**/UI/Sprites/Atlas/**", ConfigurePresets.IsSpriteAtlasConfigured, ConfigurePresets.ApplySpriteAtlas);
-                    DrawPresetCard("Albedo", "glob: Assets/**/Textures/Albedo/**", ConfigurePresets.IsAlbedoConfigured, ConfigurePresets.ApplyAlbedo);
-                    DrawPresetCard("Normal", "glob: Assets/**/Textures/Normal/**", ConfigurePresets.IsNormalConfigured, ConfigurePresets.ApplyNormal);
-                    DrawPresetCard("Roughness", "glob: Assets/**/Textures/Roughness/**", ConfigurePresets.IsRoughnessConfigured, ConfigurePresets.ApplyRoughness);
-                    DrawPresetCard("Mask", "glob: Assets/**/Textures/Mask/**", ConfigurePresets.IsMaskConfigured, ConfigurePresets.ApplyMask);
-                    DrawPresetCard("HDRI", "glob: Assets/**/Textures/HDRI/**", ConfigurePresets.IsHDRIConfigured, ConfigurePresets.ApplyHDRI);
+                    DrawPresetCard("UI Sprite", "glob: Assets/**/Textures/UI/**", ConfigurePresets.IsUISpriteConfigured, ConfigurePresets.ApplyUISprite);
+                    DrawPresetCard("Albedo", "glob: Assets/**/Textures/Environment/Albedo/**", ConfigurePresets.IsAlbedoConfigured, ConfigurePresets.ApplyAlbedo);
+                    DrawPresetCard("Normal", "glob: Assets/**/Textures/Environment/Normal/**", ConfigurePresets.IsNormalConfigured, ConfigurePresets.ApplyNormal);
+                    DrawPresetCard("Mask", "glob: Assets/**/Textures/Environment/Masks/**", ConfigurePresets.IsMaskConfigured, ConfigurePresets.ApplyMask);
 
                     GUILayout.Space(2);
                     GUILayout.Label("MODELS", EditorStyles.centeredGreyMiniLabel);
