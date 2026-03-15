@@ -13,31 +13,18 @@
 
 ## Table of Contents
 
-### Fundamentals
 1. [Unity Version-Specific Instructions](#unity-version-specific-instructions)
 2. [Project Architecture Overview](#project-architecture-overview)
-
-### Code Standards
 3. [C# Code Style & Naming Conventions](#c-code-style--naming-conventions)
 4. [Class Organization](#class-organization)
-5. [Methods & Naming Patterns](#methods--naming-patterns)
-6. [Events & Subscriptions](#events--subscriptions)
-
-### Design & Architecture
+5. [Events & Subscriptions](#events--subscriptions)
+6. [Methods & Naming Patterns](#methods--naming-patterns)
 7. [Design Patterns & SOLID](#design-patterns--solid)
 8. [Project-Specific Patterns](#project-specific-patterns)
-
-### UI Development
 9. [UI Toolkit Complete Reference](#ui-toolkit-complete-reference)
-
-### Debugging & Performance
 10. [Debugging Instructions](#debugging-instructions)
 11. [Performance Optimization](#performance-optimization)
-
-### Project Configuration
 12. [Project Configuration & Editor Settings](#project-configuration--editor-settings)
-
-### Quick Reference
 13. [Common Mistakes & Troubleshooting](#common-mistakes--troubleshooting)
 
 ---
@@ -107,35 +94,10 @@ Game data is defined via ScriptableObjects (suffix with `DataSO` or `SO`):
 
 ### General Guidelines
 
-- ⚠️ **Readability is key.** Try to keep lines short. Consider horizontal whitespace.
-- ✅ Use **Allman style** (opening curly braces on a new line).
-- ✅ Define a standard **max line width of less than 120–140 characters**.
-- ✅ Break a long line into smaller statements rather than letting it overflow.
-- ✅ Use a single space before flow control conditions, e.g., `while (x == y)`.
-- ❌ Avoid spaces inside brackets, e.g., `x = dataArray[index]`.
-
-```csharp
-// Good spacing example using Allman style braces and spacing
-public void ProcessItems(List<Item> items, int startIndex)
-{
-    for (int i = startIndex; i < items.Count; i++)
-    {
-        ProcessItem(items[i]);
-    }
-
-    // Note vertical spacing here for visual separation
-    Debug.Log("Processing complete");
-}
-```
-
-### Spacing Rules
-
-- ✅ Use a single space after a comma between function arguments, e.g., `CollectItem(myObject, 0, 1);`.
-- ❌ Don't add spaces just inside parentheses before the first or after the last argument.
-- ❌ Don't use spaces between a function name and parenthesis.
-- ✅ Use vertical spacing (extra blank line) for visual separation.
-- ✅ Use one variable declaration per line in most cases.
-- ✅ Use a single space before and after comparison operators.
+- ⚠️ **Readability is key.** Keep lines short (max 120–140 chars). Use Allman style (opening brace on new line).
+- ✅ Single space after commas, before/after comparison operators. No spaces inside parentheses or brackets.
+- ✅ Use vertical spacing (blank lines) for visual separation. One variable declaration per line.
+- ❌ Avoid spaces inside brackets: `x = dataArray[index]`, not `dataArray[ index ]`.
 
 ### Use of Regions
 
@@ -144,21 +106,8 @@ public void ProcessItems(List<Item> items, int startIndex)
 
 ### Comments
 
-- ✅ Add clarifying comments to most lines for documentation.
 - ✅ Comment intent ("why") rather than restating code ("what").
-- ✅ Use `[Tooltip]`, `[Header]`, `[Space]`, etc. for serialized fields that need Inspector context.
-
-```csharp
-// Good - explains why, not just what
-// Skip processing if below threshold to avoid performance issues
-if (itemCount < processingThreshold)
-{
-    return;
-}
-
-[Tooltip("Maximum distance the player can travel in one frame")]
-[SerializeField] private float m_maxDeltaMovement = 10f;
-```
+- ✅ Use `[Tooltip]`, `[Header]`, `[Space]` for serialized fields that need Inspector context.
 
 ---
 
@@ -304,41 +253,16 @@ private void OnDisable()
 - ❌ Avoid noun-style method names except for factory methods or event handlers.
 
 ```csharp
-// Good: Use a method for actions or operations
+// ✅ "Handle" for event-driven callbacks (responding to external events/input)
+private void HandleTileSelected(MapTile tile) => ChangeState(UIGameState.TownView);
 
-// Action: performs behavior / side effects
-public void Jump()
-{
-    m_rigidbody.AddForce(Vector3.up * m_jumpForce, ForceMode.Impulse);
-}
-
-// Setter: clearly assigns or updates a value
-public void SetMovementInput(Vector2 input)
-{
-    m_forwardMovementInput = input;
-}
-
-// Modifier: transforms or changes state
-public void ChangeHealth(int amount)
-{
-    m_health += amount;
-}
-
-// ✅ "Handle" for event-driven callbacks
-private void HandleTileSelected(MapTile tile)
-{
-    ChangeState(UIGameState.TownView);
-}
-
-// ✅ "Process" for game logic operations
+// ✅ "Process" for game logic operations (turn-based or system-driven)
 private void ProcessTradeIncome()
 {
     foreach (var relationship in m_relationships)
     {
         if (relationship.InvolvesFaction(m_playerFactionData))
-        {
             m_gameResources.ModifyCurrentGold(m_tradeAgreementGold);
-        }
     }
 }
 
@@ -352,15 +276,11 @@ public bool IsPlayerAlive() => m_health > 0;
 
 ### SOLID Principles
 
-**S** — Single Responsibility: A class should have only one reason to change. Break down large classes into smaller, focused classes.
-
-**O** — Open/Closed: Classes must be open for extension but closed for modification.
-
-**L** — Liskov Substitution: Subtypes must be substitutable for their base types without altering the correctness of the program.
-
-**I** — Interface Segregation: No class should be forced to implement interfaces it doesn't use. Prefer small, focused interfaces.
-
-**D** — Dependency Inversion: High-level modules should not depend on low-level modules; both should depend on abstractions.
+- **S** — Single Responsibility: one reason to change; break down large classes.
+- **O** — Open/Closed: open for extension, closed for modification.
+- **L** — Liskov Substitution: subtypes must be substitutable for their base types.
+- **I** — Interface Segregation: no class should implement interfaces it doesn't use.
+- **D** — Dependency Inversion: depend on abstractions, not concretions.
 
 ### Interfaces
 
@@ -388,22 +308,11 @@ public interface IDamageable
 - ✅ Use PascalCase for enum names and values.
 
 ```csharp
-public enum Direction
-{
-    North,
-    South,
-    East,
-    West
-}
+public enum Direction { North, South, East, West }
 
-private void Update()
+switch (m_currentDirection)
 {
-    switch (m_currentDirection)
-    {
-        case Direction.North:
-            // Move north
-            break;
-    }
+    case Direction.North: /* ... */ break;
 }
 ```
 
@@ -595,28 +504,7 @@ public abstract class UITKBaseClass : MonoBehaviour
 
 ### Service Locator & Dependency Injection
 
-**Location:** `ServiceLocator.cs` / `DependencyInjector.cs`
-
-Services are registered at startup and resolved by dependent systems.
-
-```csharp
-public static class ServiceLocator
-{
-    private static readonly Dictionary<Type, object> s_services = new();
-
-    public static void Register<T>(T service) where T : class
-    {
-        s_services[typeof(T)] = service;
-    }
-
-    public static T Resolve<T>() where T : class
-    {
-        if (s_services.TryGetValue(typeof(T), out object service))
-            return service as T;
-        throw new InvalidOperationException($"Service not registered: {typeof(T)}");
-    }
-}
-```
+**Location:** `ServiceLocator.cs` / `DependencyInjector.cs` — services registered at startup, resolved by dependent systems.
 
 ### Composition over Inheritance
 
@@ -729,56 +617,25 @@ flex: 1;                       /* Shorthand */
 
 ### USS Common Properties Reference
 
-**Display & Visibility:**
 ```css
-display: flex;                 /* Visible, in layout */
-display: none;                 /* Hidden, removed from layout */
-visibility: visible;           /* Default */
-visibility: hidden;            /* Hidden, keeps space */
-opacity: 1;                    /* 0 to 1 */
-```
+/* Display */
+display: flex;          display: none;          visibility: hidden;
 
-**Sizing:**
-```css
-width: 100px;
-width: 50%;
-height: 100px;
-min-width: 50px;
-max-width: 200px;
-flex-grow: 1;
-```
+/* Sizing & Spacing */
+width: 100px;           flex-grow: 1;           flex-shrink: 0;
+padding: 10px;          margin: 10px;           margin-left: auto; /* push right */
 
-**Spacing:**
-```css
-padding: 10px;
-margin: 10px;
-margin-left: auto;             /* Push to right */
-```
-
-**Borders & Backgrounds:**
-```css
-border-width: 2px;
-border-color: rgb(0, 0, 0);
-border-radius: 8px;
+/* Borders & Backgrounds */
+border-width: 2px;      border-radius: 8px;     border-color: rgb(0, 0, 0);
 background-color: rgb(50, 50, 50);
 background-image: url('project://database/Assets/UI/bg.png');
-```
 
-**Text:**
-```css
-color: rgb(0, 0, 0);
-font-size: 16px;
+/* Text (Unity-specific — not standard CSS) */
 -unity-font-style: bold;
 -unity-text-align: middle-center;
-```
 
-**Pseudo-Classes (Only These Are Supported):**
-```css
-.button:hover { }
-.button:active { }
-.button:focus { }
-.button:disabled { }
-.toggle:checked { }
+/* Pseudo-classes (only these are supported) */
+.btn:hover { }  .btn:active { }  .btn:focus { }  .btn:disabled { }  .toggle:checked { }
 ```
 
 ### USS Variables (Design Tokens)
@@ -905,26 +762,6 @@ public void SetPanelVisible(bool isVisible)
 }
 ```
 
-### Button & Event Handling
-
-```csharp
-private void OnEnable()
-{
-    m_actionButton = root.Q<Button>("action-button");
-    m_actionButton.clicked += OnActionButtonClicked;
-}
-
-private void OnDisable()
-{
-    m_actionButton.clicked -= OnActionButtonClicked;
-}
-
-private void OnActionButtonClicked()
-{
-    Debug.Log("Action button clicked");
-}
-```
-
 ### ListView & Template Spawning
 
 ```csharp
@@ -1043,20 +880,6 @@ root.Query().ForEach(e => Debug.Log($"{e.GetType().Name}: {e.name}"));
 // Check: dataSource is assigned in C#
 ```
 
-### Event System Debugging
-
-```csharp
-// Check listener count
-Debug.Log($"Listener count: {_onPlayerDeath.GetPersistentEventCount()}");
-
-// Debug subscriptions
-public static event Action OnGameOver
-{
-    add { Debug.Log($"Subscriber added: {value.Target?.GetType().Name}"); }
-    remove { Debug.Log($"Subscriber removed: {value.Target?.GetType().Name}"); }
-}
-```
-
 ---
 
 ## Performance Optimization
@@ -1071,182 +894,16 @@ When reviewing Unity code for performance, check in this order:
 4. **GetComponent/Find** — Uncached lookups, per-frame calls
 5. **Rendering** — Material instances, draw calls
 
-### Update Loop Optimization
+### Key Rules
 
-**Never allocate in Update(), FixedUpdate(), or LateUpdate()** — This triggers garbage collection spikes.
-
-```csharp
-// ❌ Bad - allocates every frame
-private void Update()
-{
-    var enemies = FindObjectsOfType<Enemy>();
-    var nearbyEnemies = new List<Enemy>();
-    string status = $"Enemies: {enemies.Length}";
-}
-
-// ✅ Good - zero allocations
-private Enemy[] m_enemyCache = new Enemy[100];
-private readonly List<Enemy> m_nearbyEnemies = new(50);
-
-private void Update()
-{
-    int count = FindObjectsOfType(m_enemyCache);
-    m_nearbyEnemies.Clear();
-    for (int i = 0; i < count; i++)
-    {
-        if (m_enemyCache[i].IsAlive)
-        {
-            m_nearbyEnemies.Add(m_enemyCache[i]);
-        }
-    }
-}
-```
-
-### Caching Expensive Operations
-
-- ✅ Cache results of expensive calculations outside Update.
-- ✅ Use dirty flags to recalculate only when state changes.
-- ✅ Cache Transform, Rigidbody, and other component references in Awake().
-
-```csharp
-// ✅ Good - cached
-private Transform m_transform;
-private bool m_isDirty = true;
-
-private void Awake()
-{
-    m_transform = transform;
-}
-
-private void Update()
-{
-    if (m_isDirty)
-    {
-        m_cachedValue = ExpensiveCalculation();
-        m_isDirty = false;
-    }
-}
-```
-
-### Memory Management
-
-**String Operations:**
-- ❌ Never use string concatenation (`+`) in loops.
-- ✅ Use `StringBuilder` for dynamic strings.
-
-**Collections:**
-- ✅ Initialize collections with expected capacity.
-- ✅ Use `.Clear()` instead of creating new lists.
-- ✅ Use `ListPool<T>` from Unity's pooling utilities.
-
-### Physics Optimization
-
-- ✅ Use layer masks to limit physics queries.
-- ✅ Cache `LayerMask` values.
-- ✅ Use non-allocating physics methods: `Physics.RaycastNonAlloc`, `Physics.OverlapSphereNonAlloc`.
-
-```csharp
-// ✅ Good - non-allocating
-private readonly Collider[] m_hitBuffer = new Collider[32];
-private LayerMask m_enemyLayer;
-
-private void Awake()
-{
-    m_enemyLayer = LayerMask.GetMask("Enemy");
-}
-
-private void FixedUpdate()
-{
-    int hitCount = Physics.OverlapSphereNonAlloc(
-        transform.position, m_radius, m_hitBuffer, m_enemyLayer
-    );
-
-    for (int i = 0; i < hitCount; i++)
-    {
-        ProcessHit(m_hitBuffer[i]);
-    }
-}
-```
-
-### Rendering Optimization
-
-- ⚠️ Accessing `.material` creates a material instance — use `.sharedMaterial` when possible.
-- ✅ Use `MaterialPropertyBlock` for per-instance changes.
-
-```csharp
-// ✅ Good - uses MaterialPropertyBlock
-private static readonly int k_colorId = Shader.PropertyToID("_Color");
-private MaterialPropertyBlock m_propertyBlock;
-
-private void Awake()
-{
-    m_propertyBlock = new MaterialPropertyBlock();
-}
-
-private void SetColor(Color color)
-{
-    m_renderer.GetPropertyBlock(m_propertyBlock);
-    m_propertyBlock.SetColor(k_colorId, color);
-    m_renderer.SetPropertyBlock(m_propertyBlock);
-}
-```
-
-### GetComponent and Find Operations
-
-- ❌ **Never call GetComponent in Update** — cache in Awake/Start.
-- ❌ Avoid `FindObjectOfType`, `FindObjectsOfType` at runtime.
-- ✅ Use `[SerializeField]` to assign references in the Inspector.
-
-```csharp
-// ✅ Good - cached
-private Rigidbody m_rigidbody;
-
-private void Awake()
-{
-    TryGetComponent(out m_rigidbody);
-}
-```
-
-### LINQ and Delegates
-
-- ❌ **Never use LINQ in Update loops**.
-- ❌ Avoid lambda expressions in hot paths.
-- ✅ Use explicit loops instead.
-
-### Async and Coroutine Patterns
-
-- ✅ Prefer `Awaitable` (Unity 6+) over coroutines.
-- ✅ Cache `WaitForSeconds` objects when using coroutines repeatedly.
-
-```csharp
-// ✅ Better - Unity 6 Awaitable (no allocation)
-private async Awaitable PeriodicUpdateAsync(CancellationToken token)
-{
-    while (!token.IsCancellationRequested)
-    {
-        await Awaitable.WaitForSecondsAsync(0.1f, token);
-        if (this == null) return;
-        DoSomething();
-    }
-}
-```
-
-### Profiling Markers
-
-```csharp
-using Unity.Profiling;
-
-private static readonly ProfilerMarker s_updateMarker =
-    new ProfilerMarker("PerformanceCriticalSystem.Update");
-
-private void Update()
-{
-    using (s_updateMarker.Auto())
-    {
-        // Code to profile
-    }
-}
-```
+- ❌ **Never allocate in Update/FixedUpdate/LateUpdate** — no `new List<T>()`, no string concatenation, no LINQ.
+- ✅ Pre-allocate collections with expected capacity; call `.Clear()` to reuse.
+- ✅ Cache component references (`GetComponent`, `Transform`, `Rigidbody`) in `Awake()`.
+- ❌ Never call `GetComponent`, `FindObjectOfType`, or `Camera.main` in Update loops.
+- ✅ Use `Physics.OverlapSphereNonAlloc` / `RaycastNonAlloc` with a pre-allocated buffer array.
+- ✅ Use `.sharedMaterial` instead of `.material`; use `MaterialPropertyBlock` for per-instance changes.
+- ✅ Use dirty flags to recalculate expensive values only when state changes.
+- ✅ Prefer `Awaitable` over coroutines (no allocation); cache `WaitForSeconds` if using coroutines.
 
 ### Common Anti-Patterns
 
@@ -1345,38 +1002,6 @@ Checklist:
 
 ---
 
-## Summary: Quick Checklist
-
-### Always Do ✅
-- Cache component references in Awake()
-- Pre-allocate collections with expected capacity
-- Subscribe in OnEnable(), unsubscribe in OnDisable()
-- Use `[CreateProperty]` for bindable properties
-- Name methods with clear verbs (Process/Handle pattern)
-- Use correct prefixes (`m_`, `s_`, `k_`)
-- Use non-allocating physics methods
-- Cache shader property IDs
-
-### Never Do ❌
-- GetComponent/Find in Update loops
-- Allocate (new) in Update loops
-- Use LINQ in Update loops
-- String concatenation in hot paths
-- Access `Camera.main` every frame
-- Create WaitForSeconds in coroutine loops
-- Forget to unsubscribe from events
-- Use hex colors in USS
-- Forget `[CreateProperty]` or `INotifyBindablePropertyChanged`
-
-### Consider ⚠️
-- Throttle expensive operations
-- Batch physics queries
-- Profile on target platform
-- Use Jobs/Burst for heavy computation
-- Use object pooling for frequently spawned objects
-
----
-
-**Document Version:** 2.0
-**Last Updated:** February 2026
+**Document Version:** 2.1
+**Last Updated:** March 2026
 **Target Platform:** Unity 6.3+
