@@ -9,7 +9,7 @@ namespace Unity.BestPractices.Editor
     /// via <b>Window → Best Practices → Setup Tags and Layers</b>.
     /// </summary>
     [CreateAssetMenu(fileName = "TagsAndLayersConfig",
-        menuName = "Workbench/Tags And Layers Config",
+        menuName = "Project Configurator/Tags And Layers Config",
         order = 10)]
     public class TagsAndLayersConfig : ScriptableObject
     {

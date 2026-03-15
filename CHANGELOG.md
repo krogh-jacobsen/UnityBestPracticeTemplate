@@ -11,7 +11,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Section dividers** — thin horizontal rules between dashboard panels improve visual separation without changing individual card layout
 
 ### Changed
-- **Package renamed to Unity Workbench** — `displayName` updated to `Unity Workbench`; all menu items moved to `Tools/Unity Workbench/`; Create Asset menus updated from `Best Practices/` to `Workbench/`
+- **Package renamed to Unity Project Configurator** — `displayName` updated to `Unity Project Configurator`; all menu items moved to `Tools/Unity Project Configurator/`; Create Asset menus updated from `Best Practices/` to `Project Configurator/`
 - **Menu reorganisation** — all tools consolidated from the mixed `Window/Best Practices/` and `Tools/Unity Best Practices/` locations into a single `Tools/Unity Workbench/` hierarchy with submenus (`Setup`, `Code`, `Version Control`, `AI`, `Utilities`); `Open Dashboard` is pinned at the top (priority 1)
 - **Import preset glob patterns** — preset folder filters no longer rely on the hardcoded `_ProjectName` root; patterns now use `Assets/**/<FolderName>/**` so they match the named folder at any depth regardless of project root name
 - **Disable button colour** — the `Disable` button tint changed from saturated red `(0.9, 0.5, 0.5)` to a softer rose `(0.85, 0.65, 0.65)` to reduce visual noise

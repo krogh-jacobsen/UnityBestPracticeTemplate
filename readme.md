@@ -1,4 +1,4 @@
-# Unity Workbench — `com.unity.best-practices`
+# Unity Project Configurator — `com.unity.best-practices`
 
 A Unity editor toolkit that accelerates project setup, enforces consistent C# coding standards, and supercharges AI-assisted development with curated LLM instruction files and agent skills.
 
@@ -10,24 +10,24 @@ Supports **Unity 6000.3+** · License: **MIT**
 
 Open the dashboard from the top menu — it shows live status of every setup step:
 
-**Tools → Unity Workbench → Open Dashboard**
+**Tools → Unity Project Configurator → Open Dashboard**
 
 For a one-click full setup, use the wizard:
 
-**Tools → Unity Workbench → Setup → New Project Wizard**
+**Tools → Unity Project Configurator → Setup → New Project Wizard**
 
 Or run individual steps:
 
 | Step | Action | Menu Path | Description |
 |------|--------|-----------|-------------|
-| 1 | **Open Dashboard** | Tools → Unity Workbench | Project health overview — live status of all steps |
-| 2 | **Setup Project Folders** | Tools → Unity Workbench → Setup | Scaffolds the recommended folder structure |
-| 3 | **Configure Project Settings** | Tools → Unity Workbench → Setup | Applies version control, enter play mode options, etc. |
-| 4 | **Configure Import Presets** | Tools → Unity Workbench → Setup | Registers import presets in Preset Manager |
-| 5 | **Setup Tags and Layers** | Tools → Unity Workbench → Setup | Applies tags and layers from a config asset |
-| 6 | **Generate .gitignore** | Tools → Unity Workbench → Version Control | Creates a Unity-optimised `.gitignore` |
-| 7 | **Generate .editorconfig** | Tools → Unity Workbench → Code | Creates an `.editorconfig` enforcing the C# style guide |
-| 8 | **Copy AI Files to Project** | Tools → Unity Workbench → AI | Copies LLM instruction files and agent skills into your project |
+| 1 | **Open Dashboard** | Tools → Unity Project Configurator | Project health overview — live status of all steps |
+| 2 | **Setup Project Folders** | Tools → Unity Project Configurator → Setup | Scaffolds the recommended folder structure |
+| 3 | **Configure Project Settings** | Tools → Unity Project Configurator → Setup | Applies version control, enter play mode options, etc. |
+| 4 | **Configure Import Presets** | Tools → Unity Project Configurator → Setup | Registers import presets in Preset Manager |
+| 5 | **Setup Tags and Layers** | Tools → Unity Project Configurator → Setup | Applies tags and layers from a config asset |
+| 6 | **Generate .gitignore** | Tools → Unity Project Configurator → Version Control | Creates a Unity-optimised `.gitignore` |
+| 7 | **Generate .editorconfig** | Tools → Unity Project Configurator → Code | Creates an `.editorconfig` enforcing the C# style guide |
+| 8 | **Copy AI Files to Project** | Tools → Unity Project Configurator → AI | Copies LLM instruction files and agent skills into your project |
 
 ---
 
@@ -36,12 +36,12 @@ Or run individual steps:
 ### Project Dashboard
 A single-window overview of your project's setup health. Each card shows the current status and lets you apply the corresponding setting or tool without leaving the window. Every card has a `?` button with a brief explainer.
 
-**Open:** Tools → Unity Workbench → Open Dashboard
+**Open:** Tools → Unity Project Configurator → Open Dashboard
 
 ### New Project Wizard
 Runs all setup steps in one click: creates the folder structure, applies project settings, configures import presets, sets up tags and layers, and generates `.gitignore` and `.editorconfig`.
 
-**Open:** Tools → Unity Workbench → Setup → New Project Wizard
+**Open:** Tools → Unity Project Configurator → Setup → New Project Wizard
 
 ### C# Coding Style Guide
 
@@ -72,7 +72,7 @@ Ready-to-use instruction files for AI coding assistants (Claude Code, GitHub Cop
 - **GitHub Copilot** — Copy into `.github/copilot-instructions.md` or reference via workspace settings
 - **Gemini CLI / Codex** — Add to your IDE's LLM context configuration
 
-Run **Tools → Unity Workbench → AI → Copy AI Files to Project** to copy all instruction files into your project with one click.
+Run **Tools → Unity Project Configurator → AI → Copy AI Files to Project** to copy all instruction files into your project with one click.
 
 ### Agent Skills
 
@@ -109,7 +109,7 @@ Performance-optimised importer presets that apply consistent, best-practice sett
 | `FBXModelImporter` | `Assets/**/Art/Models/**` |
 | `FBXAnimationImporter` | `Assets/**/Art/Animations/**` |
 
-> Run **Tools → Unity Workbench → Setup → Configure Import Presets** to register all of the above automatically. You can review and edit them in **Edit → Project Settings → Preset Manager**.
+> Run **Tools → Unity Project Configurator → Setup → Configure Import Presets** to register all of the above automatically. You can review and edit them in **Edit → Project Settings → Preset Manager**.
 
 ### Script Templates
 Custom script templates available via **Assets → Create → Scripting** that generate boilerplate matching the project's coding style guide out of the box.
@@ -154,9 +154,9 @@ Register a standard set of tags, sorting layers, and physics layers from a confi
 
 **How to customise:**
 
-1. Create a config asset: **Assets → Create → Workbench → Project Tags and Layers**
+1. Create a config asset: **Assets → Create → Project Configurator → Project Tags and Layers**
 2. Edit the tags, sorting layers, and physics layers in the Inspector
-3. Run **Tools → Unity Workbench → Setup → Setup Tags and Layers**
+3. Run **Tools → Unity Project Configurator → Setup → Setup Tags and Layers**
 
 > If no config asset is found in the project, you'll be prompted to use the package defaults. Existing tags and layers are preserved — only new entries are added.
 
@@ -186,7 +186,7 @@ Register a standard set of tags, sorting layers, and physics layers from a confi
 
 ## Project Folder Structure
 
-Running **Tools → Unity Workbench → Setup → Setup Project Folders** creates the following layout:
+Running **Tools → Unity Project Configurator → Setup → Setup Project Folders** creates the following layout:
 
 ```
 Assets/
@@ -295,7 +295,7 @@ Add the following entry to your project's `Packages/manifest.json`:
 1. Clone the repository
 2. Open the dev project at `UnityBestPracticesPackage-Dev/` in Unity
 3. The package source lives in `LocalPackages/UnityBestPracticeTemplate/`
-4. Make your changes and test via the menu items under **Tools → Unity Workbench**
+4. Make your changes and test via the menu items under **Tools → Unity Project Configurator**
 5. Submit a pull request
 
 ---

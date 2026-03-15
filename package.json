@@ -1,7 +1,7 @@
 {
   "name": "com.unity.best-practices",
   "version": "1.4.2",
-  "displayName": "Unity Workbench",
+  "displayName": "Unity Project Configurator",
   "unity": "6000.3",
   "description": "A Unity editor toolkit that accelerates project setup, enforces C# coding standards, and supercharges AI-assisted development with curated LLM instruction files and agent skills.",
   "author": {

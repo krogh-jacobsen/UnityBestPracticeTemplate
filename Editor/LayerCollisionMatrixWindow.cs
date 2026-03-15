@@ -30,7 +30,7 @@ namespace Unity.BestPractices.Editor
 
         #region Editor Window Methods
 
-        [MenuItem("Tools/Unity Workbench/Utilities/Layer Collision Matrix", false, 250)]
+        [MenuItem("Tools/Unity Project Configurator/Utilities/Layer Collision Matrix", false, 250)]
         public static void ShowWindow()
         {
             var window = GetWindow<LayerCollisionMatrixWindow>("Layer Collision Matrix");

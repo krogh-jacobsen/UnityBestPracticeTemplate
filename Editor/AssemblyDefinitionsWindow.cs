@@ -32,7 +32,7 @@ namespace Unity.BestPractices.Editor
         private List<AsmdefInfo> m_Asmdefs;
         private bool m_ShowDetails = true;
 
-        [MenuItem("Tools/Unity Workbench/Code/Assembly Definitions", false, 100)]
+        [MenuItem("Tools/Unity Project Configurator/Code/Assembly Definitions", false, 100)]
         public static void ShowWindow()
         {
             var window = GetWindow<AssemblyDefinitionsWindow>("Assembly Definitions");

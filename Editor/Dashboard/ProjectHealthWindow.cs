@@ -10,7 +10,7 @@ namespace UnityBestPractices.Editor.Dashboard
         private Vector2 m_scrollPosition;
         private bool m_showDetails = true;
 
-        [MenuItem("Tools/Unity Workbench/Project Health", false, 21)]
+        [MenuItem("Tools/Unity Project Configurator/Project Health", false, 21)]
         public static void ShowWindow()
         {
             var window = GetWindow<ProjectHealthWindow>("Project Health");
