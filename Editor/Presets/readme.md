@@ -495,3 +495,61 @@ UI compression artifacts are far more noticeable than in-world texture compressi
 
 ### Limit Max Size Globally
 The biggest production mistake is accidental 8K textures making it into builds. A single uncontrolled texture can consume more memory than dozens of properly sized ones. Always cap Max Size in presets — it's easier to selectively increase size for hero assets than to hunt down oversized textures later.
+
+---
+
+## FBX Models (`Models/FBXModelImporter.preset`)
+
+Applied to: `Assets/**/Art/Models/**`
+
+This preset targets static mesh FBX files — environment props, characters, and other geometry that is imported primarily for its mesh data.
+
+| Setting | Value | Notes |
+|---------|-------|-------|
+| **Global Scale** | 1 | Use file scale |
+| **Use File Scale** | ON | Respects DCC tool units |
+| **Mesh Compression** | Off | Lossless — compress at runtime via LODs instead |
+| **Read/Write Enabled** | OFF | Saves memory; enable only for meshes modified at runtime |
+| **Optimize Mesh** | ON (polygons + vertices) | Reorders geometry for GPU cache efficiency |
+| **Import Blend Shapes** | OFF | Disable unless your models require morph targets |
+| **Import Cameras** | OFF | Cameras exported from DCC tools are rarely needed |
+| **Import Lights** | OFF | Lights exported from DCC tools are rarely needed |
+| **Generate Materials** | Import via Material Description | Creates Unity materials from embedded FBX materials |
+| **Import Animation** | OFF | Use the FBX Animation preset for animation-only FBX files |
+
+### Why disable Read/Write?
+Marking a mesh as readable keeps a second copy in CPU memory alongside the GPU copy. This doubles the mesh memory footprint. Only enable it when you need `Mesh.vertices` / `Mesh.triangles` access at runtime (e.g., procedural deformation, runtime collision generation).
+
+---
+
+## FBX Animations (`Animations/FBXAnimationImporter.preset`)
+
+Applied to: `Assets/**/Art/Animations/**`
+
+This preset targets FBX files that carry animation clips — either dedicated animation FBX files or files re-imported specifically for their animation data. Mesh import is disabled to avoid duplicating geometry that already lives in a model FBX.
+
+| Setting | Value | Notes |
+|---------|-------|-------|
+| **Global Scale** | 1 | Use file scale |
+| **Import Animation** | ON | Primary purpose of this preset |
+| **Animation Compression** | Optimal | Unity chooses best reduction per curve automatically |
+| **Rotation Error** | 0.5° | Acceptable precision for most gameplay animations |
+| **Position Error** | 0.5 | Acceptable precision for most gameplay animations |
+| **Scale Error** | 0.5 | Acceptable precision for most gameplay animations |
+| **Resample Curves** | ON | Ensures consistent playback across frame rates |
+| **Wrap Mode** | Default | Controlled per-clip in the Animator rather than the importer |
+| **Import Meshes** | OFF | Mesh data lives in the model FBX, not the animation FBX |
+| **Import Cameras** | OFF | Not needed for animation playback |
+| **Import Lights** | OFF | Not needed for animation playback |
+| **Generate Materials** | None | No materials needed for animation-only imports |
+
+### Animation Compression Levels
+| Value | Enum | When to use |
+|-------|------|-------------|
+| 0 | Off | Debugging only — larger file, no reduction |
+| 1 | Keyframe Reduction | Good quality, moderate reduction |
+| 2 | Keyframe Reduction + Compression | Smaller files, minor quality loss |
+| 3 | **Optimal** (default) | Unity analyses each curve; best size/quality trade-off |
+
+### Split vs Merged Animation FBX
+A common pipeline pattern is to keep a single "rig" FBX (mesh + skeleton) in `Art/Models/` and separate "anim" FBX files (skeleton + clips only, no mesh) in `Art/Animations/`. This preset is designed for that second category. If your pipeline merges mesh and animation into one file, you will need a custom preset or per-file override.

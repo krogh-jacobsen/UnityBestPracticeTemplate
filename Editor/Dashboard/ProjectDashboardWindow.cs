@@ -1359,16 +1359,48 @@ namespace UnityBestPractices.Editor.Dashboard
                             "formatter configuration needed per developer.",
                             "The generated file enforces the package's C# coding standard:\n" +
                             "  • Allman (open-brace-on-new-line) brace style\n" +
-                            "  • 4-space indentation\n" +
+                            "  • 4-space indentation, max 120 characters per line\n" +
                             "  • LF line endings and UTF-8 encoding\n" +
-                            "  • m_ prefix required on private instance fields\n" +
-                            "  • Naming rules for constants, properties and methods\n" +
-                            "  • Various C# diagnostic severity overrides",
+                            "  • m_ prefix for private instance fields (e.g. m_health)\n" +
+                            "  • s_ prefix for private static fields (e.g. s_instance)\n" +
+                            "  • k_ prefix for constants (e.g. k_maxCount)\n" +
+                            "  • PascalCase for properties and methods\n" +
+                            "  • System using directives sorted first",
                             "Without this file each developer's IDE applies its own default formatting, " +
                             "which leads to noisy diffs and inconsistent style across the team."
                         },
                         runLabel: "Generate Now",
                         runAction: GenerateEditorConfig.Execute));
+
+                bool vsCodeFixed = FixVSCodeSlnx.IsFixed(projectRoot);
+                DrawToolCard(
+                    "Fix VS Code .slnx",
+                    "Removes dotnet.preferCSharpExtension from .vscode/settings.json and adds C# Dev Kit to .vscode/extensions.json. Fixes \"Active document not part of open workspace\" errors caused by Unity 6 generating .slnx files that OmniSharp does not support.",
+                    vsCodeFixed, vsCodeFixed ? ".vscode files configured for C# Dev Kit" : "",
+                    vsCodeFixed ? "Done" : "Run", FixVSCodeSlnx.Execute, 60,
+                    helpAction: () => ExplainerWindow.Show(
+                        "Fix VS Code .slnx",
+                        new[]
+                        {
+                            "Unity 6 generates .slnx solution files (a new format). The classic C# " +
+                            "extension (OmniSharp) does not support .slnx, which causes VS Code to " +
+                            "show \"Active document not part of open workspace\" on every C# file.",
+                            "ROOT CAUSE\n" +
+                            "The setting dotnet.preferCSharpExtension: true in .vscode/settings.json " +
+                            "forces VS Code to use OmniSharp instead of C# Dev Kit. Removing it lets " +
+                            "VS Code pick C# Dev Kit, which fully supports the .slnx format.",
+                            "WHAT THIS FIX DOES\n" +
+                            "1. Removes dotnet.preferCSharpExtension from .vscode/settings.json\n" +
+                            "2. Adds ms-dotnettools.csdevkit to .vscode/extensions.json recommendations",
+                            "AFTER RUNNING\n" +
+                            "Install C# Dev Kit in VS Code if not already installed, then reload the " +
+                            "VS Code window (Cmd/Ctrl+Shift+P → Reload Window). Open the project via " +
+                            "Unity → Assets → Open C# Project so it loads with the .slnx workspace."
+                        },
+                        runLabel: "Apply Fix",
+                        runAction: FixVSCodeSlnx.Execute));
+
+                DrawUnityMCPCard(projectRoot);
 
                 DrawToolCard(
                     "Assembly Definitions",
@@ -1599,6 +1631,89 @@ namespace UnityBestPractices.Editor.Dashboard
                 GUI.color = isComplete ? new Color(0.5f, 0.8f, 0.5f) : new Color(0.6f, 0.6f, 0.6f);
                 GUILayout.Label(statusText, EditorStyles.miniLabel);
                 GUI.color = statusColor;
+            }
+
+            EditorGUILayout.EndVertical();
+            GUILayout.Space(3);
+        }
+
+        private void DrawUnityMCPCard(string projectRoot)
+        {
+            bool configured = ConfigureUnityMCP.IsConfigured;
+            bool relayInstalled = ConfigureUnityMCP.IsRelayInstalled;
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.BeginHorizontal();
+
+            var prevColor = GUI.color;
+            GUI.color = configured ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.7f, 0.7f, 0.7f);
+            GUILayout.Label(configured ? "[Configured]" : "[  ]", GUILayout.Width(configured ? 84 : 36));
+            GUI.color = prevColor;
+
+            GUILayout.Label("Configure Unity MCP", EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+
+            if (GUILayout.Button("?", GUILayout.Width(20)))
+            {
+                ExplainerWindow.Show(
+                    "Configure Unity MCP",
+                    new[]
+                    {
+                        "Unity MCP (Model Context Protocol) lets AI coding assistants — GitHub Copilot, " +
+                        "Claude Code and others — interact directly with the Unity Editor. " +
+                        "The AI can read project structure, query scripts, access component data, " +
+                        "and get Unity-specific context for far more accurate suggestions.",
+                        "HOW IT WORKS\n" +
+                        "Unity runs a relay server locally at ~/.unity/relay/. " +
+                        "The MCP client in your IDE connects to the relay, which forwards requests to " +
+                        "the open Unity Editor. The relay is installed automatically alongside Unity 6+.",
+                        "WHAT GETS CONFIGURED\n" +
+                        "This tool writes UserSettings/mcp.json (excluded from version control) with:\n" +
+                        "  • enabled: true — activates MCP integration\n" +
+                        "  • command — path to the relay binary (macOS ARM64)\n" +
+                        "  • args: [\"--mcp\"] — starts the relay in MCP mode\n" +
+                        "  • UNITY_MCP_LOG_LEVEL: info — enables relay logging for debugging",
+                        "AFTER RUNNING\n" +
+                        "Restart your IDE (Rider or VS Code) to activate the MCP connection. " +
+                        "In JetBrains Rider, MCP settings are read automatically from mcp.json. " +
+                        "For VS Code, ensure the GitHub Copilot extension is up to date. " +
+                        "The relay must be running (Unity Editor open) for the AI to connect.",
+                        "PREREQUISITES\n" +
+                        "Unity 6.0+ is required. The relay binary is installed at:\n" +
+                        "~/.unity/relay/relay_mac_arm64.app/\n" +
+                        "If it is missing, update Unity Hub or reinstall Unity 6."
+                    });
+            }
+
+            if (configured)
+            {
+                if (GUILayout.Button("Open", GUILayout.Width(50)))
+                    UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(ConfigureUnityMCP.McpJsonPath, 1, 0);
+            }
+            else
+            {
+                using (new EditorGUI.DisabledScope(!relayInstalled))
+                {
+                    if (GUILayout.Button("Run", GUILayout.Width(44)))
+                    {
+                        ConfigureUnityMCP.Execute();
+                        Repaint();
+                    }
+                }
+            }
+
+            EditorGUILayout.EndHorizontal();
+
+            GUILayout.Label(
+                "Writes UserSettings/mcp.json so AI assistants (GitHub Copilot, Claude Code) can connect to the Unity Editor via the local relay server for project-aware suggestions.",
+                EditorStyles.wordWrappedMiniLabel);
+
+            if (!relayInstalled)
+            {
+                var warnColor = GUI.color;
+                GUI.color = new Color(0.9f, 0.75f, 0.2f);
+                GUILayout.Label("⚠  Relay not found at ~/.unity/relay/ — update Unity Hub or reinstall Unity 6 to install it.", EditorStyles.miniLabel);
+                GUI.color = warnColor;
             }
 
             EditorGUILayout.EndVertical();

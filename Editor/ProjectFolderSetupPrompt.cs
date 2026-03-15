@@ -36,8 +36,13 @@ namespace Unity.BestPractices.Editor
             {
                 if (GUILayout.Button("Create Folders", GUILayout.Height(28)))
                 {
-                    SetupProjectFolders.Execute(m_projectName.Trim());
+                    string trimmed = m_projectName.Trim();
+                    SetupProjectFolders.Execute(trimmed);
                     Close();
+                    EditorUtility.DisplayDialog(
+                        "Folders Created",
+                        $"Project folder structure created under Assets/{trimmed}.",
+                        "OK");
                 }
             }
         }

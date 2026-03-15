@@ -1,9 +1,18 @@
 # Unity Code Review
 
-You are performing a structured Unity C# code review. Analyse the selected code (or the file currently open in the editor if no code is selected) against two standards:
+You are performing a structured Unity code review. The input may be:
 
-1. **Code Style** — conventions from `UnityCodeStyleInstructions.md`
-2. **Performance** — patterns from `UnityPerformanceOptimizationInstructions.md`
+- A **single file** (selected code or the file currently open in the editor)
+- A **folder path** — in which case recursively find and review **all** `.cs`, `.uss`, and `.uxml` files within it and its subfolders
+
+Apply the correct checklist based on file type:
+
+| File type | Standards to apply |
+|---|---|
+| `.cs` | Code Style (`UnityCodeStyleInstructions.md`) + Performance (`UnityPerformanceOptimizationInstructions.md`) |
+| `.uss` / `.uxml` | UI Toolkit (`UnityUIToolkitInstructions.md`) — BEM naming, USS/UXML conventions, data binding patterns |
+
+When reviewing a folder, process each file in turn and produce a combined report with per-file sections.
 
 ---
 
@@ -11,11 +20,11 @@ You are performing a structured Unity C# code review. Analyse the selected code 
 
 Work through each category below. For every issue found, output:
 
-- **Category** — which area it falls under (e.g. Naming, Allocation, Caching)
+- **Category** — which area it falls under (e.g. Naming, Allocation, BEM, USS Property)
 - **Severity** — `Critical` / `Warning` / `Suggestion`
-- **Location** — class name, method name, or line reference
+- **Location** — file name, class/method name, or element name/line reference
 - **Issue** — concise description of the problem
-- **Fix** — corrected code snippet or specific action to take
+- **Fix** — corrected code/markup snippet or specific action to take
 
 After all issues, output a **Summary** with total counts per severity and an overall verdict: `Pass`, `Pass with warnings`, or `Fail`.
 
@@ -132,10 +141,53 @@ Flag any occurrence of:
 
 ---
 
+## UI Toolkit Checklist (.uss / .uxml)
+
+### BEM Naming Conventions
+
+- [ ] Class names use **kebab-case** — `navbar-menu`, not `navbarMenu` or `NavbarMenu`
+- [ ] BEM blocks are meaningful standalone components — `login-form`, not generic `form`
+- [ ] BEM elements use `__` separator — `login-form__input-field`, not `login-form-input`
+- [ ] BEM modifiers use `--` separator — `button--primary`, not `button-primary`
+- [ ] No camelCase, PascalCase, or underscores in class/name values
+
+### USS Properties
+
+- [ ] Colors use `rgb()` or `rgba()` — **no hex values** (`#FF6432` does not work in USS)
+- [ ] No `calc()` — not supported in USS; use `flex-grow` or fixed values instead
+- [ ] No `display: grid` — USS supports **flexbox only**
+- [ ] No `gap` property — use `margin` on child elements instead
+- [ ] No `em` / `rem` / `vw` / `vh` units — only `px` and `%`
+- [ ] Text alignment uses `-unity-text-align`, not `text-align`
+- [ ] Font style uses `-unity-font-style`, not `font-style`
+- [ ] No `:nth-child()`, `:not()`, `:first-child`, `:last-child` — unsupported pseudo-classes
+- [ ] CSS variables defined in `:root {}` only — not scoped to other selectors
+
+### UXML Structure
+
+- [ ] File named in **PascalCase** — `MainMenu.uxml`, not `main-menu.uxml`
+- [ ] Elements use `name` for unique C# query targets (kebab-case)
+- [ ] Elements use `class` for reusable BEM styles
+- [ ] `binding-path` values exactly match the C# property name (case-sensitive)
+- [ ] `[CreateProperty]` attribute present on all bound C# properties
+- [ ] `data-source-type` attribute set on binding root element when using runtime data binding
+
+### When naming issues are found in .uss / .uxml
+
+For any class name or `name` attribute that violates BEM or kebab-case rules, provide **both**:
+
+1. The current (incorrect) value
+2. The corrected replacement — e.g. `navBarMenu` → `navbar-menu`, `login-form-input` → `login-form__input`
+
+List all affected selectors in the `.uss` file and all affected `class` / `name` attributes in the `.uxml` file so the developer can apply them as a batch find-and-replace.
+
+---
+
 ## Output Format
 
+When reviewing a **single file**:
 ```
-## Unity Code Review — [FileName or selection]
+## Unity Code Review — [FileName]
 
 ### Issues Found
 
@@ -143,6 +195,8 @@ Flag any occurrence of:
 |---|----------|----------|----------|-------|-----|
 | 1 | Critical  | Naming   | PlayerController.Update | Field `health` missing `m_` prefix | Rename to `m_health` |
 | 2 | Warning   | Allocation | EnemyAI.Update | `GetComponent<Renderer>()` called each frame | Cache in `Awake`: `m_renderer = GetComponent<Renderer>()` |
+| 3 | Warning   | BEM Naming | MainMenu.uxml | `name="navbarMenu"` uses camelCase | Change to `name="navbar-menu"` |
+| 4 | Critical  | USS Property | MainMenu.uss | `color: #FF0000` — hex not supported | Change to `color: rgb(255, 0, 0)` |
 
 ### Summary
 
@@ -153,19 +207,47 @@ Flag any occurrence of:
 **Verdict: [Pass / Pass with warnings / Fail]**
 ```
 
+When reviewing a **folder**, produce one section per file then a combined summary:
+```
+## Unity Code Review — [FolderPath/]
+
+### PlayerController.cs
+[issues table]
+
+### MainMenu.uxml
+[issues table]
+
+### MainMenu.uss
+[issues table]
+
+---
+### Combined Summary
+
+- Files reviewed: N (.cs: X, .uxml: Y, .uss: Z)
+- Critical: X  |  Warning: Y  |  Suggestion: Z
+
+**Overall Verdict: [Pass / Pass with warnings / Fail]**
+```
+
 ---
 
 ## Usage
 
 **Claude Code** — invoke as a project skill:
 ```
-/project:UnityCodeReview
+/UnityCodeReview
 ```
-Then reference the file: `Review @Assets/Scripts/PlayerController.cs`
+Then specify what to review:
+- Single file: `Review @Assets/Scripts/PlayerController.cs`
+- Folder (recursive): `Review @Assets/Scripts/UI/`
 
 **GitHub Copilot Chat** — reference this file and ask:
 ```
 Using @UnityCodeReview.md, review the open file for style and performance issues.
 ```
+Or for a folder:
+```
+Using @UnityCodeReview.md, review all files under Assets/Scripts/UI/ including subfolders.
+```
 
-**Any chat interface** — paste the checklist sections above along with your code and ask the model to work through them systematically.
+**Any chat interface** — paste the checklist sections above along with your code/markup and ask the model to work through them systematically.
