@@ -1520,6 +1520,10 @@ namespace UnityBestPractices.Editor.Dashboard
                     "Lists all .asmdef files in the project with their key configuration data — names, namespaces, platform filters and references. Also provides a one-click Generate button.",
                     AssemblyDefinitionsWindow.ShowWindow);
 
+                DrawWindowCard("Package Boilerplate",
+                    "Generate a new UPM package folder with package.json, assembly definitions, and optional README/CHANGELOG/Tests.",
+                    PackageBoilerplateWindow.ShowWindow);
+
                 DrawWindowCard("Project Health",
                     "Runs validation checks across the project and lists errors, warnings and available auto-fixes.",
                     ProjectHealthWindow.ShowWindow);
