@@ -50,9 +50,34 @@ namespace Unity.BestPractices.Editor
         [MenuItem("Tools/Unity Project Configurator/Setup/Create Package Boilerplate", false, 30)]
         public static void ShowWindow()
         {
+            PackageNamePromptWindow.Show();
+        }
+
+        /// <summary>
+        /// Opens the window with <paramref name="packageName"/> pre-filled and the display name auto-derived.
+        /// Called by <see cref="PackageNamePromptWindow"/> after the user confirms a name.
+        /// </summary>
+        internal static void ShowWindowWithName(string packageName)
+        {
             var window = GetWindow<PackageBoilerplateWindow>("Package Boilerplate");
             window.minSize = new Vector2(450, 620);
+            window.m_PackageName = packageName;
+            window.m_DisplayName = DeriveDisplayName(packageName);
+            window.ValidateInputs();
             window.Show();
+        }
+
+        /// <summary>
+        /// Derives a human-friendly display name from the last segment of a reverse-domain package name.
+        /// E.g. "com.mycompany.mypackage" → "Mypackage"
+        /// </summary>
+        private static string DeriveDisplayName(string packageName)
+        {
+            if (string.IsNullOrWhiteSpace(packageName)) return "My Package";
+            string[] parts = packageName.Split('.');
+            string last = parts[parts.Length - 1];
+            if (last.Length == 0) return "My Package";
+            return char.ToUpper(last[0]) + last.Substring(1);
         }
 
         private void OnEnable()
@@ -586,6 +611,52 @@ SOFTWARE.
             string result = EditorGUILayout.TextField(value);
             EditorGUILayout.EndHorizontal();
             return result;
+        }
+    }
+
+    /// <summary>
+    /// Small prompt window that collects a package name before opening <see cref="PackageBoilerplateWindow"/>.
+    /// </summary>
+    internal class PackageNamePromptWindow : EditorWindow
+    {
+        private string m_PackageName = "com.company.packagename";
+
+        internal static void Show()
+        {
+            var window = GetWindow<PackageNamePromptWindow>(true, "New Package", true);
+            window.minSize = new Vector2(400, 110);
+            window.maxSize = new Vector2(400, 110);
+        }
+
+        private void OnGUI()
+        {
+            GUILayout.Space(10);
+            GUILayout.Label("Enter a package name (reverse-domain format):", EditorStyles.wordWrappedLabel);
+            GUILayout.Space(4);
+
+            GUI.SetNextControlName("PackageNameField");
+            m_PackageName = EditorGUILayout.TextField(m_PackageName);
+
+            GUILayout.Space(8);
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+
+            if (GUILayout.Button("Cancel", GUILayout.Width(80)))
+            {
+                Close();
+            }
+
+            if (GUILayout.Button("Continue", GUILayout.Width(80)))
+            {
+                PackageBoilerplateWindow.ShowWindowWithName(m_PackageName);
+                Close();
+            }
+
+            EditorGUILayout.EndHorizontal();
+
+            // Focus the text field on first render
+            if (Event.current.type == EventType.Repaint)
+                EditorGUI.FocusTextInControl("PackageNameField");
         }
     }
 }

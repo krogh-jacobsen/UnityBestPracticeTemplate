@@ -15,8 +15,6 @@ namespace UnityBestPractices.Editor.Dashboard
 
         // 0 = not installed, 1 = stopped, 2 = running
         private int m_mcpStatus = 0;
-        private string m_subSystemName = "";
-        private bool m_subSystemCreateAsmdef = true;
         private bool m_showLLMFiles = true;
         private bool m_showSkills = true;
         private bool m_showTools = true;
@@ -880,7 +878,6 @@ namespace UnityBestPractices.Editor.Dashboard
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
             int settingsOk = (ConfigureProjectSettings.IsEnterPlayModeConfigured ? 1 : 0)
-                + (ConfigureProjectSettings.IsIL2CPPConfigured ? 1 : 0)
                 + (ConfigureProjectSettings.IsApiCompatibilityConfigured ? 1 : 0)
                 + (ConfigureProjectSettings.IsAssetSerializationConfigured ? 1 : 0)
                 + (ConfigureProjectSettings.IsVersionControlConfigured ? 1 : 0)
@@ -889,13 +886,13 @@ namespace UnityBestPractices.Editor.Dashboard
                 + (ConfigureProjectSettings.IsCreateObjectsAtOriginConfigured ? 1 : 0)
                 + (ConfigureProjectSettings.IsNewHierarchyWindowConfigured ? 1 : 0)
                 + (ConfigureProjectSettings.IsAssetManagerImportLocationConfigured ? 1 : 0);
-            m_showProjectSettings = EditorGUILayout.Foldout(m_showProjectSettings, $"PROJECT SETTINGS — {settingsOk}/10 configured", true, EditorStyles.foldoutHeader);
+            m_showProjectSettings = EditorGUILayout.Foldout(m_showProjectSettings, $"PROJECT SETTINGS — {settingsOk}/9 configured", true, EditorStyles.foldoutHeader);
 
             if (m_showProjectSettings)
             {
                 GUILayout.Space(4);
 
-                bool allOk = settingsOk == 10;
+                bool allOk = settingsOk == 9;
 
                 using (new EditorGUI.DisabledScope(allOk))
                 {
@@ -929,29 +926,6 @@ namespace UnityBestPractices.Editor.Dashboard
                             "DISABLED (Unity default)\n" +
                             "Full domain reload runs on every Play mode entry. All static state is wiped " +
                             "automatically, but each iteration adds several seconds of wait time."
-                        }));
-
-                DrawSettingCard(
-                    "Scripting Backend: IL2CPP",
-                    "IL2CPP: best runtime performance and required for iOS. Enables full AOT compilation and better stripping.\nMono (default): faster editor build times but lower runtime performance — use Mono for fast iteration via Iteration Settings.",
-                    ConfigureProjectSettings.IsIL2CPPConfigured,
-                    ConfigureProjectSettings.ApplyIL2CPP,
-                    "Apply",
-                    openSettingsPath: "Project/Player",
-                    helpAction: () => ExplainerWindow.Show(
-                        "Scripting Backend: IL2CPP",
-                        new[]
-                        {
-                            "IL2CPP (recommended for release)\n" +
-                            "Transpiles .NET IL bytecode to C++ before compiling. Produces faster " +
-                            "runtime code, enables dead-code stripping, and is required for iOS App Store " +
-                            "submissions. Also makes reverse engineering harder.",
-                            "Mono (Unity default)\n" +
-                            "Compiles directly to .NET bytecode interpreted at runtime. Build times are " +
-                            "significantly shorter, making it ideal for day-to-day iteration. " +
-                            "Use Mono locally and switch to IL2CPP in CI/CD for release builds.",
-                            "Tip: the Iteration Settings panel lets you toggle backends quickly " +
-                            "between a Dev (Mono) and Release (IL2CPP) profile."
                         }));
 
                 DrawSettingCard(
@@ -1372,7 +1346,7 @@ namespace UnityBestPractices.Editor.Dashboard
                 bool vsCodeFixed = FixVSCodeSlnx.IsFixed(projectRoot);
                 DrawToolCard(
                     "Fix VS Code .slnx",
-                    "Removes dotnet.preferCSharpExtension from .vscode/settings.json and adds C# Dev Kit to .vscode/extensions.json. Fixes \"Active document not part of open workspace\" errors caused by Unity 6 generating .slnx files that OmniSharp does not support.",
+                    "Configures .vscode/settings.json with dotnet.defaultSolution (pointing to the .slnx file) and dotnet.enableWorkspaceBasedDevelopment: false; removes dotnet.preferCSharpExtension if present; adds C# Dev Kit to .vscode/extensions.json. Fixes \"Active document not part of open workspace\" errors caused by Unity 6 generating .slnx files.",
                     vsCodeFixed, vsCodeFixed ? ".vscode files configured for C# Dev Kit" : "",
                     vsCodeFixed ? "Done" : "Run", FixVSCodeSlnx.Execute, 60,
                     helpAction: () => ExplainerWindow.Show(
@@ -1383,12 +1357,14 @@ namespace UnityBestPractices.Editor.Dashboard
                             "extension (OmniSharp) does not support .slnx, which causes VS Code to " +
                             "show \"Active document not part of open workspace\" on every C# file.",
                             "ROOT CAUSE\n" +
-                            "The setting dotnet.preferCSharpExtension: true in .vscode/settings.json " +
-                            "forces VS Code to use OmniSharp instead of C# Dev Kit. Removing it lets " +
-                            "VS Code pick C# Dev Kit, which fully supports the .slnx format.",
+                            "C# Dev Kit needs to know which solution file to load and must use " +
+                            "solution-based (not workspace-based) project discovery. Without these " +
+                            "settings, it cannot associate C# files with the correct project.",
                             "WHAT THIS FIX DOES\n" +
                             "1. Removes dotnet.preferCSharpExtension from .vscode/settings.json\n" +
-                            "2. Adds ms-dotnettools.csdevkit to .vscode/extensions.json recommendations",
+                            "2. Adds dotnet.defaultSolution pointing to the project's .slnx file\n" +
+                            "3. Sets dotnet.enableWorkspaceBasedDevelopment to false\n" +
+                            "4. Adds ms-dotnettools.csdevkit to .vscode/extensions.json recommendations",
                             "AFTER RUNNING\n" +
                             "Install C# Dev Kit in VS Code if not already installed, then reload the " +
                             "VS Code window (Cmd/Ctrl+Shift+P → Reload Window). Open the project via " +
@@ -1396,6 +1372,7 @@ namespace UnityBestPractices.Editor.Dashboard
                         },
                         runLabel: "Apply Fix",
                         runAction: FixVSCodeSlnx.Execute));
+
 
                 DrawUnityMCPCard(projectRoot);
 
@@ -1522,7 +1499,7 @@ namespace UnityBestPractices.Editor.Dashboard
 
                 DrawWindowCard("Package Boilerplate",
                     "Generate a new UPM package folder with package.json, assembly definitions, and optional README/CHANGELOG/Tests.",
-                    PackageBoilerplateWindow.ShowWindow);
+                    PackageNamePromptWindow.Show, "Run");
 
                 DrawWindowCard("Project Health",
                     "Runs validation checks across the project and lists errors, warnings and available auto-fixes.",
@@ -1536,7 +1513,7 @@ namespace UnityBestPractices.Editor.Dashboard
             EditorGUILayout.EndVertical();
         }
 
-        private static void DrawWindowCard(string title, string description, System.Action openAction)
+        private static void DrawWindowCard(string title, string description, System.Action openAction, string buttonLabel = "Open")
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
 
@@ -1549,7 +1526,7 @@ namespace UnityBestPractices.Editor.Dashboard
 
             var prevColor = GUI.color;
             GUI.color = new Color(0.6f, 0.85f, 1f);
-            if (GUILayout.Button("Open", GUILayout.Width(50), GUILayout.ExpandHeight(true)))
+            if (GUILayout.Button(buttonLabel, GUILayout.Width(50), GUILayout.ExpandHeight(true)))
                 openAction?.Invoke();
             GUI.color = prevColor;
 
@@ -1850,7 +1827,6 @@ namespace UnityBestPractices.Editor.Dashboard
 
             GUILayout.Space(4);
 
-            // Project name row — show saved name or inline field if not set
             string savedProject = EditorPrefs.GetString(SetupProjectFolders.k_ProjectNamePrefKey, "");
             bool hasProjectName = !string.IsNullOrWhiteSpace(savedProject);
 
@@ -1862,53 +1838,22 @@ namespace UnityBestPractices.Editor.Dashboard
                 GUILayout.Label($"Project root: Assets/{savedProject}", EditorStyles.miniLabel);
                 GUI.color = c;
                 EditorGUILayout.EndHorizontal();
+                GUILayout.Space(4);
             }
             else
             {
-                EditorGUILayout.BeginHorizontal();
                 var c = GUI.color;
                 GUI.color = new Color(0.9f, 0.7f, 0.3f);
-                GUILayout.Label("Project name:", EditorStyles.miniLabel, GUILayout.Width(82));
+                GUILayout.Label("No project name saved — set one in the Tools section above first.", EditorStyles.wordWrappedMiniLabel);
                 GUI.color = c;
-                m_projectName = EditorGUILayout.TextField(m_projectName);
-                bool canSave = !string.IsNullOrWhiteSpace(m_projectName);
-                using (new EditorGUI.DisabledScope(!canSave))
-                {
-                    if (GUILayout.Button(new GUIContent("Save", "Save project name so sub-systems know where to create folders"), GUILayout.Width(44)))
-                    {
-                        SetupProjectFolders.SaveProjectName(m_projectName.Trim());
-                        RefreshData();
-                        GUI.FocusControl(null);
-                    }
-                }
-                EditorGUILayout.EndHorizontal();
-                GUILayout.Space(2);
+                GUILayout.Space(4);
             }
 
-            EditorGUILayout.BeginHorizontal();
-            m_subSystemName = EditorGUILayout.TextField(m_subSystemName);
-            bool canCreate = !string.IsNullOrWhiteSpace(m_subSystemName) && hasProjectName;
-            using (new EditorGUI.DisabledScope(!canCreate))
+            using (new EditorGUI.DisabledScope(!hasProjectName))
             {
-                if (GUILayout.Button("Create", GUILayout.Width(60)))
-                {
-                    string trimmed = m_subSystemName.Trim();
-                    string projectName = EditorPrefs.GetString(SetupProjectFolders.k_ProjectNamePrefKey, "");
-                    SetupProjectFolders.CreateSubSystem(trimmed);
-                    if (m_subSystemCreateAsmdef && !string.IsNullOrEmpty(projectName))
-                        GenerateAssemblyDefinitions.CreateSubSystemAsmdef(projectName, trimmed);
-                    m_subSystemName = "";
-                    RefreshData();
-                    GUI.FocusControl(null);
-                }
+                if (GUILayout.Button("Create Sub-system...", GUILayout.Height(26)))
+                    CreateSubSystemPrompt.ShowWindow();
             }
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.BeginHorizontal();
-            m_subSystemCreateAsmdef = EditorGUILayout.ToggleLeft(
-                new GUIContent("Create Assembly Definition", "Generates a .asmdef in Scripts/ referencing the project's Runtime assembly"),
-                m_subSystemCreateAsmdef);
-            EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.EndVertical();
             GUILayout.Space(3);

@@ -13,7 +13,6 @@ namespace UnityBestPractices.Editor.Validator
             var issues = new List<ValidationIssue>();
 
             CheckEnterPlayModeSettings(issues);
-            CheckScriptingBackend(issues);
 
             return new ValidationResult(Name, issues.ToArray());
         }
@@ -32,19 +31,5 @@ namespace UnityBestPractices.Editor.Validator
             }
         }
 
-        private static void CheckScriptingBackend(List<ValidationIssue> issues)
-        {
-            var backend = PlayerSettings.GetScriptingBackend(BuildTargetGroup.Standalone);
-            if (backend == ScriptingImplementation.Mono2x)
-            {
-                issues.Add(new ValidationIssue(
-                    "Standalone scripting backend is Mono. IL2CPP is recommended for release builds (better performance and security). " +
-                    "Change in Edit > Project Settings > Player, or use Window > Best Practices > Configure Project Settings.",
-                    ValidationSeverity.Info,
-                    "",
-                    "Project Settings"
-                ));
-            }
-        }
     }
 }

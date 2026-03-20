@@ -19,11 +19,6 @@ namespace Unity.BestPractices.Editor
             EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableDomainReload) &&
             EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableSceneReload);
 
-        public static bool IsIL2CPPConfigured =>
-            PlayerSettings.GetScriptingBackend(NamedBuildTarget.Standalone) == ScriptingImplementation.IL2CPP &&
-            PlayerSettings.GetScriptingBackend(NamedBuildTarget.Android) == ScriptingImplementation.IL2CPP &&
-            PlayerSettings.GetScriptingBackend(NamedBuildTarget.iOS) == ScriptingImplementation.IL2CPP;
-
         public static bool IsApiCompatibilityConfigured =>
             PlayerSettings.GetApiCompatibilityLevel(NamedBuildTarget.Standalone) == ApiCompatibilityLevel.NET_Standard;
 
@@ -77,15 +72,6 @@ namespace Unity.BestPractices.Editor
             EditorSettings.enterPlayModeOptions =
                 EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload;
             Debug.Log("[Best Practices] Enter Play Mode options configured.");
-        }
-
-        public static void ApplyIL2CPP()
-        {
-            PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.IL2CPP);
-            PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
-            PlayerSettings.SetScriptingBackend(NamedBuildTarget.iOS, ScriptingImplementation.IL2CPP);
-            AssetDatabase.SaveAssets();
-            Debug.Log("[Best Practices] Scripting backend set to IL2CPP for Standalone, Android, iOS.");
         }
 
         public static void ApplyApiCompatibility()
@@ -191,7 +177,6 @@ namespace Unity.BestPractices.Editor
         public static void ApplySettings()
         {
             ApplyEnterPlayMode();
-            ApplyIL2CPP();
             ApplyApiCompatibility();
             ApplyAssetSerialization();
             ApplyVersionControl();

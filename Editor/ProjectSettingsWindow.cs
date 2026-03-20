@@ -68,14 +68,6 @@ namespace Unity.BestPractices.Editor
             );
 
             DrawSettingRow(
-                "Scripting Backend: IL2CPP",
-                "Sets IL2CPP as the scripting backend for Standalone, Android and iOS builds.\n" +
-                "Improves runtime performance and enables full AOT compilation.",
-                ConfigureProjectSettings.IsIL2CPPConfigured,
-                ConfigureProjectSettings.ApplyIL2CPP
-            );
-
-            DrawSettingRow(
                 "API Compatibility: .NET Standard 2.1",
                 "Sets API compatibility to .NET Standard 2.1 for Standalone.\n" +
                 "Broadens library compatibility and aligns with modern .NET practices.",
