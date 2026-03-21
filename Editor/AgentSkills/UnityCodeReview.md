@@ -233,9 +233,9 @@ When reviewing a **folder**, produce one section per file then a combined summar
 
 ## Usage
 
-**Claude Code** — invoke as a project skill:
+**Claude Code** — invoke as a project slash command:
 ```
-/UnityCodeReview
+/project:UnityCodeReview
 ```
 Then specify what to review:
 - Single file: `Review @Assets/Scripts/PlayerController.cs`

@@ -313,7 +313,7 @@ namespace UnityBestPractices.Editor.Dashboard
             {
                 foreach (var s in m_data.AgentSkillFiles)
                 {
-                    if (!string.IsNullOrEmpty(s.FullPath) && File.Exists(CopyAIFilesToProject.GetAgentSkillPromptDestPath(s.FullPath, projectRoot))) skillInstalled++;
+                    if (!string.IsNullOrEmpty(s.FullPath) && CopyAIFilesToProject.IsAgentSkillInstalled(s.FullPath, projectRoot)) skillInstalled++;
                 }
             }
             string header = $"AGENT SKILLS — {skillInstalled}/{skillTotal} installed";
@@ -334,11 +334,11 @@ namespace UnityBestPractices.Editor.Dashboard
                         "HOW THEY ARE INSTALLED\n" +
                         "Skills are copied to two locations:\n\n" +
                         ".github/prompts/     — GitHub Copilot reusable prompts (Chat → #file)\n" +
-                        ".claude/commands/    — Claude Code slash commands (/skill-name)",
+                        ".claude/commands/    — Claude Code slash commands (/project:skill-name)",
                         "HOW TO USE THEM\n" +
                         "In GitHub Copilot Chat, reference a prompt file with #file or use the " +
                         "reusable prompts picker.\n\n" +
-                        "In Claude Code, type /skill-name in the terminal to invoke the skill " +
+                        "In Claude Code, type /project:skill-name in the terminal to invoke the skill " +
                         "directly. Claude expands the template and executes the workflow.",
                         "Use 'Add' to install individual skills or 'Copy to Project' to install " +
                         "all at once. 'Update' overwrites an installed skill with the latest " +
@@ -355,8 +355,8 @@ namespace UnityBestPractices.Editor.Dashboard
                 foreach (var skill in m_data.AgentSkillFiles)
                 {
                     string fullPath = skill.FullPath;
-                    string destPath = CopyAIFilesToProject.GetAgentSkillPromptDestPath(fullPath, projectRoot);
-                    bool installed = File.Exists(destPath);
+                    string claudeDestPath = CopyAIFilesToProject.GetAgentSkillClaudeDestPath(fullPath, projectRoot);
+                    bool installed = CopyAIFilesToProject.IsAgentSkillInstalled(fullPath, projectRoot);
                     bool outdated = installed && CopyAIFilesToProject.AgentSkillIsOutdated(fullPath, projectRoot);
 
                     EditorGUILayout.BeginHorizontal();
@@ -374,8 +374,8 @@ namespace UnityBestPractices.Editor.Dashboard
 
                     if (installed)
                     {
-                        if (GUILayout.Button(new GUIContent("Open", "Open the local copy of this skill"), GUILayout.Width(50)))
-                            InternalEditorUtility.OpenFileAtLineExternal(destPath, 1, 0);
+                        if (GUILayout.Button(new GUIContent("Open", "Open the .claude/commands/ copy of this skill"), GUILayout.Width(50)))
+                            InternalEditorUtility.OpenFileAtLineExternal(claudeDestPath, 1, 0);
 
                         if (outdated && GUILayout.Button(new GUIContent("Update", "Overwrite the local copy with the latest version from the package"), GUILayout.Width(60)))
                             CopyAIFilesToProject.CopySingleAgentSkill(fullPath, projectRoot);

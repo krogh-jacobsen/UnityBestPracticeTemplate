@@ -26,6 +26,19 @@ Or use the consolidated file for all topics at once:
 @Packages/com.unity.best-practices/Editor/LLMInstructions/copilot-instructions.md
 ```
 
+### Claude Code slash commands (Agent Skills)
+
+Agent Skills are also available as Claude Code slash commands. Run **Tools → Unity Project Configurator → AI → Copy AI Files to Project** to copy them into your project.
+
+The skills are placed in `.claude/commands/` which is where Claude Code looks for project-scoped slash commands. Invoke them in Claude Code with:
+
+```
+/project:UnityCodeReview
+/project:UnityUIToolkitCreate
+```
+
+> **Note:** `.github/prompts/` is for GitHub Copilot reusable prompts — those files do **not** appear as Claude Code slash commands. Claude Code requires files in `.claude/commands/`.
+
 ## GitHub Copilot
 
 Create `.github/copilot-instructions.md` and paste the contents of the instruction files you want, or reference them:
