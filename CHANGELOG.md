@@ -5,6 +5,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.4] - 2026-03-21
+### Fixed
+- **Agent Skills not visible in VS Code Copilot Chat** — copying agent skills to `.github/prompts/` now automatically adds `"chat.promptFiles": true` to `.vscode/settings.json`, which is the hidden opt-in setting required for `.prompt.md` files to appear as slash commands in Copilot Chat. The same setting is applied when copying individual skills via the dashboard `Add` button.
+
+### Added
+- **`FixVSCodeSlnx.IsChatPromptFilesEnabled`** — new public helper that checks whether `"chat.promptFiles"` is present in `.vscode/settings.json`.
+- **`FixVSCodeSlnx.EnsureChatPromptFilesEnabled`** — new public helper that writes `"chat.promptFiles": true` to `.vscode/settings.json`, creating the file if it does not exist.
+- **Dashboard status row** — the Agent Skills panel in the Project Dashboard now shows a `[Enabled]` / `[Disabled]` status indicator for `chat.promptFiles` with an inline **Enable** button so users can opt-in without running the full copy workflow.
+
 ## [1.4.3] - 2026-03-15
 ### Added
 - **Unity MCP relay** — `ConfigureUnityMCP.cs` writes `UserSettings/mcp.json` to wire up the Unity MCP relay server; menu item `Tools → Unity Project Configurator → AI → Configure Unity MCP`; detects whether the relay binary is installed and whether the file already exists before writing

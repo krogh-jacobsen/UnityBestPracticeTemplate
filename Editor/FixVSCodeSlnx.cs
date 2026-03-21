@@ -26,6 +26,7 @@ namespace Unity.BestPractices.Editor
         private const string k_OmniSharpKey = "dotnet.preferCSharpExtension";
         private const string k_DefaultSolutionKey = "dotnet.defaultSolution";
         private const string k_WorkspaceDevKey = "dotnet.enableWorkspaceBasedDevelopment";
+        private const string k_ChatPromptFilesKey = "chat.promptFiles";
 
         /// <summary>
         /// Returns true when .vscode/settings.json no longer forces OmniSharp,
@@ -244,6 +245,43 @@ namespace Unity.BestPractices.Editor
             }
 
             Debug.Log($"[BestPractice] Added '{k_CsDevKitId}' to recommendations in {path}");
+        }
+
+        /// <summary>
+        /// Returns true when <c>.vscode/settings.json</c> contains <c>"chat.promptFiles": true</c>,
+        /// which is required for <c>.github/prompts/*.prompt.md</c> files to appear as slash commands
+        /// in VS Code Copilot Chat.
+        /// </summary>
+        public static bool IsChatPromptFilesEnabled(string projectRoot)
+            => SettingsFileContainsKey(projectRoot, k_ChatPromptFilesKey);
+
+        /// <summary>
+        /// Ensures <c>"chat.promptFiles": true</c> is present in <c>.vscode/settings.json</c>.
+        /// Creates the file if it does not exist. Does nothing if the setting is already present.
+        /// </summary>
+        public static void EnsureChatPromptFilesEnabled(string projectRoot)
+        {
+            string vscodeDir = Path.Combine(projectRoot, ".vscode");
+            Directory.CreateDirectory(vscodeDir);
+
+            string path = Path.Combine(vscodeDir, "settings.json");
+
+            if (!File.Exists(path))
+            {
+                string content = "{\n    \"" + k_ChatPromptFilesKey + "\": true\n}\n";
+                File.WriteAllText(path, content);
+                Debug.Log($"[BestPractice] Created {path} with '{k_ChatPromptFilesKey}: true'.");
+                return;
+            }
+
+            string fileContent = File.ReadAllText(path);
+            if (fileContent.Contains(k_ChatPromptFilesKey))
+                return;
+
+            var lines = new System.Collections.Generic.List<string>(fileContent.Split('\n'));
+            InsertSettingBeforeClosingBrace(lines, "\"" + k_ChatPromptFilesKey + "\": true");
+            File.WriteAllText(path, string.Join("\n", lines));
+            Debug.Log($"[BestPractice] Added '{k_ChatPromptFilesKey}: true' to {path}.");
         }
 
         private static bool SettingsFileContainsKey(string projectRoot, string key)
