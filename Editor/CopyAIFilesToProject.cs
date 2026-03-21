@@ -132,12 +132,27 @@ namespace Unity.BestPractices.Editor
             return Path.Combine(projectRoot, ".github", "prompts", baseName + ".prompt.md");
         }
 
-        /// <summary>Returns true if the local copy exists but its content differs from the package source.</summary>
+        /// <summary>Returns the absolute destination path for the .claude/commands/ copy of the given AgentSkill source.</summary>
+        public static string GetAgentSkillClaudeDestPath(string srcAbsPath, string projectRoot)
+        {
+            string baseName = Path.GetFileNameWithoutExtension(Path.GetFileName(srcAbsPath));
+            return Path.Combine(projectRoot, ".claude", "commands", baseName + ".md");
+        }
+
+        /// <summary>Returns true if both destination copies (.github/prompts/ and .claude/commands/) exist for the given AgentSkill source.</summary>
+        public static bool IsAgentSkillInstalled(string srcAbsPath, string projectRoot)
+            => File.Exists(GetAgentSkillPromptDestPath(srcAbsPath, projectRoot))
+            && File.Exists(GetAgentSkillClaudeDestPath(srcAbsPath, projectRoot));
+
+        /// <summary>Returns true if both destination copies exist but either differs from the package source.</summary>
         public static bool AgentSkillIsOutdated(string srcAbsPath, string projectRoot)
         {
-            string destPath = GetAgentSkillPromptDestPath(srcAbsPath, projectRoot);
-            if (!File.Exists(destPath)) return false;
-            return File.ReadAllText(srcAbsPath) != File.ReadAllText(destPath);
+            string promptPath = GetAgentSkillPromptDestPath(srcAbsPath, projectRoot);
+            string claudePath = GetAgentSkillClaudeDestPath(srcAbsPath, projectRoot);
+            string src = File.ReadAllText(srcAbsPath);
+            if (File.Exists(promptPath) && File.ReadAllText(promptPath) != src) return true;
+            if (File.Exists(claudePath) && File.ReadAllText(claudePath) != src) return true;
+            return false;
         }
 
         /// <summary>Copies a single AgentSkill file to .github/prompts/ and .claude/commands/.</summary>
