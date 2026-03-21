@@ -399,10 +399,33 @@ namespace UnityBestPractices.Editor.Dashboard
 
             DrawToolCard(
                 "Copy All Agent Skills",
-                "Copies all agent skill files to .github/prompts/ (Copilot reusable prompts) and .claude/commands/ (Claude Code slash commands).",
+                "Copies all agent skill files to .github/prompts/ (Copilot reusable prompts) and .claude/commands/ (Claude Code slash commands). Also enables \"chat.promptFiles\" in .vscode/settings.json so prompts appear as slash commands in VS Code Copilot Chat.",
                 false, "",
                 "Copy to Project", CopyAIFilesToProject.ExecuteAgentSkillsOnly, 110, showBadge: false);
 
+            // ── VS Code Copilot prompt files setting ──────────────────────
+            bool chatPromptFilesEnabled = FixVSCodeSlnx.IsChatPromptFilesEnabled(projectRoot);
+            EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+            var prevCol = GUI.color;
+            GUI.color = chatPromptFilesEnabled ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.9f, 0.7f, 0.2f);
+            GUILayout.Label(chatPromptFilesEnabled ? "[Enabled]" : "[Disabled]",
+                GUILayout.Width(chatPromptFilesEnabled ? 60 : 68));
+            GUI.color = prevCol;
+            GUILayout.Label(
+                new GUIContent(
+                    "chat.promptFiles (.vscode/settings.json)",
+                    "Required for .github/prompts/*.prompt.md files to appear as slash commands in VS Code Copilot Chat."),
+                EditorStyles.label);
+            GUILayout.FlexibleSpace();
+            if (!chatPromptFilesEnabled)
+            {
+                if (GUILayout.Button(new GUIContent("Enable", "Adds \"chat.promptFiles\": true to .vscode/settings.json"), GUILayout.Width(55)))
+                {
+                    FixVSCodeSlnx.EnsureChatPromptFilesEnabled(projectRoot);
+                    Repaint();
+                }
+            }
+            EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.EndVertical();
         }

@@ -52,7 +52,9 @@ namespace Unity.BestPractices.Editor
                 $"Copied to project root:\n\n" +
                 $"• {llmCount} LLM Instruction file(s) → .github/instructions/\n" +
                 $"• .github/copilot-instructions.md (consolidated)\n" +
-                $"• {skillCount} AgentSkill file(s) → .github/prompts/ and .claude/commands/",
+                $"• {skillCount} AgentSkill file(s) → .github/prompts/ and .claude/commands/\n\n" +
+                $"\"chat.promptFiles\": true has been set in .vscode/settings.json so the " +
+                $".prompt.md files appear as slash commands in VS Code Copilot Chat.",
                 "OK");
         }
         /// <summary>Copies only LLM instruction files to .github/instructions/ (and .github/copilot-instructions.md).</summary>
@@ -167,6 +169,9 @@ namespace Unity.BestPractices.Editor
             string claudeDir = Path.Combine(projectRoot, ".claude", "commands");
             Directory.CreateDirectory(claudeDir);
             File.Copy(srcAbsPath, Path.Combine(claudeDir, baseName + ".md"), overwrite: true);
+
+            // Ensure VS Code Copilot Chat will surface the .prompt.md files as slash commands.
+            FixVSCodeSlnx.EnsureChatPromptFilesEnabled(projectRoot);
         }
 
         private static int CopyLLMInstructions(string packageRoot, string projectRoot)
@@ -234,6 +239,9 @@ namespace Unity.BestPractices.Editor
 
                 count++;
             }
+
+            // Ensure VS Code Copilot Chat will surface the .prompt.md files as slash commands.
+            FixVSCodeSlnx.EnsureChatPromptFilesEnabled(projectRoot);
 
             return count;
         }
